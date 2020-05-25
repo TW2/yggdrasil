@@ -70,7 +70,7 @@ public class AudioWave extends JPanel implements Runnable {
         
     }
     
-    public static AudioWave create(File file, FFStuffs ffss){
+    public static AudioWave create(File file, FFStuffs ffss, boolean dark){
         // On crée un nouveau objet principal
         AudioWave aw = new AudioWave();
         
@@ -86,7 +86,7 @@ public class AudioWave extends JPanel implements Runnable {
         
         // On lance les dépendances
         aw.aws = new AudioWaveScale();
-        aw.wp = new AudioWavePanel(aw.ffss, aw.aws, aw);
+        aw.wp = new AudioWavePanel(aw.ffss, aw.aws, aw, dark);
         
         // On lance l'initialisation
         aw.init();

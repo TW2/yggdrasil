@@ -104,7 +104,7 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         studio.setVideo(video);
         studio.setFfss(ffss);
         
-        fp.configure(ffss, AVStudio.isDark());
+        fp.configure(ffss, studio.isDark());
         
         studio.setFp(fp);
     }

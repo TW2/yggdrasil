@@ -51,16 +51,13 @@ import org.wingate.ygg.util.Time;
  */
 public class AudioWavePanel extends JPanel {
     
+    boolean dark = false;
+    
     AudioWave awm;
     AudioWaveScale aws;
     FFStuffs ffss;
     
     File videoFilePath;
-    Color backColor = DrawColor.white_smoke.getColor();
-    Color centerColor = DrawColor.corn_flower_blue.getColor();
-    Color curveColor = Color.blue.brighter();
-    Color vSecondsColor = Color.red;
-    Color keyFrameColor = Color.black;
     
     // For play area
     long msAreaStart = 0L, msAreaStop = 0L;
@@ -98,10 +95,11 @@ public class AudioWavePanel extends JPanel {
         repaint();
     }
 
-    public AudioWavePanel(FFStuffs ffss, AudioWaveScale aws, AudioWave awm) {
+    public AudioWavePanel(FFStuffs ffss, AudioWaveScale aws, AudioWave awm, boolean dark) {
         this.ffss = ffss;
         this.aws = aws;
         this.awm = awm;
+        this.dark = dark;
         init();
     }
 
@@ -153,7 +151,7 @@ public class AudioWavePanel extends JPanel {
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D)g;
 
-        g2d.setColor(backColor);
+        g2d.setColor(AudioWaveColors.Background.getColor(dark));
         g2d.fillRect(0, 0, getWidth(), getHeight());
         if(videoFilePath != null && videoFilePath.exists() == true){
             // On obtient un tableau des données
@@ -171,7 +169,7 @@ public class AudioWavePanel extends JPanel {
             }
 
             // On dessine la courbe (ligne du milieu)
-            g2d.setColor(curveColor);
+            g2d.setColor(AudioWaveColors.WaveForm.getColor(dark));
             g2d.drawLine(0, getHeight()/2, getWidth(), getHeight()/2);
 
             Line2D l2d;
@@ -182,7 +180,7 @@ public class AudioWavePanel extends JPanel {
 
                 if(x > 0 && x <= getWidth()){
                     // On dessine la courbe (générale)
-                    g2d.setColor(curveColor);
+                    g2d.setColor(AudioWaveColors.WaveForm.getColor(dark));
                     l2d = new Line2D.Double(
                             x, 
                             y, 
@@ -191,7 +189,7 @@ public class AudioWavePanel extends JPanel {
                     g2d.draw(l2d);
 
                     // On dessine la courbe (centre)
-                    g2d.setColor(centerColor);
+                    g2d.setColor(AudioWaveColors.WaveFormCenter.getColor(dark));
                     l2d = new Line2D.Double(
                             x,
                             y / 2 + awm.wp.getHeight() / 4,
@@ -204,14 +202,14 @@ public class AudioWavePanel extends JPanel {
                 if(count == samplesPerPixel / 4){
                     times++;
                     // On dessine les repères
-                    g2d.setColor(vSecondsColor);
+                    g2d.setColor(AudioWaveColors.Seconds.getColor(dark));
                     l2d = new Line2D.Double(
                             x, 
                             0, 
                             x, 
                             getHeight());
                     g2d.draw(l2d);
-                    g2d.setColor(Color.black);
+                    g2d.setColor(AudioWaveColors.Seconds.getColor(dark));
 //                        double msframe = samplesPerPixel / 4 * times / fps * 1000;
 //                        Time mark = Time.create(Math.round(msframe));
 //                        Time mark = Time.getTimeFromFrame(getFrameFromSamples(offset + Math.round(samplesPerPixel / 4 * times * (x - offset))), fps);
@@ -223,7 +221,7 @@ public class AudioWavePanel extends JPanel {
 
             if(startArea != null){
                 // On dessine le repère de début de zone
-                g2d.setColor(DrawColor.dark_green.getColor());
+                g2d.setColor(AudioWaveColors.StartArea.getColor(dark));
                 l2d = new Line2D.Float(
                         offset + startArea.x, 
                         0, 
@@ -240,7 +238,7 @@ public class AudioWavePanel extends JPanel {
 
             if(stopArea != null){
                 // On dessine le repère de fin de zone
-                g2d.setColor(DrawColor.dark_red.getColor());
+                g2d.setColor(AudioWaveColors.StopArea.getColor(dark));
                 l2d = new Line2D.Float(
                         offset + stopArea.x, 
                         0, 
@@ -257,7 +255,7 @@ public class AudioWavePanel extends JPanel {
 
             if(startArea != null && stopArea != null){
                 // On dessine la zone
-                g2d.setColor(DrawColor.green_yellow.getColor(0.5f));
+                g2d.setColor(AudioWaveColors.Area.getColor(dark));
                 Rectangle2D r2d = new Rectangle2D.Float(
                         offset + startArea.x,
                         0,
@@ -268,7 +266,7 @@ public class AudioWavePanel extends JPanel {
 
             if(currentMouseMotion != null){
                 // On dessine le curseur
-                g2d.setColor(Color.pink);
+                g2d.setColor(AudioWaveColors.Pointer.getColor(dark));
                 l2d = new Line2D.Float(
                         offset + currentMouseMotion.x, 
                         0, 
@@ -287,7 +285,7 @@ public class AudioWavePanel extends JPanel {
             for(Map.Entry<Integer, Time> entry : ffss.getIFrames().entrySet()){
                 int x = offset + Math.round(getSamplesFromFrame(Time.getFrame(entry.getValue(), ffss.getFps())) / samplesPerPixel);
                 
-                g2d.setColor(keyFrameColor);
+                g2d.setColor(AudioWaveColors.KeyFrame.getColor(dark));
                 l2d = new Line2D.Double(
                         x, 
                         0, 
@@ -313,7 +311,7 @@ public class AudioWavePanel extends JPanel {
             // On dessine la progression
             Stroke oldStroke = g2d.getStroke();
             g2d.setStroke(new BasicStroke(3f));
-            g2d.setColor(DrawColor.violet.getColor());
+            g2d.setColor(AudioWaveColors.Progress.getColor(dark));
             int progressSamples = awm.getSamplesFromFrame(Time.getFrame(msCurrent, ffss.getFps()));
             l2d = new Line2D.Double(
                     offset + progressSamples / samplesPerPixel, 
@@ -368,6 +366,38 @@ public class AudioWavePanel extends JPanel {
                 }
                 g2d.setFont(oldFont);
             }
+        }
+    }
+    
+    public enum AudioWaveColors{
+        Background("Background", DrawColor.white_smoke.getColor(), new Color(71, 75, 76)),
+        WaveFormCenter("Center of waveform", DrawColor.corn_flower_blue.getColor(), DrawColor.corn_flower_blue.getColor()),
+        WaveForm("Main waveform", Color.blue.brighter(), Color.blue.brighter()),
+        Seconds("Seconds", Color.red, Color.red),
+        KeyFrame("Key frames", Color.black, Color.white),
+        StartArea("Start", DrawColor.dark_green.getColor(), DrawColor.lime.getColor()),
+        StopArea("Stop", DrawColor.dark_red.getColor(), DrawColor.orange_red.getColor()),
+        Area("Area", DrawColor.green_yellow.getColor(0.5f), DrawColor.green_yellow.getColor(0.5f)),
+        Progress("Progress", DrawColor.violet.getColor(), DrawColor.violet.getColor()),
+        Pointer("Pointer", Color.pink, Color.pink);
+        
+        
+        String name;
+        Color light;
+        Color dark;
+        
+        private AudioWaveColors(String name, Color light, Color dark){
+            this.name = name;
+            this.light = light;
+            this.dark = dark;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Color getColor(boolean isDark) {
+            return isDark == false ? light : dark;
         }
     }
     

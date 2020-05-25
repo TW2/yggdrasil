@@ -42,7 +42,7 @@ public class FrmTable extends javax.swing.JInternalFrame {
     private final AVStudio studio;
 
     private AssEventTableModel dtmASS;    
-    private final AssEventTableRenderer assEventTableRenderer = new AssEventTableRenderer();
+    private AssEventTableRenderer assEventTableRenderer;
     
     /**
      * Creates new form FrmTable
@@ -55,6 +55,7 @@ public class FrmTable extends javax.swing.JInternalFrame {
     }
     
     private void init(){
+        assEventTableRenderer = new AssEventTableRenderer(studio.isDark());
         initializeTable(MainFrame.getLanguage(), MainFrame.getISOCountry());
         setVisible(true);
     }

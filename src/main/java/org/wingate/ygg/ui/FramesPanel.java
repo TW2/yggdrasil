@@ -31,12 +31,7 @@ import org.wingate.ygg.util.Time;
 public class FramesPanel extends JPanel {
     
     private FFStuffs ffss;
-    
-    private Color backgroundColor = DrawColor.white_smoke.getColor();
-    private final Color IFrameColor = DrawColor.blue_violet.getColor();
-    private final Color startColor = DrawColor.lime.getColor();
-    private final Color endColor = DrawColor.red.getColor();
-    private final Color currentTrackerColor = DrawColor.pink.getColor();
+    private boolean dark = false;
     
     private Map<Integer, Time> IFrames;
     private Map<Integer, Time> PFrames;
@@ -51,32 +46,29 @@ public class FramesPanel extends JPanel {
     
     public void configure(FFStuffs ffss, boolean dark){
         this.ffss = ffss;
+        this.dark = dark;
         this.IFrames = ffss.getIFrames();
         this.PFrames = ffss.getPFrames();
         this.BFrames = ffss.getBFrames(); 
         frameCount = Time.getFrame(ffss.getDuration(), ffss.getFps());
-        
-        if(dark == true){
-            backgroundColor = DrawColor.chocolate.getColor();
-        }
     }
 
     @Override
     public void paint(Graphics g) {        
         // On peint l'arrière-plan
-        g.setColor(backgroundColor);
+        g.setColor(FramesColors.Background.getColor(dark));
         g.fillRect(0, 0, getWidth(), getHeight());
                 
         if(frameCount > 0){
             // On peint les I frames
-            g.setColor(IFrameColor);
+            g.setColor(FramesColors.KeyFrame.getColor(dark));
             for(Map.Entry<Integer, Time> entry : IFrames.entrySet()){
                 int x = Math.round((float)entry.getKey() * getWidth() / frameCount);
                 g.drawLine(x, 0, x, getHeight());
             }
             
             // On peint la progression
-            g.setColor(currentTrackerColor);
+            g.setColor(FramesColors.Progress.getColor(dark));
             int x1 = Math.round(Time.getFrame(currentTime, ffss.getFps()) * getWidth() / frameCount);
             g.drawLine(x1, 0, x1, getHeight());
         }
@@ -89,6 +81,35 @@ public class FramesPanel extends JPanel {
 
     public FFStuffs getFfss() {
         return ffss;
+    }
+    
+    public enum FramesColors{
+        Background("Background", DrawColor.white_smoke.getColor(), new Color(71, 75, 76)),
+        KeyFrame("Key frames", Color.black, Color.white),
+        StartArea("Start", DrawColor.dark_green.getColor(), DrawColor.lime.getColor()),
+        StopArea("Stop", DrawColor.dark_red.getColor(), DrawColor.orange_red.getColor()),
+        Area("Area", DrawColor.green_yellow.getColor(0.5f), DrawColor.green_yellow.getColor(0.5f)),
+        Progress("Progress", DrawColor.violet.getColor(), DrawColor.violet.getColor()),
+        Pointer("Pointer", Color.pink, Color.pink);
+        
+        
+        String name;
+        Color light;
+        Color dark;
+        
+        private FramesColors(String name, Color light, Color dark){
+            this.name = name;
+            this.light = light;
+            this.dark = dark;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Color getColor(boolean isDark) {
+            return isDark == false ? light : dark;
+        }
     }
     
 }

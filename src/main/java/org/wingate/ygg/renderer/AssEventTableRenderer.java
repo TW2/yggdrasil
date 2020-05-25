@@ -33,11 +33,41 @@ import org.wingate.ygg.util.Time;
  */
 public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
 
-    private Color lineNumberColor = DrawColor.khaki.getColor();
-    private Color dialogueColor = Color.white;
-    private Color commentColor = DrawColor.pale_green.getColor();
-    private Color proposalColor = DrawColor.gold.getColor();
-    private Color requestColor = DrawColor.light_sky_blue.getColor();
+    private boolean dark = false;
+    
+    public enum Colors{
+        Background("Background", Color.white, new Color(71, 75, 76)),
+        Foreground("Foreground", Color.black, Color.white),
+        Line("Line number", DrawColor.khaki.getColor(), DrawColor.blue_violet.getColor()),
+        Dialogue("Dialogue", Color.white, new Color(71, 75, 76)),
+        Comment("Comment", DrawColor.pale_green.getColor(), DrawColor.dark_olive_green.getColor()),
+        Proposal("Proposal", DrawColor.gold.getColor(), DrawColor.chocolate.getColor()),
+        Request("Request", DrawColor.light_sky_blue.getColor(), DrawColor.dark_blue.getColor()),
+        Picture("Picture", Color.white, new Color(71, 75, 76)),
+        Movie("Movie", Color.white, new Color(71, 75, 76)),
+        Sound("Sound", Color.white, new Color(71, 75, 76)),
+        Commands("Commands", Color.white, new Color(71, 75, 76)),
+        Selected("Selected", DrawColor.alice_blue.getColor(), Color.black.brighter());
+        
+        
+        String name;
+        Color light;
+        Color dark;
+        
+        private Colors(String name, Color light, Color dark){
+            this.name = name;
+            this.light = light;
+            this.dark = dark;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Color getColor(boolean isDark) {
+            return isDark == false ? light : dark;
+        }
+    }
     
     public enum TextType{
         StripAll, Normal, WithItems;
@@ -45,7 +75,8 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
     
     TextType texttype = TextType.Normal;
     
-    public AssEventTableRenderer() {
+    public AssEventTableRenderer(boolean dark) {
+        this.dark = dark;
         init();
     }
     
@@ -56,7 +87,7 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         
-        setForeground(Color.black);
+        setForeground(Colors.Foreground.getColor(dark));
         
         // Get linetype (index 1)
         if(table.getModel() instanceof AssEventTableModel){
@@ -64,10 +95,11 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
             Event.LineType linetype = model.getLineType(row);
             
             switch(linetype){
-                case Dialogue: setBackground(dialogueColor); break;
-                case Comment: setBackground(commentColor); break;
-                case Proposal: setBackground(proposalColor); break;
-                case Request: setBackground(requestColor); break;
+                case Dialogue: setBackground(Colors.Dialogue.getColor(dark)); break;
+                case Comment: setBackground(Colors.Comment.getColor(dark)); break;
+                case Proposal: setBackground(Colors.Proposal.getColor(dark)); break;
+                case Request: setBackground(Colors.Request.getColor(dark)); break;
+                default: setBackground(Colors.Dialogue.getColor(dark)); break;
             }
         }
         
@@ -77,7 +109,7 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
         
         if(value instanceof Integer && column == 0){
             // Fill the number color and display the number
-            setBackground(lineNumberColor);
+            setBackground(Colors.Line.getColor(dark));
             setText(Integer.toString(row + 1));
         }
         
@@ -133,7 +165,7 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
         
         // Filler when selected
         if(isSelected == true){
-            setBackground(DrawColor.alice_blue.getColor());            
+            setBackground(Colors.Selected.getColor(dark));            
         }
         
         // CPL
@@ -149,46 +181,6 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
         }
         
         return this;
-    }
-
-    public void setLineNumberColor(Color lineNumberColor) {
-        this.lineNumberColor = lineNumberColor;
-    }
-
-    public Color getLineNumberColor() {
-        return lineNumberColor;
-    }
-
-    public void setDialogueColor(Color dialogueColor) {
-        this.dialogueColor = dialogueColor;
-    }
-
-    public Color getDialogueColor() {
-        return dialogueColor;
-    }
-
-    public void setCommentColor(Color commentColor) {
-        this.commentColor = commentColor;
-    }
-
-    public Color getCommentColor() {
-        return commentColor;
-    }
-
-    public void setProposalColor(Color proposalColor) {
-        this.proposalColor = proposalColor;
-    }
-
-    public Color getProposalColor() {
-        return proposalColor;
-    }
-
-    public void setRequestColor(Color requestColor) {
-        this.requestColor = requestColor;
-    }
-
-    public Color getRequestColor() {
-        return requestColor;
     }
 
     public TextType getTexttype() {

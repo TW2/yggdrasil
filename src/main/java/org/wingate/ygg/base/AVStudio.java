@@ -45,10 +45,10 @@ public class AVStudio {
     private FrmTable frmTable;
     private FrmSubCommand frmSC;
     
-    static boolean dark;
+    boolean dark;
     
     public AVStudio(boolean dark){
-        AVStudio.dark = dark;
+        this.dark = dark;
         init();
     }
     
@@ -91,7 +91,7 @@ public class AVStudio {
         this.frmSC = frmSC;
     }
     
-    public static boolean isDark() {
+    public boolean isDark() {
         return dark;
     }
 

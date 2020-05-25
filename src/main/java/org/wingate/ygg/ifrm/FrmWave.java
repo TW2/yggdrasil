@@ -18,7 +18,6 @@ package org.wingate.ygg.ifrm;
 
 import java.awt.BorderLayout;
 import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.io.File;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.base.AVStudio;
@@ -65,7 +64,7 @@ public class FrmWave extends javax.swing.JInternalFrame {
     
     public void setFile(File f, FFStuffs ffss){
         this.ffss = ffss;
-        aw = AudioWave.create(f, ffss);
+        aw = AudioWave.create(f, ffss, studio.isDark());
         
         studio.setAw(aw);
         
