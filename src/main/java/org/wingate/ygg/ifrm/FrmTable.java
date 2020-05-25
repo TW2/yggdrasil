@@ -19,6 +19,7 @@ package org.wingate.ygg.ifrm;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.List;
 import javax.swing.table.TableColumn;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.ass.ASS;
@@ -142,6 +143,13 @@ public class FrmTable extends javax.swing.JInternalFrame {
         dtmASS.insertAll(ass.getEvents());
         tableASS.updateUI();
         studio.getFrmSC().reinit();
+    }
+    
+    public void saveASSTable(File f){
+        ASS ass = new ASS();
+        List<Event> events = dtmASS.getAllEvents();
+        ass.setEvents(events);
+        ASS.Save(f.getPath(), ass);
     }
     
     public void alter(Event ev){

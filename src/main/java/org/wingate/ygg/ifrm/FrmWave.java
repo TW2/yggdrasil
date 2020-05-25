@@ -17,7 +17,10 @@
 package org.wingate.ygg.ifrm;
 
 import java.awt.BorderLayout;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.io.File;
+import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.base.AVStudio;
 import org.wingate.ygg.ui.AudioWave;
 import org.wingate.ygg.util.FFStuffs;
@@ -72,6 +75,19 @@ public class FrmWave extends javax.swing.JInternalFrame {
         aw.updateDisplayWithOffset(0, Time.create(0L), Time.create(0L));
         
         updateUI();
+    }
+    
+    public void displayEventTime(Event ev){
+        int startFrame = Time.getFrame(ev.getStartTime(), studio.getFfss().getFps());
+        int endFrame = Time.getFrame(ev.getEndTime(), studio.getFfss().getFps());
+        
+        int startSamples = aw.getSamplesFromFrame(startFrame);
+        int endSamples = aw.getSamplesFromFrame(endFrame);
+        
+        Point start = new Point(Math.round(startSamples / aw.getSamplesPerPixel()), 0);
+        Point stop = new Point(Math.round(endSamples / aw.getSamplesPerPixel()), 0);
+        
+        aw.getAudioWavePanel().updatePoint(start, stop);        
     }
 
     /**

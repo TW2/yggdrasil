@@ -378,4 +378,10 @@ public class AudioWavePanel extends JPanel {
         // 2. Avoir des samples
         return (int)Math.round(Time.toMillisecondsTime(ref) * ffss.getSampleRate());
     }
+    
+    public void updatePoint(Point start, Point stop){
+        startArea = start;
+        stopArea = stop;
+        repaint();
+    }
 }

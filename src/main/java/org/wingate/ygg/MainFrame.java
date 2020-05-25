@@ -250,7 +250,7 @@ public class MainFrame extends javax.swing.JFrame {
                 for(FileFilter ff : fcAV.getChoosableFileFilters()){
                     fcAV.removeChoosableFileFilter(ff);
                 }
-                fcAV.addChoosableFileFilter(new FileFilter() {
+                FileFilter ffav = new FileFilter() {
                     @Override
                     public boolean accept(File f) {
                         if(f.isDirectory()) return true;
@@ -266,7 +266,9 @@ public class MainFrame extends javax.swing.JFrame {
                     public String getDescription() {
                         return "Video files";
                     }
-                });
+                };
+                fcAV.addChoosableFileFilter(ffav);
+                fcAV.setFileFilter(ffav);
                 int z = fcAV.showOpenDialog(this);
                 if(z == JFileChooser.APPROVE_OPTION){
                     studio.getFrmVideo().openAudioVideo(fcAV.getSelectedFile());
@@ -277,7 +279,7 @@ public class MainFrame extends javax.swing.JFrame {
                 for(FileFilter ff : fcAV.getChoosableFileFilters()){
                     fcAV.removeChoosableFileFilter(ff);
                 }
-                fcAV.addChoosableFileFilter(new FileFilter() {
+                FileFilter ffass = new FileFilter() {
                     @Override
                     public boolean accept(File f) {
                         if(f.isDirectory()) return true;
@@ -288,7 +290,9 @@ public class MainFrame extends javax.swing.JFrame {
                     public String getDescription() {
                         return "ASS files";
                     }
-                });
+                };
+                fcAV.addChoosableFileFilter(ffass);
+                fcAV.setFileFilter(ffass);
                 int z = fcAV.showOpenDialog(this);
                 if(z == JFileChooser.APPROVE_OPTION){
                     studio.getFrmTable().loadASSTable(fcAV.getSelectedFile());
@@ -299,7 +303,39 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuFileOpenActionPerformed
 
     private void mnuFileSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileSaveActionPerformed
-        // TODO add your handling code here:
+        if(studio != null &&
+                studio.getFrmVideo().isVisible() |
+                studio.getFrmWave().isVisible() |
+                studio.getFrmTable().isVisible() |
+                studio.getFrmSC().isVisible()){
+            if(studio.getFrmTable().isSelected()){
+                for(FileFilter ff : fcAV.getChoosableFileFilters()){
+                    fcAV.removeChoosableFileFilter(ff);
+                }
+                FileFilter ffass = new FileFilter() {
+                    @Override
+                    public boolean accept(File f) {
+                        if(f.isDirectory()) return true;
+                        return f.getName().endsWith(".ass");
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "ASS files";
+                    }
+                };
+                fcAV.addChoosableFileFilter(ffass);
+                fcAV.setFileFilter(ffass);
+                int z = fcAV.showSaveDialog(this);
+                if(z == JFileChooser.APPROVE_OPTION){
+                    File file = fcAV.getSelectedFile();
+                    if(file.getName().endsWith(".ass") == false){
+                        file = new File(file.getParentFile(), file.getName()+".ass");
+                    }
+                    studio.getFrmTable().saveASSTable(file);
+                }
+            }
+        }
     }//GEN-LAST:event_mnuFileSaveActionPerformed
 
     /**

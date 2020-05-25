@@ -229,6 +229,8 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         tfSFX = new javax.swing.JTextField();
         btnChange = new javax.swing.JButton();
         btnAdd = new javax.swing.JButton();
+        paneWave = new javax.swing.JPanel();
+        btnSeeEventInWave = new javax.swing.JButton();
 
         setClosable(true);
         setMaximizable(true);
@@ -495,7 +497,7 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         paneTranslate.setLayout(paneTranslateLayout);
         paneTranslateLayout.setHorizontalGroup(
             paneTranslateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1247, Short.MAX_VALUE)
+            .addGap(0, 1388, Short.MAX_VALUE)
         );
         paneTranslateLayout.setVerticalGroup(
             paneTranslateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -564,6 +566,31 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
             }
         });
 
+        paneWave.setBorder(javax.swing.BorderFactory.createTitledBorder("Wave"));
+
+        btnSeeEventInWave.setText("See");
+        btnSeeEventInWave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSeeEventInWaveActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout paneWaveLayout = new javax.swing.GroupLayout(paneWave);
+        paneWave.setLayout(paneWaveLayout);
+        paneWaveLayout.setHorizontalGroup(
+            paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(paneWaveLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnSeeEventInWave, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        paneWaveLayout.setVerticalGroup(
+            paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(paneWaveLayout.createSequentialGroup()
+                .addComponent(btnSeeEventInWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -571,29 +598,28 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(splitPaneText)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(paneTypes, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(paneLayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(btnOpenTypes, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(paneStyle, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(2, 2, 2)
-                                .addComponent(paneMargins, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(paneTime, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(paneMisc, javax.swing.GroupLayout.PREFERRED_SIZE, 211, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(splitPaneText, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btnChange)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnAdd)))
+                        .addComponent(btnAdd))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(paneTypes, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(paneLayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnOpenTypes, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(paneStyle, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(2, 2, 2)
+                        .addComponent(paneMargins, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(paneTime, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(paneMisc, javax.swing.GroupLayout.PREFERRED_SIZE, 211, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(paneWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -609,9 +635,10 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                         .addComponent(btnOpenTypes))
                     .addComponent(paneTypes, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(paneTime, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(paneMisc, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(paneMisc, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(paneWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(splitPaneText, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)
+                .addComponent(splitPaneText, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnAdd)
@@ -803,6 +830,12 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         
     }//GEN-LAST:event_slideSpeedStateChanged
 
+    private void btnSeeEventInWaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSeeEventInWaveActionPerformed
+        if(studio.getFrmWave() != null){
+            studio.getFrmWave().displayEventTime(ev);
+        }
+    }//GEN-LAST:event_btnSeeEventInWaveActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup bgTypeOfLine;
@@ -811,6 +844,7 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
     private javax.swing.JButton btnChange;
     private javax.swing.JButton btnItalic;
     private javax.swing.JButton btnOpenTypes;
+    private javax.swing.JButton btnSeeEventInWave;
     private javax.swing.JButton btnStrikeOut;
     private javax.swing.JButton btnUnderline;
     private javax.swing.JComboBox<String> comboName;
@@ -827,6 +861,7 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
     private javax.swing.JPanel paneTime;
     private javax.swing.JPanel paneTranslate;
     private javax.swing.JPanel paneTypes;
+    private javax.swing.JPanel paneWave;
     private javax.swing.JSlider slideSpeed;
     private javax.swing.JSpinner spinLayer;
     private javax.swing.JSpinner spinLeft;
