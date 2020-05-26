@@ -149,6 +149,9 @@ public class AVStudio {
     
     public void tableToCommand(Event ev){
         frmSC.alter(ev);
+        try{
+            frmWave.displayEventTime(ev);
+        }catch(Exception ex){}
     }
     
     public void commandToTable(Event ev, boolean alter){

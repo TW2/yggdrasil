@@ -662,9 +662,10 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
 
     private void btnChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeActionPerformed
         try {
-            ev.setText(tpText.getText());
-            ev.setEffect(tfSFX.getText());
-            studio.commandToTable((Event)ev.clone(), true);
+            Event nv = (Event)ev.clone();
+            nv.setText(tpText.getText());
+            nv.setEffect(tfSFX.getText());
+            studio.commandToTable(nv, true);
         } catch (CloneNotSupportedException ex) {
             Logger.getLogger(FrmSubCommand.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -672,9 +673,10 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         try {
-            ev.setText(tpText.getText());
-            ev.setEffect(tfSFX.getText());
-            studio.commandToTable((Event)ev.clone(), false);
+            Event nv = (Event)ev.clone();
+            nv.setText(tpText.getText());
+            nv.setEffect(tfSFX.getText());
+            studio.commandToTable(nv, false);
         } catch (CloneNotSupportedException ex) {
             Logger.getLogger(FrmSubCommand.class.getName()).log(Level.SEVERE, null, ex);
         }
