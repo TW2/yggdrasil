@@ -226,6 +226,10 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         
         return bi;
     }
+    
+    public void updateAreaFrames(Event ev){
+        fp.updateArea(ev.getStartTime(), ev.getEndTime());
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.

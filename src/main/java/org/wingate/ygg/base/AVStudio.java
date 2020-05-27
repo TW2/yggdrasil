@@ -151,6 +151,7 @@ public class AVStudio {
         frmSC.alter(ev);
         try{
             frmWave.displayEventTime(ev);
+            frmVideo.updateAreaFrames(ev);
         }catch(Exception ex){}
     }
     

@@ -18,6 +18,8 @@ package org.wingate.ygg.ui;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Map;
 import javax.swing.JPanel;
 import org.wingate.ygg.util.DrawColor;
@@ -38,10 +40,22 @@ public class FramesPanel extends JPanel {
     private Map<Integer, Time> BFrames;
     
     private int frameCount = 0;
-    private Time currentTime = Time.create(0L);    
+    private Time currentTime = Time.create(0L);
+    
+    private Time areaStartTime = Time.create(0L);
+    private Time areaEndTime = Time.create(0L);
 
     public FramesPanel() {      
-        
+        init();
+    }
+    
+    private void init(){
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
     }
     
     public void configure(FFStuffs ffss, boolean dark){
@@ -66,6 +80,19 @@ public class FramesPanel extends JPanel {
                 int x = Math.round((float)entry.getKey() * getWidth() / frameCount);
                 g.drawLine(x, 0, x, getHeight());
             }
+            // On peint le temps du début
+            g.setColor(FramesColors.StartArea.getColor(dark));
+            int xStart = Math.round(Time.getFrame(areaStartTime, ffss.getFps()) * getWidth() / frameCount);
+            g.drawLine(xStart, 0, xStart, getHeight());
+            
+            // On peint le temps de fin
+            g.setColor(FramesColors.StopArea.getColor(dark));
+            int xStop = Math.round(Time.getFrame(areaEndTime, ffss.getFps()) * getWidth() / frameCount);
+            g.drawLine(xStop, 0, xStop, getHeight());
+            
+            // On peint la zone
+            g.setColor(FramesColors.Area.getColor(dark));
+            g.fillRect(xStart, 0, xStop - xStart, getHeight());
             
             // On peint la progression
             g.setColor(FramesColors.Progress.getColor(dark));
@@ -78,7 +105,13 @@ public class FramesPanel extends JPanel {
         currentTime = time;
         repaint();
     }
-
+    
+    public void updateArea(Time start, Time end){
+        areaStartTime = start;
+        areaEndTime = end;
+        repaint();
+    }
+    
     public FFStuffs getFfss() {
         return ffss;
     }
