@@ -20,14 +20,11 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.media.Media;
@@ -37,8 +34,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.shape.Path;
-import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -66,15 +61,6 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     private File video = null;
     private ASS ass = null;
     
-    // JavaFX ----------------------------------------------
-    private static final double SIZE = 1;
-    private Group group = new Group();
-    private final Rotate rx = new Rotate(0, Rotate.X_AXIS);
-    private final Rotate ry = new Rotate(0, Rotate.Y_AXIS);
-    private final Rotate rz = new Rotate(0, Rotate.Z_AXIS);
-    private Path path;
-    // -----------------------------------------------------
-    
     /**
      * Creates new form FrmVideo
      * @param studio
@@ -85,7 +71,7 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         init();
     }
     
-    private void init(){
+    private void init(){        
         panTimeline.add(fp, BorderLayout.CENTER);
         
         panVideo.add(fXPanel, BorderLayout.CENTER);
@@ -164,6 +150,26 @@ public class FrmVideo extends javax.swing.JInternalFrame {
                     animate.stop();
                     p.stop();
                 });
+                btnPlayBeforeStart.addActionListener((e) -> {
+//                    long end = Time.toMillisecondsTime(stopTime);
+//                    long start = Time.toMillisecondsTime(Time.substract(stopTime, Time.create(500L)));
+                });
+                btnPlayAfterStart.addActionListener((e) -> {
+//                    long start = Time.toMillisecondsTime(startTime);
+//                    long end = Time.toMillisecondsTime(Time.addition(startTime, Time.create(500L)));
+                });
+                btnPlayArea.addActionListener((e) -> {
+//                    long start = Time.toMillisecondsTime(startTime);
+//                    long end = Time.toMillisecondsTime(stopTime);
+                });
+                btnPlayBeforeEnd.addActionListener((e) -> {
+//                    long end = Time.toMillisecondsTime(stopTime);
+//                    long start = Time.toMillisecondsTime(Time.substract(stopTime, Time.create(500L)));
+                });
+                btnPlayAfterEnd.addActionListener((e) -> {
+//                    long start = Time.toMillisecondsTime(startTime);
+//                    long end = Time.toMillisecondsTime(Time.addition(startTime, Time.create(500L)));
+                });
             });
             MediaView mv = new MediaView(p);
             mv.setPreserveRatio(true);
@@ -173,7 +179,7 @@ public class FrmVideo extends javax.swing.JInternalFrame {
             
             StackPane stack = new StackPane();
             stack.getChildren().add(mv);
-            stack.getChildren().add(group);
+//            stack.getChildren().add(group);
             scene.setRoot(stack);
             fXPanel.setScene(scene);
             fXPanel.setVisible(true);
@@ -230,7 +236,7 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     public void updateAreaFrames(Event ev){
         fp.updateArea(ev.getStartTime(), ev.getEndTime());
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -240,7 +246,9 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        panControls = new javax.swing.JPanel();
+        panTimeline = new javax.swing.JPanel();
+        panVideo = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
         tfStartTime = new javax.swing.JTextField();
         tfStartFrame = new javax.swing.JTextField();
         tfEndTime = new javax.swing.JTextField();
@@ -249,18 +257,26 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         tfDurFrame = new javax.swing.JTextField();
         tfCurTime = new javax.swing.JTextField();
         tfCurFrame = new javax.swing.JTextField();
-        jPanel1 = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         btnPlay = new javax.swing.JButton();
         btnPause = new javax.swing.JButton();
         btnStop = new javax.swing.JButton();
-        panTimeline = new javax.swing.JPanel();
-        panVideo = new javax.swing.JPanel();
+        sep01 = new javax.swing.JToolBar.Separator();
+        btnPlayBeforeStart = new javax.swing.JButton();
+        btnPlayAfterStart = new javax.swing.JButton();
+        btnPlayArea = new javax.swing.JButton();
+        btnPlayBeforeEnd = new javax.swing.JButton();
+        btnPlayAfterEnd = new javax.swing.JButton();
 
         setClosable(true);
         setMaximizable(true);
         setResizable(true);
         setTitle("Video FX");
+
+        panTimeline.setLayout(new java.awt.BorderLayout());
+
+        panVideo.setBackground(new java.awt.Color(102, 153, 255));
+        panVideo.setLayout(new java.awt.BorderLayout());
 
         tfStartTime.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfStartTime.setText("0.00.00.000");
@@ -309,82 +325,104 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnStop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnStop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar2.add(btnStop);
+        jToolBar2.add(sep01);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, 621, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+        btnPlayBeforeStart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play out 01.png"))); // NOI18N
+        btnPlayBeforeStart.setText("Before");
+        btnPlayBeforeStart.setFocusable(false);
+        btnPlayBeforeStart.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnPlayBeforeStart.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(btnPlayBeforeStart);
 
-        javax.swing.GroupLayout panControlsLayout = new javax.swing.GroupLayout(panControls);
-        panControls.setLayout(panControlsLayout);
-        panControlsLayout.setHorizontalGroup(
-            panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panControlsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(tfStartTime)
-                    .addComponent(tfStartFrame))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(tfEndTime)
-                    .addComponent(tfEndFrame))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(tfDurFrame)
-                    .addComponent(tfDurTime))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(tfCurTime)
-                    .addComponent(tfCurFrame))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        panControlsLayout.setVerticalGroup(
-            panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panControlsLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfDurTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfCurTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfDurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfCurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+        btnPlayAfterStart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play in 01.png"))); // NOI18N
+        btnPlayAfterStart.setText("Begin");
+        btnPlayAfterStart.setFocusable(false);
+        btnPlayAfterStart.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnPlayAfterStart.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(btnPlayAfterStart);
 
-        panTimeline.setLayout(new java.awt.BorderLayout());
+        btnPlayArea.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs in.png"))); // NOI18N
+        btnPlayArea.setText("Area");
+        btnPlayArea.setFocusable(false);
+        btnPlayArea.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnPlayArea.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(btnPlayArea);
 
-        panVideo.setBackground(new java.awt.Color(102, 153, 255));
-        panVideo.setLayout(new java.awt.BorderLayout());
+        btnPlayBeforeEnd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play in 02.png"))); // NOI18N
+        btnPlayBeforeEnd.setText("End");
+        btnPlayBeforeEnd.setFocusable(false);
+        btnPlayBeforeEnd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnPlayBeforeEnd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(btnPlayBeforeEnd);
+
+        btnPlayAfterEnd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play out 02.png"))); // NOI18N
+        btnPlayAfterEnd.setText("After");
+        btnPlayAfterEnd.setFocusable(false);
+        btnPlayAfterEnd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnPlayAfterEnd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(btnPlayAfterEnd);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tfDurTime, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfDurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tfCurTime, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfCurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(340, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(tfDurTime, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(tfDurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(tfCurTime, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(tfCurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(panTimeline, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(panVideo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panTimeline, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(panVideo, javax.swing.GroupLayout.DEFAULT_SIZE, 503, Short.MAX_VALUE)
+                .addComponent(panVideo, javax.swing.GroupLayout.DEFAULT_SIZE, 561, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panTimeline, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panControls, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -394,12 +432,17 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnPause;
     private javax.swing.JButton btnPlay;
+    private javax.swing.JButton btnPlayAfterEnd;
+    private javax.swing.JButton btnPlayAfterStart;
+    private javax.swing.JButton btnPlayArea;
+    private javax.swing.JButton btnPlayBeforeEnd;
+    private javax.swing.JButton btnPlayBeforeStart;
     private javax.swing.JButton btnStop;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JToolBar jToolBar2;
-    private javax.swing.JPanel panControls;
     private javax.swing.JPanel panTimeline;
     private javax.swing.JPanel panVideo;
+    private javax.swing.JToolBar.Separator sep01;
     private javax.swing.JTextField tfCurFrame;
     private javax.swing.JTextField tfCurTime;
     private javax.swing.JTextField tfDurFrame;
