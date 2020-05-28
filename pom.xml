@@ -36,10 +36,5 @@
             <artifactId>javafx-media</artifactId>
             <version>14.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.freedesktop.gstreamer</groupId>
-            <artifactId>gst1-java-core</artifactId>
-            <version>1.2.0</version>
-        </dependency>
     </dependencies>
 </project>
