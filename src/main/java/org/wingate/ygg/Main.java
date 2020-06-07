@@ -32,12 +32,11 @@ public class Main {
         
         if(args.length > 0 && args[0].equalsIgnoreCase("dark") == true){
             FlatDarkLaf.install();
-            MainFrame mf = new MainFrame();
-            mf.dark = true;
+            MainFrame mf = new MainFrame(true);
             mf.setVisible(true);
         }else{
             FlatLightLaf.install();
-            MainFrame mf = new MainFrame();        
+            MainFrame mf = new MainFrame(false);        
             mf.setVisible(true);
         }        
         

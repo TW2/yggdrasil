@@ -17,6 +17,7 @@
 package org.wingate.ygg.ifrm;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
@@ -87,7 +88,7 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         
         panVideo.add(fXPanel, BorderLayout.CENTER);
         fXPanel.setLayout(new BorderLayout());
-        fXPanel.add(lblImage, BorderLayout.CENTER);
+        fXPanel.add(lblImage, BorderLayout.CENTER);        
         
         vth.addVideoTimeListener(new VideoTimeListener() {
             @Override
@@ -126,7 +127,7 @@ public class FrmVideo extends javax.swing.JInternalFrame {
             embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
             
             Group root = new Group();
-            Scene scene = new Scene(root, fXPanel.getWidth(), fXPanel.getHeight());
+            Scene scene = new Scene(root, fXPanel.getWidth(), fXPanel.getHeight());            
             
             StackPane stack = new StackPane();
             stack.getChildren().add(videoImageView);
