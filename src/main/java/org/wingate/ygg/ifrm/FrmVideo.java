@@ -18,7 +18,6 @@ package org.wingate.ygg.ifrm;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
@@ -27,23 +26,27 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
-import javafx.scene.media.Media;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
-import javafx.util.Duration;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.base.AVStudio;
+import org.wingate.ygg.event.VideoTimeEvent;
+import org.wingate.ygg.event.VideoTimeListener;
 import org.wingate.ygg.ui.FramesPanel;
 import org.wingate.ygg.util.FFStuffs;
 import org.wingate.ygg.util.GlyphInfo;
 import org.wingate.ygg.util.Time;
+import org.wingate.ygg.util.VideoTimeHandler;
+import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.player.base.MediaPlayer;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
+import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
+import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactory.videoSurfaceForImageView;
 
 /**
  *
@@ -54,12 +57,20 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     private final AVStudio studio;
     private final JFXPanel fXPanel = new JFXPanel();
     
+    private VideoTimeHandler vth = new VideoTimeHandler();
+    
+    private MediaPlayerFactory mediaPlayerFactory;
+    private EmbeddedMediaPlayer embeddedMediaPlayer;
+    private ImageView videoImageView;
+    
     private FFStuffs ffss = null;
     private FramesPanel fp = new FramesPanel();
     private final JLabel lblImage = new JLabel();
     
     private File video = null;
     private ASS ass = null;
+    
+    private Event currentEvent = null;
     
     /**
      * Creates new form FrmVideo
@@ -78,14 +89,57 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         fXPanel.setLayout(new BorderLayout());
         fXPanel.add(lblImage, BorderLayout.CENTER);
         
-        setVisible(true);
+        vth.addVideoTimeListener(new VideoTimeListener() {
+            @Override
+            public void timeChanged(VideoTimeEvent event) {
+                tfCurTime.setText(event.getCurrentTime().toProgramExtendedTime());
+                tfCurFrame.setText(Integer.toString(Time.getFrame(event.getCurrentTime(), ffss.getFps())));
+                fp.updatePosition(event.getCurrentTime());
+            }
+
+            @Override
+            public void timeReached(VideoTimeEvent event) {
+                vth.stopVTH();
+                vth.resetVTH(Time.create(0L));
+                Platform.runLater(() -> {
+                    embeddedMediaPlayer.submit(() -> {
+                        embeddedMediaPlayer.controls().stop();                        
+                    });
+                });
+            }
+
+            @Override
+            public void timeEnded(VideoTimeEvent event) {
+                
+            }
+        });
+        
+        Platform.runLater(() -> {
+            mediaPlayerFactory = new MediaPlayerFactory();
+            embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
+            
+            videoImageView = new ImageView();
+            videoImageView.setFitWidth(fXPanel.getWidth());
+            videoImageView.setFitHeight(fXPanel.getHeight());
+            videoImageView.setPreserveRatio(true);
+            
+            embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
+            
+            Group root = new Group();
+            Scene scene = new Scene(root, fXPanel.getWidth(), fXPanel.getHeight());
+            
+            StackPane stack = new StackPane();
+            stack.getChildren().add(videoImageView);
+            scene.setRoot(stack);
+            fXPanel.setScene(scene);
+            fXPanel.setVisible(true);
+        });
     }
     
     public void openAudioVideo(File video){
         this.video = video;
         
         ffss = FFStuffs.create(video);
-        changeMediaAndSetup(video);
         
         studio.setVideo(video);
         studio.setFfss(ffss);
@@ -93,98 +147,40 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         fp.configure(ffss, studio.isDark());
         
         studio.setFp(fp);
+        
+        Time current = Time.create(0L);
+        Time start = Time.create(0L);
+        Time end = ffss.getDuration();
+        Time dur = ffss.getDuration();
+        
+        tfStartTime.setText(start.toProgramExtendedTime());
+        tfStartFrame.setText(Integer.toString(Time.getFrame(start, ffss.getFps())));
+        tfEndTime.setText(end.toProgramExtendedTime());
+        tfEndFrame.setText(Integer.toString(Time.getFrame(end, ffss.getFps())));
+        tfDurTime.setText(dur.toProgramExtendedTime());
+        tfDurFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
+        tfCurTime.setText(current.toProgramExtendedTime());
+        tfCurFrame.setText(Integer.toString(Time.getFrame(current, ffss.getFps())));
+
+        fp.updatePosition(current);
     }
     
     public void openASS(File assFile){
         ass = assFile != null ? ASS.Read(assFile.getPath()) : null;
     }
     
-    private void changeMediaAndSetup(File f){
-        Platform.runLater(() -> {
-            Media m = new Media(f.toURI().toString());
-            MediaPlayer p = new MediaPlayer(m);
-            
-            AnimationTimer animate = new AnimationTimer() {
-                @Override
-                public void handle(long l) {
-                    Time current = Time.create(Math.round(p.getCurrentTime().toMillis()));
-                    Time start = Time.create(Math.round(p.getStartTime().toMillis()));
-                    Time end = Time.create(Math.round(p.getStopTime().toMillis()));
-                    Time dur = Time.create(Math.round(p.getTotalDuration().toMillis()));
-                    
-                    EventQueue.invokeLater(() -> {
-                        tfStartTime.setText(start.toProgramExtendedTime());
-                        tfStartFrame.setText(Integer.toString(Time.getFrame(start, ffss.getFps())));
-                        tfEndTime.setText(end.toProgramExtendedTime());
-                        tfEndFrame.setText(Integer.toString(Time.getFrame(end, ffss.getFps())));
-                        tfDurTime.setText(dur.toProgramExtendedTime());
-                        tfDurFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
-                        tfCurTime.setText(current.toProgramExtendedTime());
-                        tfCurFrame.setText(Integer.toString(Time.getFrame(current, ffss.getFps())));
-                        
-                        fp.updatePosition(current);
-                    });
-                    
-                    if(ass != null){
-                        lblImage.setIcon(new ImageIcon(getAssShape(ass, current)));
-                    }
-                }
-            };
-            
-            p.setOnEndOfMedia(() -> {
-                p.seek(new Duration(0d));
-            });
-            p.setOnStopped(() -> {
-                p.seek(new Duration(0d));
-            });
-            EventQueue.invokeLater(() -> {
-                btnPlay.addActionListener((e) -> {
-                    animate.start();
-                    p.play();
-                });
-                btnPause.addActionListener((e) -> {
-                    animate.stop();
-                    p.pause();
-                });
-                btnStop.addActionListener((e) -> {
-                    animate.stop();
-                    p.stop();
-                });
-                btnPlayBeforeStart.addActionListener((e) -> {
-//                    long end = Time.toMillisecondsTime(stopTime);
-//                    long start = Time.toMillisecondsTime(Time.substract(stopTime, Time.create(500L)));
-                });
-                btnPlayAfterStart.addActionListener((e) -> {
-//                    long start = Time.toMillisecondsTime(startTime);
-//                    long end = Time.toMillisecondsTime(Time.addition(startTime, Time.create(500L)));
-                });
-                btnPlayArea.addActionListener((e) -> {
-//                    long start = Time.toMillisecondsTime(startTime);
-//                    long end = Time.toMillisecondsTime(stopTime);
-                });
-                btnPlayBeforeEnd.addActionListener((e) -> {
-//                    long end = Time.toMillisecondsTime(stopTime);
-//                    long start = Time.toMillisecondsTime(Time.substract(stopTime, Time.create(500L)));
-                });
-                btnPlayAfterEnd.addActionListener((e) -> {
-//                    long start = Time.toMillisecondsTime(startTime);
-//                    long end = Time.toMillisecondsTime(Time.addition(startTime, Time.create(500L)));
+    private void playAndStop(Time startTime, Time endTime){
+        if(currentEvent != null){
+            vth.setStopTime(endTime);
+            vth.setDuration(ffss.getDuration());
+            vth.playVTH();
+            Platform.runLater(() -> {                
+                embeddedMediaPlayer.submit(() -> {
+                    embeddedMediaPlayer.media().play(video.getPath());
+                    embeddedMediaPlayer.controls().setTime(Time.toMillisecondsTime(startTime));
                 });
             });
-            MediaView mv = new MediaView(p);
-            mv.setPreserveRatio(true);
-            
-            Group root = new Group();
-            Scene scene = new Scene(root, getWidth(), getHeight());
-            
-            StackPane stack = new StackPane();
-            stack.getChildren().add(mv);
-//            stack.getChildren().add(group);
-            scene.setRoot(stack);
-            fXPanel.setScene(scene);
-            fXPanel.setVisible(true);
-        });
-        
+        }
     }
 
     public FFStuffs getFfss() {
@@ -234,7 +230,18 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     }
     
     public void updateAreaFrames(Event ev){
+        currentEvent = ev;
+        
         fp.updateArea(ev.getStartTime(), ev.getEndTime());
+        
+        Time dur = Time.substract(ev.getStartTime(), ev.getEndTime());
+        
+        tfStartTime.setText(ev.getStartTime().toProgramExtendedTime());
+        tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStartTime(), ffss.getFps())));
+        tfEndTime.setText(ev.getEndTime().toProgramExtendedTime());
+        tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEndTime(), ffss.getFps())));
+        tfDurTime.setText(dur.toProgramExtendedTime());
+        tfDurFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
     }
     
     /**
@@ -310,6 +317,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPlay.setFocusable(false);
         btnPlay.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPlay.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPlay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlayActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPlay);
 
         btnPause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs pause.png"))); // NOI18N
@@ -317,6 +329,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPause.setFocusable(false);
         btnPause.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPause.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPause.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPauseActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPause);
 
         btnStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs stop.png"))); // NOI18N
@@ -324,6 +341,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnStop.setFocusable(false);
         btnStop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnStop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnStop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStopActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnStop);
         jToolBar2.add(sep01);
 
@@ -332,6 +354,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPlayBeforeStart.setFocusable(false);
         btnPlayBeforeStart.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPlayBeforeStart.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPlayBeforeStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlayBeforeStartActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPlayBeforeStart);
 
         btnPlayAfterStart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play in 01.png"))); // NOI18N
@@ -339,6 +366,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPlayAfterStart.setFocusable(false);
         btnPlayAfterStart.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPlayAfterStart.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPlayAfterStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlayAfterStartActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPlayAfterStart);
 
         btnPlayArea.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs in.png"))); // NOI18N
@@ -346,6 +378,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPlayArea.setFocusable(false);
         btnPlayArea.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPlayArea.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPlayArea.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlayAreaActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPlayArea);
 
         btnPlayBeforeEnd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play in 02.png"))); // NOI18N
@@ -353,6 +390,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPlayBeforeEnd.setFocusable(false);
         btnPlayBeforeEnd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPlayBeforeEnd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPlayBeforeEnd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlayBeforeEndActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPlayBeforeEnd);
 
         btnPlayAfterEnd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_timer_stuffs play out 02.png"))); // NOI18N
@@ -360,6 +402,11 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         btnPlayAfterEnd.setFocusable(false);
         btnPlayAfterEnd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnPlayAfterEnd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnPlayAfterEnd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlayAfterEndActionPerformed(evt);
+            }
+        });
         jToolBar2.add(btnPlayAfterEnd);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -427,6 +474,65 @@ public class FrmVideo extends javax.swing.JInternalFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayActionPerformed
+        vth.setDuration(ffss.getDuration());
+        vth.playVTH();
+        Platform.runLater(() -> {
+            embeddedMediaPlayer.submit(() -> {
+                embeddedMediaPlayer.media().play(video.getPath());
+            });
+        });
+    }//GEN-LAST:event_btnPlayActionPerformed
+
+    private void btnPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPauseActionPerformed
+        vth.pauseVTH();
+        Platform.runLater(() -> {
+            embeddedMediaPlayer.submit(() -> {
+                embeddedMediaPlayer.controls().pause();
+            });
+        });
+    }//GEN-LAST:event_btnPauseActionPerformed
+
+    private void btnStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopActionPerformed
+        vth.stopVTH();
+        vth.resetVTH(Time.create(0L));
+        Platform.runLater(() -> {
+            embeddedMediaPlayer.submit(() -> {
+                embeddedMediaPlayer.controls().stop();
+            });
+        });
+    }//GEN-LAST:event_btnStopActionPerformed
+
+    private void btnPlayBeforeStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeStartActionPerformed
+        Time end = currentEvent.getStartTime();
+        Time start = Time.substract(end, Time.create(500L));
+        playAndStop(start, end);
+    }//GEN-LAST:event_btnPlayBeforeStartActionPerformed
+
+    private void btnPlayAfterStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterStartActionPerformed
+        Time start = currentEvent.getStartTime();
+        Time end = Time.addition(start, Time.create(500L));
+        playAndStop(start, end);
+    }//GEN-LAST:event_btnPlayAfterStartActionPerformed
+
+    private void btnPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaActionPerformed
+        Time start = currentEvent.getStartTime();
+        Time end = currentEvent.getEndTime();
+        playAndStop(start, end);
+    }//GEN-LAST:event_btnPlayAreaActionPerformed
+
+    private void btnPlayBeforeEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeEndActionPerformed
+        Time end = currentEvent.getEndTime();
+        Time start = Time.substract(end, Time.create(500L));
+        playAndStop(start, end);
+    }//GEN-LAST:event_btnPlayBeforeEndActionPerformed
+
+    private void btnPlayAfterEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterEndActionPerformed
+        Time start = currentEvent.getEndTime();
+        Time end = Time.addition(start, Time.create(500L));
+        playAndStop(start, end);
+    }//GEN-LAST:event_btnPlayAfterEndActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

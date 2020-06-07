@@ -57,7 +57,6 @@ public class FrmTable extends javax.swing.JInternalFrame {
     private void init(){
         assEventTableRenderer = new AssEventTableRenderer(studio.isDark());
         initializeTable(MainFrame.getLanguage(), MainFrame.getISOCountry());
-        setVisible(true);
     }
     
     public void initializeTable(Language in, ISO_3166 get){        

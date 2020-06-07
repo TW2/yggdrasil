@@ -70,7 +70,7 @@
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/images/20 time_studio.png"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Launch the studio... "/>
+                <Property name="text" type="java.lang.String" value="See/Hide the studio... "/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mnuMenuVideoActionPerformed"/>

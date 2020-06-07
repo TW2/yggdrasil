@@ -42,6 +42,7 @@ public class MainFrame extends javax.swing.JFrame {
     JPanel paneForDesktop;
     JDesktopPane desktop = new JDesktopPane();
     AVStudio studio = null;
+    boolean viewStudio = false;
     
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
@@ -51,7 +52,7 @@ public class MainFrame extends javax.swing.JFrame {
     boolean dark = false;
     
     // Fichiers vidéos :
-    private final static String[] videoFiles = new String[]{".mp4"};
+    private final static String[] videoFiles = new String[]{".mp4", ".mkv"};
     
     /**
      * Creates new form MainFrame
@@ -108,6 +109,15 @@ public class MainFrame extends javax.swing.JFrame {
         paneForDesktop.add(desktop, BorderLayout.CENTER);
         paneGeneral.setLayout(new BorderLayout());
         paneGeneral.add(paneForDesktop, BorderLayout.CENTER);
+        
+        studio = new AVStudio(dark);
+        desktop.add(studio.getFrmVideo());        
+        desktop.add(studio.getFrmWave());
+        desktop.add(studio.getFrmTable());
+        desktop.add(studio.getFrmSC());
+        
+        changeStudioPosition();
+        displayStudio();
     }
     
     public static Language getLanguage(){
@@ -118,12 +128,41 @@ public class MainFrame extends javax.swing.JFrame {
         return chosen.isForced() ? chosen.getIso() : wantedIso;
     }
     
+    private void changeStudioPosition(){
+        int availableWidth = getWidth();
+        int availableHeight = getHeight();
+        
+        // Video
+        studio.getFrmVideo().setSize(availableWidth * 1/2 - 4, availableHeight * 4/7 - 4);
+        studio.getFrmVideo().setLocation(2, 2);
+        
+        // Audio
+        studio.getFrmWave().setSize(availableWidth * 1/2 - 20, availableHeight * 2/7 - 4);
+        studio.getFrmWave().setLocation(availableWidth * 1/2, 2);
+        
+        // Table
+        studio.getFrmTable().setSize(availableWidth * 1/2 - 20, availableHeight * 2/7 - 4);
+        studio.getFrmTable().setLocation(availableWidth * 1/2, availableHeight * 2/7 + 2);
+        
+        // Commands
+        studio.getFrmSC().setSize(availableWidth - 20, availableHeight * 3/7 - 60);
+        studio.getFrmSC().setLocation(2, availableHeight * 4/7);
+    }
+    
     private void displayStudio(){
-        studio = new AVStudio(dark);
-        desktop.add(studio.getFrmVideo());        
-        desktop.add(studio.getFrmWave());
-        desktop.add(studio.getFrmTable());
-        desktop.add(studio.getFrmSC());
+        if(viewStudio == false){
+            studio.getFrmSC().setVisible(true);
+            studio.getFrmTable().setVisible(true);
+            studio.getFrmVideo().setVisible(true);
+            studio.getFrmWave().setVisible(true);
+            viewStudio = true;
+        }else{
+            studio.getFrmSC().setVisible(false);
+            studio.getFrmTable().setVisible(false);
+            studio.getFrmVideo().setVisible(false);
+            studio.getFrmWave().setVisible(false);
+            viewStudio = false;
+        }
     }
 
     /**
@@ -206,7 +245,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         mnuMenuVideo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, java.awt.event.InputEvent.CTRL_MASK));
         mnuMenuVideo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/20 time_studio.png"))); // NOI18N
-        mnuMenuVideo.setText("Launch the studio... ");
+        mnuMenuVideo.setText("See/Hide the studio... ");
         mnuMenuVideo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuMenuVideoActionPerformed(evt);

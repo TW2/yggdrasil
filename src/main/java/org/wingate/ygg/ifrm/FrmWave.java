@@ -55,7 +55,6 @@ public class FrmWave extends javax.swing.JInternalFrame {
         btnPlayAfterEndSyllable.setEnabled(toggleEnableKara.isSelected());
         btnPreviousSyllable.setEnabled(toggleEnableKara.isSelected());
         btnNextSyllable.setEnabled(toggleEnableKara.isSelected());
-        setVisible(true);
     }
     
     public void setFile(File f){

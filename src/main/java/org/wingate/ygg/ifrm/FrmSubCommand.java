@@ -74,8 +74,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 }
             }
         });
-        
-        setVisible(true);
     }
     
     public void reinit(){
