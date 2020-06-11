@@ -19,20 +19,18 @@ package org.wingate.ygg.ifrm;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.geom.Point2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.base.AVStudio;
@@ -40,12 +38,9 @@ import org.wingate.ygg.event.VideoTimeEvent;
 import org.wingate.ygg.event.VideoTimeListener;
 import org.wingate.ygg.ui.FramesPanel;
 import org.wingate.ygg.util.FFStuffs;
-import org.wingate.ygg.util.GlyphInfo;
 import org.wingate.ygg.util.Time;
 import org.wingate.ygg.util.VideoTimeHandler;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import uk.co.caprica.vlcj.player.base.MediaPlayer;
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactory.videoSurfaceForImageView;
 
@@ -58,14 +53,14 @@ public class FrmVideo extends javax.swing.JInternalFrame {
     private final AVStudio studio;
     private final JFXPanel fXPanel = new JFXPanel();
     
-    private VideoTimeHandler vth = new VideoTimeHandler();
+    private final VideoTimeHandler vth = new VideoTimeHandler();
     
     private MediaPlayerFactory mediaPlayerFactory;
     private EmbeddedMediaPlayer embeddedMediaPlayer;
     private ImageView videoImageView;
     
     private FFStuffs ffss = null;
-    private FramesPanel fp = new FramesPanel();
+    private final FramesPanel fp = new FramesPanel();
     private final JLabel lblImage = new JLabel();
     
     private File video = null;
@@ -96,6 +91,20 @@ public class FrmVideo extends javax.swing.JInternalFrame {
                 tfCurTime.setText(event.getCurrentTime().toProgramExtendedTime());
                 tfCurFrame.setText(Integer.toString(Time.getFrame(event.getCurrentTime(), ffss.getFps())));
                 fp.updatePosition(event.getCurrentTime());
+                
+                if(ass != null){
+                    Image subtitlesImage = getAssShape(ass, event.getCurrentTime());
+                    int w = Integer.parseInt(ass.getResX());
+                    int h = Integer.parseInt(ass.getResY());
+                    Dimension size = getScaledDimension(new Dimension(w, h), fXPanel.getSize());
+                    if(subtitlesImage != null){
+                        Image image = subtitlesImage.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
+                        lblImage.setIcon(new ImageIcon(image));
+                    }else{
+                        lblImage.setIcon(new ImageIcon(new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB)));
+                    }                    
+                    lblImage.setLocation((fXPanel.getWidth() - size.width) / 2, (fXPanel.getHeight() - size.height) / 2);
+                }
             }
 
             @Override
@@ -188,46 +197,61 @@ public class FrmVideo extends javax.swing.JInternalFrame {
         return ffss;
     }
     
-    private BufferedImage getAssShape(ASS ass, Time current){
-        // On récupère les événements en cours
-        List<Event> now = new ArrayList<>();
-        for(Event ev : ass.getEvents()){
-            long start = Time.toMillisecondsTime(ev.getStartTime());
-            long stop = Time.toMillisecondsTime(ev.getEndTime());
-            long cur = Time.toMillisecondsTime(current);
-                    
-            if(start <= cur && cur < stop){
-                now.add(ev);
-            }
+    private Image getAssShape(ASS ass, Time current){
+        // On définit le fichier PNG cible
+        String pngPath = new File(video.getParentFile(), "temp.png").getPath();
+        
+        // On définit le fichier ASS source
+        String assPath = ass.getAssFile().getPath();
+        
+        // On définit le temps actuel en secondes flottantes
+        String time = Double.toString(Time.getLengthInSeconds(current));
+        
+        // On définit la taille de la vidéo
+        int width = Integer.parseInt(ass.getResX());
+        int height = Integer.parseInt(ass.getResY());
+        
+        // On lance YGGY (libass)
+        int result = MainFrame.getYGGY().getYggy().executor(pngPath, assPath, time, width, height);
+        
+        // Si on a pas de sous-titres à cet endroit de la vidéo
+        if(result == 1){
+            return null;
         }
         
-        BufferedImage bi = new BufferedImage(
-                Integer.parseInt(ass.getResX()),
-                Integer.parseInt(ass.getResY()),
-                BufferedImage.TYPE_INT_ARGB
-        );
+        // On crée une image avec alpha
+        Image img = MainFrame.makeColorTransparent(new ImageIcon(pngPath).getImage(), new Color(63, 63, 63));
         
-        Graphics2D g2d = bi.createGraphics();
-        
-        // On itère sur les événements
-        // TODO Centrage et marges + couches
-        for(Event ev : now){
-            GlyphInfo info = GlyphInfo.create(ass, ev);            
-            
-            for(int i=0; i<info.getWords().size(); i++){
-                Point2D pos = info.getAlign().getXY(
-                        new Dimension(
-                                (int)info.getMetrics().get(i).getBounds2D().getX(),
-                                (int)info.getMetrics().get(i).getBounds2D().getY()
-                        )
-                );
-                g2d.drawImage(info.getImage(), (int)pos.getX() / 2, (int)pos.getY(), null);
-            }            
+        // On retourne une image avec alpha
+        return img;
+    }
+    
+    private Dimension getScaledDimension(Dimension imgSize, Dimension boundary) {
+
+        int original_width = imgSize.width;
+        int original_height = imgSize.height;
+        int bound_width = boundary.width;
+        int bound_height = boundary.height;
+        int new_width = original_width;
+        int new_height = original_height;
+
+        // first check if we need to scale width
+        if (original_width > bound_width) {
+            //scale width to fit
+            new_width = bound_width;
+            //scale height to maintain aspect ratio
+            new_height = (new_width * original_height) / original_width;
         }
-        
-        g2d.dispose();
-        
-        return bi;
+
+        // then check if we need to scale even with the new height
+        if (new_height > bound_height) {
+            //scale height to fit instead
+            new_height = bound_height;
+            //scale width to maintain aspect ratio
+            new_width = (new_height * original_width) / original_height;
+        }
+
+        return new Dimension(new_width, new_height);
     }
     
     public void updateAreaFrames(Event ev){

@@ -17,9 +17,16 @@
 package org.wingate.ygg;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
 import java.io.File;
 import java.util.Locale;
 import javax.swing.ImageIcon;
@@ -32,6 +39,7 @@ import javax.swing.filechooser.FileFilter;
 import org.wingate.ygg.base.AVStudio;
 import org.wingate.ygg.language.ISO_3166;
 import org.wingate.ygg.language.Language;
+import org.wingate.ygg.util.YGGY;
 
 /**
  *
@@ -47,6 +55,9 @@ public class MainFrame extends javax.swing.JFrame {
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
     static Language chosen = new Language();
+    
+    // Pour avoir des sous-titres
+    static YGGY yggy = YGGY.create();
     
     // Pour savoir si on est en mode dark
     boolean dark = false;
@@ -128,6 +139,31 @@ public class MainFrame extends javax.swing.JFrame {
     
     public static ISO_3166 getISOCountry(){
         return chosen.isForced() ? chosen.getIso() : wantedIso;
+    }
+    
+    public static YGGY getYGGY(){
+        return yggy;
+    }
+    
+    public static Image makeColorTransparent(Image im, final Color color) {
+        ImageFilter filter = new RGBImageFilter() {
+            // the color we are looking for... Alpha bits are set to opaque
+            public int markerRGB = color.getRGB() | 0xFF000000;
+
+            @Override
+            public final int filterRGB(int x, int y, int rgb) {
+                if (( rgb | 0xFF000000 ) == markerRGB) {
+                    // Mark the alpha bits as zero - transparent
+                    return 0x00FFFFFF & rgb;
+                }else{
+                    // nothing to do
+                    return rgb;
+                }
+            }
+        }; 
+
+        ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
+        return Toolkit.getDefaultToolkit().createImage(ip);
     }
     
     private void changeStudioPosition(){

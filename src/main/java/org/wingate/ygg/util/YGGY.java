@@ -14,20 +14,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.ui;
+package org.wingate.ygg.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.wingate.ygg.ass.Event;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
 
 /**
  *
  * @author util2
  */
-public class AssOverlay {
+public class YGGY {
     
-    private List<Event> eventsToDisplay = new ArrayList<>();
+    private YggyLibrary yggy = null;
     
+    public interface YggyLibrary extends Library {
+        YggyLibrary INSTANCE = (YggyLibrary)Native.load("yggy", YggyLibrary.class);
+        
+        int executor(String pngpath, String asspath, String asstime, int width, int height);
+    }
     
+    private YGGY(){
+        
+    }
     
+    public static YGGY create(){
+        YGGY y = new YGGY();
+        
+        System.setProperty("jna.library.path", "D:\\Dev\\Java\\NB-ASS\\YGGY\\src\\yggy\\tools");
+        y.yggy = YggyLibrary.INSTANCE;
+        
+        return y;
+    }
+
+    public YggyLibrary getYggy() {
+        return yggy;
+    }
 }
