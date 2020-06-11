@@ -103,8 +103,8 @@ public class FrmVideo extends javax.swing.JInternalFrame {
                     }else{
                         lblImage.setIcon(new ImageIcon(new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB)));
                     }                    
-                    lblImage.setLocation((fXPanel.getWidth() - size.width) / 2, (fXPanel.getHeight() - size.height) / 2);
-                }
+                    lblImage.setLocation((fXPanel.getWidth() - size.width) / 2, (fXPanel.getHeight() - size.height) / 2);   
+                }                             
             }
 
             @Override
