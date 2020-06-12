@@ -18,8 +18,14 @@ package org.wingate.ygg.ifrm;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.TableColumn;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.ass.ASS;
@@ -31,6 +37,7 @@ import org.wingate.ygg.language.ISO_3166;
 import org.wingate.ygg.language.Language;
 import org.wingate.ygg.model.AssEventTableModel;
 import org.wingate.ygg.renderer.AssEventTableRenderer;
+import org.wingate.ygg.util.Clipboard;
 import org.wingate.ygg.util.Time;
 
 /**
@@ -171,8 +178,90 @@ public class FrmTable extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        popTable = new javax.swing.JPopupMenu();
+        popTableRadioSeeAll = new javax.swing.JRadioButtonMenuItem();
+        popTableRadioHideTags = new javax.swing.JRadioButtonMenuItem();
+        popTableRadioStripAll = new javax.swing.JRadioButtonMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        popTableCut = new javax.swing.JMenuItem();
+        popTableCopy = new javax.swing.JMenuItem();
+        popTablePaste = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        popTableDuplicate = new javax.swing.JMenuItem();
+        popTableRemove = new javax.swing.JMenuItem();
+        bgPopTableTags = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
         tableASS = new javax.swing.JTable();
+
+        bgPopTableTags.add(popTableRadioSeeAll);
+        popTableRadioSeeAll.setSelected(true);
+        popTableRadioSeeAll.setText("See tags (Normal)");
+        popTableRadioSeeAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableRadioSeeAllActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableRadioSeeAll);
+
+        bgPopTableTags.add(popTableRadioHideTags);
+        popTableRadioHideTags.setText("View closed tags (With Items)");
+        popTableRadioHideTags.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableRadioHideTagsActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableRadioHideTags);
+
+        bgPopTableTags.add(popTableRadioStripAll);
+        popTableRadioStripAll.setText("See text only (Strip all)");
+        popTableRadioStripAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableRadioStripAllActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableRadioStripAll);
+        popTable.add(jSeparator1);
+
+        popTableCut.setText("Cut");
+        popTableCut.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableCutActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableCut);
+
+        popTableCopy.setText("Copy");
+        popTableCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableCopyActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableCopy);
+
+        popTablePaste.setText("Paste");
+        popTablePaste.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTablePasteActionPerformed(evt);
+            }
+        });
+        popTable.add(popTablePaste);
+        popTable.add(jSeparator2);
+
+        popTableDuplicate.setText("Duplicate");
+        popTableDuplicate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableDuplicateActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableDuplicate);
+
+        popTableRemove.setText("Remove");
+        popTableRemove.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTableRemoveActionPerformed(evt);
+            }
+        });
+        popTable.add(popTableRemove);
 
         setClosable(true);
         setMaximizable(true);
@@ -192,6 +281,7 @@ public class FrmTable extends javax.swing.JInternalFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        tableASS.setComponentPopupMenu(popTable);
         jScrollPane1.setViewportView(tableASS);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -208,9 +298,125 @@ public class FrmTable extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void popTableRadioSeeAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableRadioSeeAllActionPerformed
+        assEventTableRenderer.setTexttype(AssEventTableRenderer.TextType.Normal);
+        tableASS.updateUI();
+    }//GEN-LAST:event_popTableRadioSeeAllActionPerformed
+
+    private void popTableRadioHideTagsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableRadioHideTagsActionPerformed
+        assEventTableRenderer.setTexttype(AssEventTableRenderer.TextType.WithItems);
+        tableASS.updateUI();
+    }//GEN-LAST:event_popTableRadioHideTagsActionPerformed
+
+    private void popTableRadioStripAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableRadioStripAllActionPerformed
+        assEventTableRenderer.setTexttype(AssEventTableRenderer.TextType.StripAll);
+        tableASS.updateUI();
+    }//GEN-LAST:event_popTableRadioStripAllActionPerformed
+
+    private void popTableCutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableCutActionPerformed
+        if(tableASS.getSelectedRow() != -1){
+            int[] rows = tableASS.getSelectedRows();
+            StringBuilder sb = new StringBuilder();
+            for(int i=0; i<rows.length; i++){
+                sb.append(Event.getAssEventLine(dtmASS.getEventAt(rows[i])));
+                if(i<rows.length - 1){                    
+                    sb.append("\n");
+                }
+            }
+            boolean result = Clipboard.CCopy(sb.toString());
+            if(result == true){
+                for(int i = rows.length - 1; i >= 0; i--){
+                    dtmASS.removeOne(rows[i]);
+                }
+            }
+            tableASS.updateUI();
+        }
+    }//GEN-LAST:event_popTableCutActionPerformed
+
+    private void popTableCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableCopyActionPerformed
+        if(tableASS.getSelectedRow() != -1){
+            int[] rows = tableASS.getSelectedRows();
+            StringBuilder sb = new StringBuilder();
+            for(int i=0; i<rows.length; i++){
+                sb.append(Event.getAssEventLine(dtmASS.getEventAt(rows[i])));
+                if(i<rows.length - 1){                    
+                    sb.append("\n");
+                }
+            }
+            Clipboard.CCopy(sb.toString());
+        }
+    }//GEN-LAST:event_popTableCopyActionPerformed
+
+    private void popTablePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTablePasteActionPerformed
+        String lines = Clipboard.CPaste();
+        if(lines.isEmpty() == false){
+            List<Event> evts = new ArrayList<>();
+            try(StringReader sr = new StringReader(lines); BufferedReader br = new BufferedReader(sr);){
+                String line;
+                while((line = br.readLine()) != null){
+                    Event ev = Event.createFromASS(line);
+                    evts.add(ev);
+                }
+            } catch (IOException ex) {
+                return;
+            }
+            
+            if(tableASS.getSelectedRow() != -1){
+                int selectedRow = tableASS.getSelectedRow();
+                for(int i = evts.size() - 1; i>= 0; i--){
+                    Event ev = evts.get(i);
+                    dtmASS.insertOneAt(ev, selectedRow);
+                }
+            }else{
+                dtmASS.insertAll(evts);
+            }
+            tableASS.updateUI();
+        }        
+    }//GEN-LAST:event_popTablePasteActionPerformed
+
+    private void popTableDuplicateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableDuplicateActionPerformed
+        if(tableASS.getSelectedRow() != -1){
+            int[] rows = tableASS.getSelectedRows();
+            int selectedRow = rows[rows.length - 1];
+            
+            List<Event> evts = new ArrayList<>();
+            for(int i=0; i<rows.length; i++){
+                evts.add(dtmASS.getEventAt(rows[i]));
+            }            
+            
+            for(int i = evts.size() - 1; i>= 0; i--){
+                Event ev = evts.get(i);
+                dtmASS.insertOneAt(ev, selectedRow);
+            }
+            tableASS.updateUI();
+        }
+    }//GEN-LAST:event_popTableDuplicateActionPerformed
+
+    private void popTableRemoveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTableRemoveActionPerformed
+        if(tableASS.getSelectedRow() != -1){
+            int[] rows = tableASS.getSelectedRows();
+            for(int i = rows.length - 1; i >= 0; i--){
+                dtmASS.removeOne(rows[i]);
+            }
+            tableASS.updateUI();
+        }
+    }//GEN-LAST:event_popTableRemoveActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup bgPopTableTags;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPopupMenu popTable;
+    private javax.swing.JMenuItem popTableCopy;
+    private javax.swing.JMenuItem popTableCut;
+    private javax.swing.JMenuItem popTableDuplicate;
+    private javax.swing.JMenuItem popTablePaste;
+    private javax.swing.JRadioButtonMenuItem popTableRadioHideTags;
+    private javax.swing.JRadioButtonMenuItem popTableRadioSeeAll;
+    private javax.swing.JRadioButtonMenuItem popTableRadioStripAll;
+    private javax.swing.JMenuItem popTableRemove;
     private javax.swing.JTable tableASS;
     // End of variables declaration//GEN-END:variables
 }

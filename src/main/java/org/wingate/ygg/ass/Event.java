@@ -137,6 +137,45 @@ public class Event implements Cloneable {
     }
     
     /**
+     * Get an Event object from an ASS event line
+     * Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+     * @param ASS an ASS line
+     * @return An Event object
+     */
+    public static Event createFromASS(String ASS){
+        Event ev = new Event();
+        String[] array = ASS.split(",", 10);
+        if(array.length == 10){
+            // Line type (Format)
+            switch(array[0].substring(0, array[0].indexOf(":"))){
+                case "Dialogue": ev.setLineType(LineType.Dialogue); break;
+                case "Comment": ev.setLineType(LineType.Comment); break;
+                case "#Proposal": ev.setLineType(LineType.Proposal); break;
+                case "#Request": ev.setLineType(LineType.Request); break;
+                default: ev.setLineType(LineType.Comment); break;
+            }
+            // Layer
+            ev.setLayer(Integer.parseInt(array[0].substring(array[0].lastIndexOf(":") + 2)));
+            // Start - End
+            ev.setStartTime(Time.create(array[1]));
+            ev.setEndTime(Time.create(array[2]));
+            // Style
+            ev.setStyle(Style.getDefault());
+            // Name
+            ev.setName(array[4]);
+            // Margins LRV
+            ev.setMarginL(Integer.parseInt(array[5]));
+            ev.setMarginR(Integer.parseInt(array[6]));
+            ev.setMarginV(Integer.parseInt(array[7]));
+            // Effect
+            ev.setEffect(array[8]);
+            // Text
+            ev.setText(array[9]);
+        }
+        return ev;
+    }
+    
+    /**
      * Get an ASS line for this event
      * Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
      * @param ev An event
