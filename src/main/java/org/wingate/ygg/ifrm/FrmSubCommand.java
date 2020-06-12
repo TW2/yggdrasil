@@ -16,9 +16,10 @@
  */
 package org.wingate.ygg.ifrm;
 
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Map;
+import java.awt.event.MouseWheelEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
@@ -26,6 +27,7 @@ import javax.swing.SpinnerNumberModel;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.ass.Style;
 import org.wingate.ygg.base.AVStudio;
+import org.wingate.ygg.util.Clipboard;
 import org.wingate.ygg.util.Time;
 
 /**
@@ -41,8 +43,14 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
     private final SpinnerNumberModel snmLeft = new SpinnerNumberModel(0, 0, 100000, 1);
     private final SpinnerNumberModel snmRight = new SpinnerNumberModel(0, 0, 100000, 1);
     private final SpinnerNumberModel snmVertical = new SpinnerNumberModel(0, 0, 100000, 1);
-    private DefaultComboBoxModel dcbmStyle = new DefaultComboBoxModel();
-    private DefaultComboBoxModel dcbmName = new DefaultComboBoxModel();
+    private final DefaultComboBoxModel dcbmStyle = new DefaultComboBoxModel();
+    private final DefaultComboBoxModel dcbmName = new DefaultComboBoxModel();
+    
+    private float tpTextFontSize;
+    private Font tpTextNormalFont;
+    private final float tpTextScaleMin = 1f;
+    private final float tpTextScaleMax = 5f;
+    private float tpTextScaleCur = 1f;
     
     private Event ev = new Event();
     
@@ -74,17 +82,38 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 }
             }
         });
+        
+        tpTextFontSize = tpText.getFont().getSize2D();
+        tpTextNormalFont = tpText.getFont();
+        tpText.addMouseWheelListener((MouseWheelEvent e) -> {
+            if(e.isControlDown()){
+                if(e.getPreciseWheelRotation() < 0){
+                    // On augmente la taille
+                    tpTextScaleCur += 0.2f;
+                    tpTextScaleCur = Math.min(tpTextScaleMax, tpTextScaleCur);
+                    float fontSize = tpTextScaleCur * tpTextFontSize;
+                    tpText.setFont(tpTextNormalFont.deriveFont(fontSize));
+                }
+                if(e.getPreciseWheelRotation() > 0){
+                    // On réduit la taille
+                    tpTextScaleCur -= 0.2f;
+                    tpTextScaleCur = Math.max(tpTextScaleMin, tpTextScaleCur);
+                    float fontSize = tpTextScaleCur * tpTextFontSize;
+                    tpText.setFont(tpTextNormalFont.deriveFont(fontSize));
+                }
+            }
+        });
     }
     
     public void reinit(){
         dcbmStyle.removeAllElements();
-        for(Map.Entry<String, Style> entry : studio.getAss().getStyles().entrySet()){
+        studio.getAss().getStyles().entrySet().forEach((entry) -> {
             dcbmStyle.addElement(entry.getValue());
-        }
+        });
         dcbmName.removeAllElements();
-        for(String name : studio.getAss().getNames()){
+        studio.getAss().getNames().forEach((name) -> {
             dcbmName.addElement(name);
-        }
+        });
     }
     
     public void alter(Event ev){
@@ -184,6 +213,10 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         bgTypeOfLine = new javax.swing.ButtonGroup();
+        popText = new javax.swing.JPopupMenu();
+        popTextCut = new javax.swing.JMenuItem();
+        popTextCopy = new javax.swing.JMenuItem();
+        popTextPaste = new javax.swing.JMenuItem();
         jPanel1 = new javax.swing.JPanel();
         paneTypes = new javax.swing.JPanel();
         toggleDialogue = new javax.swing.JToggleButton();
@@ -229,6 +262,30 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         btnAdd = new javax.swing.JButton();
         paneWave = new javax.swing.JPanel();
         btnSeeEventInWave = new javax.swing.JButton();
+
+        popTextCut.setText("Cut");
+        popTextCut.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTextCutActionPerformed(evt);
+            }
+        });
+        popText.add(popTextCut);
+
+        popTextCopy.setText("Copy");
+        popTextCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTextCopyActionPerformed(evt);
+            }
+        });
+        popText.add(popTextCopy);
+
+        popTextPaste.setText("Paste");
+        popTextPaste.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                popTextPasteActionPerformed(evt);
+            }
+        });
+        popText.add(popTextPaste);
 
         setClosable(true);
         setMaximizable(true);
@@ -506,6 +563,8 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        tpText.setComponentPopupMenu(popText);
         jScrollPane1.setViewportView(tpText);
 
         splitPaneText.setRightComponent(jScrollPane1);
@@ -579,7 +638,7 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
             paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(paneWaveLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnSeeEventInWave, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
+                .addComponent(btnSeeEventInWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         paneWaveLayout.setVerticalGroup(
@@ -836,6 +895,41 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         }
     }//GEN-LAST:event_btnSeeEventInWaveActionPerformed
 
+    private void popTextCutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTextCutActionPerformed
+        if(tpText.getSelectedText() != null){
+            int s = tpText.getSelectionStart();
+            int e = tpText.getSelectionEnd();
+            boolean result = Clipboard.CCopy(tpText.getSelectedText());
+            if(result == true){
+                String oldText = tpText.getText();
+                String newText = oldText.substring(0, s) + oldText.substring(e);
+                tpText.setText(newText);
+            }
+        }
+    }//GEN-LAST:event_popTextCutActionPerformed
+
+    private void popTextCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTextCopyActionPerformed
+        if(tpText.getSelectedText() != null){
+            Clipboard.CCopy(tpText.getSelectedText());
+        }        
+    }//GEN-LAST:event_popTextCopyActionPerformed
+
+    private void popTextPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_popTextPasteActionPerformed
+        String clpText = Clipboard.CPaste();
+        if(tpText.getSelectedText() != null && clpText.isEmpty() == false){
+            int s = tpText.getSelectionStart();
+            int e = tpText.getSelectionEnd();            
+            String oldText = tpText.getText();            
+            String newText = oldText.substring(0, s) + clpText + oldText.substring(e);
+            tpText.setText(newText);
+        }else if(clpText.isEmpty() == false){
+            int t = tpText.getCaretPosition();
+            String oldText = tpText.getText();            
+            String newText = oldText.substring(0, t) + clpText + oldText.substring(t);
+            tpText.setText(newText);
+        }
+    }//GEN-LAST:event_popTextPasteActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup bgTypeOfLine;
@@ -862,6 +956,10 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
     private javax.swing.JPanel paneTranslate;
     private javax.swing.JPanel paneTypes;
     private javax.swing.JPanel paneWave;
+    private javax.swing.JPopupMenu popText;
+    private javax.swing.JMenuItem popTextCopy;
+    private javax.swing.JMenuItem popTextCut;
+    private javax.swing.JMenuItem popTextPaste;
     private javax.swing.JSlider slideSpeed;
     private javax.swing.JSpinner spinLayer;
     private javax.swing.JSpinner spinLeft;
