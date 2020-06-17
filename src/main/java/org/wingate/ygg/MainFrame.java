@@ -183,16 +183,16 @@ public class MainFrame extends javax.swing.JFrame {
         studio.getFrmVideo().setLocation(2, 2);
         
         // Audio
-        studio.getFrmWave().setSize(availableWidth * 1/2 - 20, availableHeight * 2/7 - 4);
+        studio.getFrmWave().setSize(availableWidth * 1/2 - 20, availableHeight * 2/7 - 4 - 40);
         studio.getFrmWave().setLocation(availableWidth * 1/2, 2);
         
-        // Table
-        studio.getFrmTable().setSize(availableWidth * 1/2 - 20, availableHeight * 2/7 - 4);
-        studio.getFrmTable().setLocation(availableWidth * 1/2, availableHeight * 2/7 + 2);
-        
         // Commands
-        studio.getFrmSC().setSize(availableWidth - 20, availableHeight * 3/7 - 60);
-        studio.getFrmSC().setLocation(2, availableHeight * 4/7);
+        studio.getFrmSC().setSize(availableWidth * 1/2 - 20, availableHeight * 2/7 - 4 + 40);
+        studio.getFrmSC().setLocation(availableWidth * 1/2, availableHeight * 2/7 + 2 - 40);
+        
+        // Table
+        studio.getFrmTable().setSize(availableWidth - 20, availableHeight * 3/7 - 60);
+        studio.getFrmTable().setLocation(2, availableHeight * 4/7);
     }
     
     private void displayStudio(){

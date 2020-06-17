@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.table.TableColumn;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.ass.ASS;
@@ -165,7 +163,7 @@ public class FrmTable extends javax.swing.JInternalFrame {
     }
     
     public void add(Event ev){
-        dtmASS.insertOne(ev);
+        dtmASS.insertOne(ev);        
         tableASS.updateUI();
     }
 

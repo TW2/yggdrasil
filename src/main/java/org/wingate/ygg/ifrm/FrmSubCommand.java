@@ -20,8 +20,6 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SpinnerNumberModel;
 import org.wingate.ygg.ass.Event;
@@ -217,8 +215,8 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         popTextCut = new javax.swing.JMenuItem();
         popTextCopy = new javax.swing.JMenuItem();
         popTextPaste = new javax.swing.JMenuItem();
-        jPanel1 = new javax.swing.JPanel();
-        paneTypes = new javax.swing.JPanel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        panelTypes = new javax.swing.JPanel();
         toggleDialogue = new javax.swing.JToggleButton();
         toggleComment = new javax.swing.JToggleButton();
         toggleProposal = new javax.swing.JToggleButton();
@@ -227,20 +225,7 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         toggleSound = new javax.swing.JToggleButton();
         toggleMovie = new javax.swing.JToggleButton();
         toggleCommands = new javax.swing.JToggleButton();
-        paneStyle = new javax.swing.JPanel();
-        comboStyle = new javax.swing.JComboBox<>();
-        btnBold = new javax.swing.JButton();
-        btnItalic = new javax.swing.JButton();
-        btnUnderline = new javax.swing.JButton();
-        btnStrikeOut = new javax.swing.JButton();
-        paneMargins = new javax.swing.JPanel();
-        spinRight = new javax.swing.JSpinner();
-        spinVertical = new javax.swing.JSpinner();
-        spinLeft = new javax.swing.JSpinner();
-        lblRight = new javax.swing.JLabel();
-        lblVertical = new javax.swing.JLabel();
-        lblLeft = new javax.swing.JLabel();
-        paneTime = new javax.swing.JPanel();
+        spinLayer = new javax.swing.JSpinner();
         tfStartTime = new javax.swing.JTextField();
         tfStartFrame = new javax.swing.JTextField();
         tfEndTime = new javax.swing.JTextField();
@@ -248,20 +233,29 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         tfDurTime = new javax.swing.JTextField();
         tfDurFrame = new javax.swing.JTextField();
         slideSpeed = new javax.swing.JSlider();
+        comboStyle = new javax.swing.JComboBox<>();
+        btnBold = new javax.swing.JButton();
+        btnItalic = new javax.swing.JButton();
+        btnUnderline = new javax.swing.JButton();
+        btnStrikeOut = new javax.swing.JButton();
+        jPanel5 = new javax.swing.JPanel();
+        comboName = new javax.swing.JComboBox<>();
+        tfSFX = new javax.swing.JTextField();
+        lblLeft = new javax.swing.JLabel();
+        spinLeft = new javax.swing.JSpinner();
+        spinVertical = new javax.swing.JSpinner();
+        lblVertical = new javax.swing.JLabel();
+        spinRight = new javax.swing.JSpinner();
+        lblRight = new javax.swing.JLabel();
+        jPanel7 = new javax.swing.JPanel();
+        btnSeeEventInWave = new javax.swing.JButton();
+        btnOpenTypes = new javax.swing.JButton();
         splitPaneText = new javax.swing.JSplitPane();
         paneTranslate = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tpText = new javax.swing.JTextPane();
-        paneLayer = new javax.swing.JPanel();
-        spinLayer = new javax.swing.JSpinner();
-        btnOpenTypes = new javax.swing.JButton();
-        paneMisc = new javax.swing.JPanel();
-        comboName = new javax.swing.JComboBox<>();
-        tfSFX = new javax.swing.JTextField();
         btnChange = new javax.swing.JButton();
         btnAdd = new javax.swing.JButton();
-        paneWave = new javax.swing.JPanel();
-        btnSeeEventInWave = new javax.swing.JButton();
 
         popTextCut.setText("Cut");
         popTextCut.addActionListener(new java.awt.event.ActionListener() {
@@ -291,9 +285,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         setMaximizable(true);
         setResizable(true);
 
-        paneTypes.setBorder(javax.swing.BorderFactory.createTitledBorder("Type (SSA/ASS/ASX)"));
-        paneTypes.setLayout(null);
-
         bgTypeOfLine.add(toggleDialogue);
         toggleDialogue.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub dialogue black.png"))); // NOI18N
         toggleDialogue.setSelected(true);
@@ -302,8 +293,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleDialogueActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleDialogue);
-        toggleDialogue.setBounds(10, 20, 40, 40);
 
         bgTypeOfLine.add(toggleComment);
         toggleComment.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub comment.png"))); // NOI18N
@@ -312,8 +301,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleCommentActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleComment);
-        toggleComment.setBounds(50, 20, 40, 40);
 
         bgTypeOfLine.add(toggleProposal);
         toggleProposal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub comment yellow.png"))); // NOI18N
@@ -322,8 +309,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleProposalActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleProposal);
-        toggleProposal.setBounds(90, 20, 40, 40);
 
         bgTypeOfLine.add(toggleRequest);
         toggleRequest.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub comment blue.png"))); // NOI18N
@@ -332,8 +317,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleRequestActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleRequest);
-        toggleRequest.setBounds(130, 20, 40, 40);
 
         bgTypeOfLine.add(togglePicture);
         togglePicture.setText("P");
@@ -342,8 +325,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 togglePictureActionPerformed(evt);
             }
         });
-        paneTypes.add(togglePicture);
-        togglePicture.setBounds(10, 60, 40, 40);
 
         bgTypeOfLine.add(toggleSound);
         toggleSound.setText("S");
@@ -353,8 +334,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleSoundActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleSound);
-        toggleSound.setBounds(50, 60, 40, 40);
 
         bgTypeOfLine.add(toggleMovie);
         toggleMovie.setText("M");
@@ -363,8 +342,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleMovieActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleMovie);
-        toggleMovie.setBounds(90, 60, 40, 40);
 
         bgTypeOfLine.add(toggleCommands);
         toggleCommands.setText("C");
@@ -373,104 +350,12 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 toggleCommandsActionPerformed(evt);
             }
         });
-        paneTypes.add(toggleCommands);
-        toggleCommands.setBounds(130, 60, 40, 40);
 
-        paneStyle.setBorder(javax.swing.BorderFactory.createTitledBorder("Style"));
-        paneStyle.setLayout(null);
-
-        comboStyle.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboStyle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboStyleActionPerformed(evt);
-            }
-        });
-        paneStyle.add(comboStyle);
-        comboStyle.setBounds(10, 20, 160, 40);
-
-        btnBold.setText("B");
-        btnBold.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBoldActionPerformed(evt);
-            }
-        });
-        paneStyle.add(btnBold);
-        btnBold.setBounds(10, 60, 40, 40);
-
-        btnItalic.setText("I");
-        btnItalic.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnItalicActionPerformed(evt);
-            }
-        });
-        paneStyle.add(btnItalic);
-        btnItalic.setBounds(50, 60, 40, 40);
-
-        btnUnderline.setText("U");
-        btnUnderline.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUnderlineActionPerformed(evt);
-            }
-        });
-        paneStyle.add(btnUnderline);
-        btnUnderline.setBounds(90, 60, 40, 40);
-
-        btnStrikeOut.setText("S");
-        btnStrikeOut.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStrikeOutActionPerformed(evt);
-            }
-        });
-        paneStyle.add(btnStrikeOut);
-        btnStrikeOut.setBounds(130, 60, 40, 40);
-
-        paneMargins.setBorder(javax.swing.BorderFactory.createTitledBorder("Margins"));
-        paneMargins.setLayout(null);
-
-        spinRight.addChangeListener(new javax.swing.event.ChangeListener() {
+        spinLayer.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinRightStateChanged(evt);
+                spinLayerStateChanged(evt);
             }
         });
-        paneMargins.add(spinRight);
-        spinRight.setBounds(190, 60, 80, 40);
-
-        spinVertical.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinVerticalStateChanged(evt);
-            }
-        });
-        paneMargins.add(spinVertical);
-        spinVertical.setBounds(100, 60, 80, 40);
-
-        spinLeft.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinLeftStateChanged(evt);
-            }
-        });
-        paneMargins.add(spinLeft);
-        spinLeft.setBounds(10, 60, 80, 40);
-
-        lblRight.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblRight.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblRight.setText("R");
-        paneMargins.add(lblRight);
-        lblRight.setBounds(190, 20, 80, 40);
-
-        lblVertical.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblVertical.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblVertical.setText("V");
-        paneMargins.add(lblVertical);
-        lblVertical.setBounds(100, 20, 80, 40);
-
-        lblLeft.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblLeft.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblLeft.setText("L");
-        paneMargins.add(lblLeft);
-        lblLeft.setBounds(10, 20, 80, 40);
-
-        paneTime.setBorder(javax.swing.BorderFactory.createTitledBorder("Synchronization"));
-        paneTime.setLayout(null);
 
         tfStartTime.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfStartTime.setText("0.00.00.000");
@@ -479,8 +364,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 tfStartTimeActionPerformed(evt);
             }
         });
-        paneTime.add(tfStartTime);
-        tfStartTime.setBounds(10, 20, 80, 40);
 
         tfStartFrame.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfStartFrame.setText("0");
@@ -489,8 +372,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 tfStartFrameActionPerformed(evt);
             }
         });
-        paneTime.add(tfStartFrame);
-        tfStartFrame.setBounds(10, 60, 80, 40);
 
         tfEndTime.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfEndTime.setText("0.00.00.000");
@@ -499,8 +380,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 tfEndTimeActionPerformed(evt);
             }
         });
-        paneTime.add(tfEndTime);
-        tfEndTime.setBounds(90, 20, 80, 40);
 
         tfEndFrame.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfEndFrame.setText("0");
@@ -509,8 +388,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 tfEndFrameActionPerformed(evt);
             }
         });
-        paneTime.add(tfEndFrame);
-        tfEndFrame.setBounds(90, 60, 80, 40);
 
         tfDurTime.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfDurTime.setText("0.00.00.000");
@@ -519,8 +396,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 tfDurTimeActionPerformed(evt);
             }
         });
-        paneTime.add(tfDurTime);
-        tfDurTime.setBounds(170, 20, 80, 40);
 
         tfDurFrame.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfDurFrame.setText("0");
@@ -529,8 +404,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 tfDurFrameActionPerformed(evt);
             }
         });
-        paneTime.add(tfDurFrame);
-        tfDurFrame.setBounds(170, 60, 80, 40);
 
         slideSpeed.setMaximum(200);
         slideSpeed.setOrientation(javax.swing.JSlider.VERTICAL);
@@ -540,8 +413,264 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
                 slideSpeedStateChanged(evt);
             }
         });
-        paneTime.add(slideSpeed);
-        slideSpeed.setBounds(250, 20, 10, 80);
+
+        comboStyle.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboStyle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboStyleActionPerformed(evt);
+            }
+        });
+
+        btnBold.setText("B");
+        btnBold.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBoldActionPerformed(evt);
+            }
+        });
+
+        btnItalic.setText("I");
+        btnItalic.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnItalicActionPerformed(evt);
+            }
+        });
+
+        btnUnderline.setText("U");
+        btnUnderline.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUnderlineActionPerformed(evt);
+            }
+        });
+
+        btnStrikeOut.setText("S");
+        btnStrikeOut.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStrikeOutActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelTypesLayout = new javax.swing.GroupLayout(panelTypes);
+        panelTypes.setLayout(panelTypesLayout);
+        panelTypesLayout.setHorizontalGroup(
+            panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelTypesLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(panelTypesLayout.createSequentialGroup()
+                        .addComponent(toggleDialogue, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(toggleComment, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(toggleProposal, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(toggleRequest, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(togglePicture, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(toggleSound, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(toggleMovie, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(toggleCommands, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelTypesLayout.createSequentialGroup()
+                        .addComponent(btnBold, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnItalic, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnUnderline, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnStrikeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboStyle, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelTypesLayout.createSequentialGroup()
+                        .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfDurTime, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelTypesLayout.createSequentialGroup()
+                        .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfDurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(slideSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(108, Short.MAX_VALUE))
+        );
+        panelTypesLayout.setVerticalGroup(
+            panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelTypesLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(slideSpeed, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, panelTypesLayout.createSequentialGroup()
+                            .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(tfDurTime, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(tfDurFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(panelTypesLayout.createSequentialGroup()
+                        .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(togglePicture, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(toggleSound, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(toggleMovie, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(toggleCommands, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(spinLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(toggleRequest, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(toggleProposal, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(toggleComment, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(toggleDialogue, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(panelTypesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(comboStyle, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnBold, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnItalic, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnUnderline, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnStrikeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Type (SSA/ASS/ASX), Layer, Style and Sync", panelTypes);
+
+        comboName.setEditable(true);
+        comboName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboNameActionPerformed(evt);
+            }
+        });
+
+        tfSFX.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        tfSFX.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tfSFXActionPerformed(evt);
+            }
+        });
+
+        lblLeft.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        lblLeft.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblLeft.setText("L");
+
+        spinLeft.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinLeftStateChanged(evt);
+            }
+        });
+
+        spinVertical.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinVerticalStateChanged(evt);
+            }
+        });
+
+        lblVertical.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        lblVertical.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblVertical.setText("V");
+
+        spinRight.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinRightStateChanged(evt);
+            }
+        });
+
+        lblRight.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        lblRight.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblRight.setText("R");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(comboName, 0, 250, Short.MAX_VALUE)
+                    .addComponent(tfSFX))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(lblLeft, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(spinLeft, javax.swing.GroupLayout.DEFAULT_SIZE, 90, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(spinVertical, javax.swing.GroupLayout.DEFAULT_SIZE, 90, Short.MAX_VALUE)
+                    .addComponent(lblVertical, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(spinRight, javax.swing.GroupLayout.DEFAULT_SIZE, 90, Short.MAX_VALUE)
+                    .addComponent(lblRight, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(292, Short.MAX_VALUE))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblLeft, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblVertical, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblRight, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(spinLeft, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(spinVertical, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(spinRight, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(comboName, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfSFX, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Actor, Effect and Margins", jPanel5);
+
+        btnSeeEventInWave.setText("See");
+        btnSeeEventInWave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSeeEventInWaveActionPerformed(evt);
+            }
+        });
+
+        btnOpenTypes.setText("...");
+        btnOpenTypes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOpenTypesActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnOpenTypes)
+                    .addComponent(btnSeeEventInWave))
+                .addContainerGap(779, Short.MAX_VALUE))
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnSeeEventInWave)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnOpenTypes)
+                .addContainerGap(42, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Control", jPanel7);
 
         splitPaneText.setDividerLocation(0);
         splitPaneText.setDividerSize(10);
@@ -552,7 +681,7 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
         paneTranslate.setLayout(paneTranslateLayout);
         paneTranslateLayout.setHorizontalGroup(
             paneTranslateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1388, Short.MAX_VALUE)
+            .addGap(0, 843, Short.MAX_VALUE)
         );
         paneTranslateLayout.setVerticalGroup(
             paneTranslateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -569,46 +698,6 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
 
         splitPaneText.setRightComponent(jScrollPane1);
 
-        paneLayer.setBorder(javax.swing.BorderFactory.createTitledBorder("Layer"));
-        paneLayer.setLayout(null);
-
-        spinLayer.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinLayerStateChanged(evt);
-            }
-        });
-        paneLayer.add(spinLayer);
-        spinLayer.setBounds(10, 20, 80, 40);
-
-        btnOpenTypes.setText("...");
-        btnOpenTypes.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnOpenTypesActionPerformed(evt);
-            }
-        });
-
-        paneMisc.setBorder(javax.swing.BorderFactory.createTitledBorder("Misc."));
-        paneMisc.setLayout(null);
-
-        comboName.setEditable(true);
-        comboName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboNameActionPerformed(evt);
-            }
-        });
-        paneMisc.add(comboName);
-        comboName.setBounds(10, 20, 190, 40);
-
-        tfSFX.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        tfSFX.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tfSFXActionPerformed(evt);
-            }
-        });
-        paneMisc.add(tfSFX);
-        tfSFX.setBounds(10, 60, 190, 40);
-
         btnChange.setText("CHANGE");
         btnChange.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -623,120 +712,47 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
             }
         });
 
-        paneWave.setBorder(javax.swing.BorderFactory.createTitledBorder("Wave"));
-
-        btnSeeEventInWave.setText("See");
-        btnSeeEventInWave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSeeEventInWaveActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout paneWaveLayout = new javax.swing.GroupLayout(paneWave);
-        paneWave.setLayout(paneWaveLayout);
-        paneWaveLayout.setHorizontalGroup(
-            paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(paneWaveLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(btnSeeEventInWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        paneWaveLayout.setVerticalGroup(
-            paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(paneWaveLayout.createSequentialGroup()
-                .addComponent(btnSeeEventInWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(splitPaneText, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnChange)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnAdd))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(paneTypes, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(paneLayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnOpenTypes, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(paneStyle, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(2, 2, 2)
-                        .addComponent(paneMargins, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(paneTime, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(paneMisc, javax.swing.GroupLayout.PREFERRED_SIZE, 211, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(paneWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(paneMargins, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 110, Short.MAX_VALUE)
-                    .addComponent(paneStyle, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(paneLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnOpenTypes))
-                    .addComponent(paneTypes, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(paneTime, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(paneMisc, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(paneWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(splitPaneText, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAdd)
-                    .addComponent(btnChange))
-                .addContainerGap())
-        );
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(btnChange)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnAdd)
+                .addContainerGap())
+            .addComponent(jTabbedPane1)
+            .addComponent(splitPaneText)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(splitPaneText, javax.swing.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAdd)
+                    .addComponent(btnChange))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeActionPerformed
-        try {
-            Event nv = (Event)ev.clone();
-            nv.setText(tpText.getText());
-            nv.setEffect(tfSFX.getText());
-            studio.commandToTable(nv, true);
-        } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(FrmSubCommand.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Event nv = ev.getCopy();
+        nv.setText(tpText.getText());
+        nv.setEffect(tfSFX.getText());
+        studio.commandToTable(nv, true);
     }//GEN-LAST:event_btnChangeActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        try {
-            Event nv = (Event)ev.clone();
-            nv.setText(tpText.getText());
-            nv.setEffect(tfSFX.getText());
-            studio.commandToTable(nv, false);
-        } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(FrmSubCommand.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Event nv = ev.getCopy();
+        nv.setText(tpText.getText());
+        nv.setEffect(tfSFX.getText());
+        studio.commandToTable(nv, false);
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void toggleDialogueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleDialogueActionPerformed
@@ -943,19 +959,15 @@ public class FrmSubCommand extends javax.swing.JInternalFrame {
     private javax.swing.JButton btnUnderline;
     private javax.swing.JComboBox<String> comboName;
     private javax.swing.JComboBox<String> comboStyle;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel lblLeft;
     private javax.swing.JLabel lblRight;
     private javax.swing.JLabel lblVertical;
-    private javax.swing.JPanel paneLayer;
-    private javax.swing.JPanel paneMargins;
-    private javax.swing.JPanel paneMisc;
-    private javax.swing.JPanel paneStyle;
-    private javax.swing.JPanel paneTime;
     private javax.swing.JPanel paneTranslate;
-    private javax.swing.JPanel paneTypes;
-    private javax.swing.JPanel paneWave;
+    private javax.swing.JPanel panelTypes;
     private javax.swing.JPopupMenu popText;
     private javax.swing.JMenuItem popTextCopy;
     private javax.swing.JMenuItem popTextCut;

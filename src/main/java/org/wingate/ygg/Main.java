@@ -38,7 +38,7 @@ public class Main {
             FlatLightLaf.install();
             MainFrame mf = new MainFrame(false);        
             mf.setVisible(true);
-        }        
+        }
         
     }
 }

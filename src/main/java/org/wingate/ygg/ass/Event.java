@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author util2
  */
-public class Event implements Cloneable {
+public class Event {
     
     public enum LineType{
         Dialogue("Dialogue", "Dialogue"),
@@ -292,9 +292,22 @@ public class Event implements Cloneable {
     public void setSplitKaraoke(List<String> splitKaraoke) {
         this.splitKaraoke = splitKaraoke;
     }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return (Event)super.clone();
+    
+    public Event getCopy(){
+        Event nv = new Event();
+        
+        nv.setLineType(lineType);
+        nv.setLayer(layer);
+        nv.setStartTime(startTime);
+        nv.setEndTime(endTime);
+        nv.setStyle(style);
+        nv.setName(name);
+        nv.setMarginL(marginL);
+        nv.setMarginR(marginR);
+        nv.setMarginV(marginV);
+        nv.setEffect(effect);
+        nv.setText(text);
+        
+        return nv;
     }
 }
