@@ -29,6 +29,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -160,6 +162,22 @@ public class AudioWavePanel extends JPanel {
                 }
                 updateView();
             }
+        });
+        
+        addMouseWheelListener((MouseWheelEvent e) -> {
+            int samples;
+            int value = awm.horizontalWaveBar.getValue();
+            final int min = awm.horizontalWaveBar.getMinimum();
+            final int max = awm.horizontalWaveBar.getMaximum();
+            if(e.getWheelRotation() > 0){
+                value = value - 50 < min ? min : value - 50;
+                samples = Math.round(getSamplesFromFrame(value) / samplesPerPixel);                
+            }else{
+                value = value + 50 > max ? max : value + 50;
+                samples = Math.round(getSamplesFromFrame(value) / samplesPerPixel);
+            }
+            awm.horizontalWaveBar.setValue(value);
+            awm.updateDisplayWithOffset(-samples, awm.timeStart, awm.timeEnd);
         });
     }
 
