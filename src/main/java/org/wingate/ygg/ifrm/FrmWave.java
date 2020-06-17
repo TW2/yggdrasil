@@ -19,8 +19,10 @@ package org.wingate.ygg.ifrm;
 import java.awt.BorderLayout;
 import java.awt.Point;
 import java.io.File;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.base.AVStudio;
+import org.wingate.ygg.karaoke.SyllableCollection;
 import org.wingate.ygg.ui.AudioWave;
 import org.wingate.ygg.util.FFStuffs;
 import org.wingate.ygg.util.Time;
@@ -35,6 +37,8 @@ public class FrmWave extends javax.swing.JInternalFrame {
 
     FFStuffs ffss;
     AudioWave aw = null;
+    
+    SyllableCollection currentKaraoke = null;
     
     /**
      * Creates new form FrmWave
@@ -58,12 +62,7 @@ public class FrmWave extends javax.swing.JInternalFrame {
     }
     
     public void setFile(File f){
-        setFile(f, null);
-    }
-    
-    public void setFile(File f, FFStuffs ffss){
-        this.ffss = ffss;
-        aw = AudioWave.create(f, ffss, studio.isDark());
+        aw = AudioWave.create(f, studio.getFfss(), studio.isDark());
         
         studio.setAw(aw);
         
@@ -85,7 +84,9 @@ public class FrmWave extends javax.swing.JInternalFrame {
         Point start = new Point(Math.round(startSamples / aw.getSamplesPerPixel()), 0);
         Point stop = new Point(Math.round(endSamples / aw.getSamplesPerPixel()), 0);
         
-        aw.getAudioWavePanel().updatePoint(start, stop);        
+        aw.getAudioWavePanel().updatePoint(start, stop);
+        
+        currentKaraoke = SyllableCollection.create(ev, MainFrame.getKaraokeLanguage());        
     }
 
     /**
@@ -410,10 +411,10 @@ public class FrmWave extends javax.swing.JInternalFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jSlider1, javax.swing.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE)
+                    .addComponent(jSlider3, javax.swing.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE)
+                    .addComponent(paneEmbedWave, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSlider2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jSlider3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(paneEmbedWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jSlider1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -429,6 +430,9 @@ public class FrmWave extends javax.swing.JInternalFrame {
         btnPlayAfterEndSyllable.setEnabled(toggleEnableKara.isSelected());
         btnPreviousSyllable.setEnabled(toggleEnableKara.isSelected());
         btnNextSyllable.setEnabled(toggleEnableKara.isSelected());
+        
+        aw.getAudioWavePanel().setEnableKaraoke(toggleEnableKara.isSelected(), currentKaraoke);
+        studio.getAw().getAudioWavePanel().updateView();
     }//GEN-LAST:event_toggleEnableKaraActionPerformed
 
     private void btnPlayWaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayWaveActionPerformed
@@ -474,39 +478,77 @@ public class FrmWave extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_btnPlayAfterEndActionPerformed
 
     private void btnModifyAreaGotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModifyAreaGotActionPerformed
-        studio.waveToCommand(aw.getTimeOfStartArea(), aw.getTimeOfStopArea(), true);
+        Time start = aw.getTimeOfStartArea();
+        Time end = aw.getTimeOfStopArea();        
+        studio.waveToCommand(start, end, true);
     }//GEN-LAST:event_btnModifyAreaGotActionPerformed
 
     private void btnAcceptGotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAcceptGotActionPerformed
-        studio.waveToCommand(aw.getTimeOfStartArea(), aw.getTimeOfStopArea(), false);
+        Time start = aw.getTimeOfStartArea();
+        Time end = aw.getTimeOfStopArea();        
+        studio.waveToCommand(start, end, false);
     }//GEN-LAST:event_btnAcceptGotActionPerformed
 
     private void btnPlayBeforeStartSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeStartSyllableActionPerformed
-        // TODO add your handling code here:
+        if(currentKaraoke != null){
+            Time msStop = currentKaraoke.getStartTimeAt(currentKaraoke.getSyllableIndex());
+            Time msStart = Time.substract(Time.create(500L), msStop);
+            aw.play(msStart, msStop);
+        }
     }//GEN-LAST:event_btnPlayBeforeStartSyllableActionPerformed
 
     private void btnPlayAfterStartSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterStartSyllableActionPerformed
-        // TODO add your handling code here:
+        if(currentKaraoke != null){
+            Time msStart = currentKaraoke.getStartTimeAt(currentKaraoke.getSyllableIndex());
+            Time msStop = Time.addition(msStart, Time.create(500L));
+            aw.play(msStart, msStop);
+        }
     }//GEN-LAST:event_btnPlayAfterStartSyllableActionPerformed
 
     private void btnPlayAreaSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaSyllableActionPerformed
-        // TODO add your handling code here:
+        if(currentKaraoke != null){
+            Time msStart = currentKaraoke.getStartTimeAt(currentKaraoke.getSyllableIndex());
+            Time msStop = currentKaraoke.getEndTimeAt(currentKaraoke.getSyllableIndex());
+            aw.play(msStart, msStop);
+        }
     }//GEN-LAST:event_btnPlayAreaSyllableActionPerformed
 
     private void btnPlayBeforeEndSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeEndSyllableActionPerformed
-        // TODO add your handling code here:
+        if(currentKaraoke != null){
+            Time msStop = currentKaraoke.getEndTimeAt(currentKaraoke.getSyllableIndex());
+            Time msStart = Time.substract(Time.create(500L), msStop);
+            aw.play(msStart, msStop);
+        }
     }//GEN-LAST:event_btnPlayBeforeEndSyllableActionPerformed
 
     private void btnPlayAfterEndSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterEndSyllableActionPerformed
-        // TODO add your handling code here:
+        if(currentKaraoke != null){
+            Time msStart = currentKaraoke.getEndTimeAt(currentKaraoke.getSyllableIndex());
+            Time msStop = Time.addition(msStart, Time.create(500L));
+            aw.play(msStart, msStop);
+        }
     }//GEN-LAST:event_btnPlayAfterEndSyllableActionPerformed
 
     private void btnPreviousSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPreviousSyllableActionPerformed
-        // TODO add your handling code here:
+        int index = currentKaraoke.getSyllableIndex();
+        
+        if(index >= 0){
+            index = index - 1 < 0 ? currentKaraoke.getSyllableCount() - 1 : index - 1;
+        }
+        
+        currentKaraoke.setSyllableIndex(index);
+        studio.getAw().getAudioWavePanel().updateView();
     }//GEN-LAST:event_btnPreviousSyllableActionPerformed
 
     private void btnNextSyllableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNextSyllableActionPerformed
-        // TODO add your handling code here:
+        int index = currentKaraoke.getSyllableIndex();
+        
+        if(index >= 0){
+            index = index + 1 > currentKaraoke.getSyllableCount() - 1 ? 0 : index + 1;
+        }
+        
+        currentKaraoke.setSyllableIndex(index);        
+        studio.getAw().getAudioWavePanel().updateView();
     }//GEN-LAST:event_btnNextSyllableActionPerformed
 
 

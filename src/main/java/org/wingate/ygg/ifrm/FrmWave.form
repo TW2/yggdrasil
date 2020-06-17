@@ -41,10 +41,10 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jSlider1" pref="297" max="32767" attributes="0"/>
+                  <Component id="jSlider3" alignment="0" pref="247" max="32767" attributes="0"/>
+                  <Component id="paneEmbedWave" alignment="1" max="32767" attributes="0"/>
                   <Component id="jSlider2" alignment="0" max="32767" attributes="0"/>
-                  <Component id="jSlider3" alignment="0" max="32767" attributes="0"/>
-                  <Component id="paneEmbedWave" alignment="0" max="32767" attributes="0"/>
+                  <Component id="jSlider1" alignment="1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jToolBar1" min="-2" max="-2" attributes="0"/>

@@ -37,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
 import org.wingate.ygg.base.AVStudio;
+import org.wingate.ygg.karaoke.KaraokeLanguage;
 import org.wingate.ygg.language.ISO_3166;
 import org.wingate.ygg.language.Language;
 import org.wingate.ygg.util.YGGY;
@@ -51,6 +52,9 @@ public class MainFrame extends javax.swing.JFrame {
     JDesktopPane desktop = new JDesktopPane();
     AVStudio studio = null;
     boolean viewStudio = false;
+    
+    // Langage des karaokés
+    static KaraokeLanguage karaokeLanguage = KaraokeLanguage.Romaji;
     
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
@@ -166,6 +170,10 @@ public class MainFrame extends javax.swing.JFrame {
         return Toolkit.getDefaultToolkit().createImage(ip);
     }
     
+    public static KaraokeLanguage getKaraokeLanguage(){
+        return karaokeLanguage;
+    }
+    
     private void changeStudioPosition(){
         int availableWidth = getWidth();
         int availableHeight = getHeight();
@@ -202,7 +210,7 @@ public class MainFrame extends javax.swing.JFrame {
             viewStudio = false;
         }
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -224,7 +232,10 @@ public class MainFrame extends javax.swing.JFrame {
         mnuFileSep01 = new javax.swing.JPopupMenu.Separator();
         mnuFileExit = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        jMenu3 = new javax.swing.JMenu();
         mnuMenuVideo = new javax.swing.JMenuItem();
+        jMenu4 = new javax.swing.JMenu();
+        mnuRBMenuAVStudioRoumaji = new javax.swing.JRadioButtonMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -281,6 +292,9 @@ public class MainFrame extends javax.swing.JFrame {
 
         jMenu2.setText("Edit");
 
+        jMenu3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/20 time_studio.png"))); // NOI18N
+        jMenu3.setText("AVStudio");
+
         mnuMenuVideo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, java.awt.event.InputEvent.CTRL_MASK));
         mnuMenuVideo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/20 time_studio.png"))); // NOI18N
         mnuMenuVideo.setText("See/Hide the studio... ");
@@ -289,7 +303,22 @@ public class MainFrame extends javax.swing.JFrame {
                 mnuMenuVideoActionPerformed(evt);
             }
         });
-        jMenu2.add(mnuMenuVideo);
+        jMenu3.add(mnuMenuVideo);
+
+        jMenu4.setText("Language of subtitles");
+
+        mnuRBMenuAVStudioRoumaji.setSelected(true);
+        mnuRBMenuAVStudioRoumaji.setText("Rômaji");
+        mnuRBMenuAVStudioRoumaji.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuRBMenuAVStudioRoumajiActionPerformed(evt);
+            }
+        });
+        jMenu4.add(mnuRBMenuAVStudioRoumaji);
+
+        jMenu3.add(jMenu4);
+
+        jMenu2.add(jMenu3);
 
         mnuGeneral.add(jMenu2);
 
@@ -415,6 +444,10 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_mnuFileSaveActionPerformed
 
+    private void mnuRBMenuAVStudioRoumajiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuRBMenuAVStudioRoumajiActionPerformed
+        karaokeLanguage = KaraokeLanguage.Romaji;
+    }//GEN-LAST:event_mnuRBMenuAVStudioRoumajiActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -446,6 +479,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JFileChooser fcAV;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuItem mnuFileExit;
     private javax.swing.JMenuItem mnuFileOpen;
     private javax.swing.JMenu mnuFilePlugins;
@@ -455,6 +490,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator mnuFileSep02;
     private javax.swing.JMenuBar mnuGeneral;
     private javax.swing.JMenuItem mnuMenuVideo;
+    private javax.swing.JRadioButtonMenuItem mnuRBMenuAVStudioRoumaji;
     private javax.swing.JPanel paneGeneral;
     // End of variables declaration//GEN-END:variables
 }

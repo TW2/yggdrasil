@@ -18,9 +18,13 @@ package org.wingate.ygg.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -189,36 +193,74 @@ public class FFStuffs {
             Logger.getLogger(FFStuffs.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        // On obtient les keyframes
-        if(hasVideo == true){
-            try{
-                pb = new ProcessBuilder(fs.ffprobe, "-i", file, "-select_streams", "v", "-show_frames",
-                        "-show_entries", "frame=pict_type", "-loglevel", "error");
-                pb.redirectErrorStream(true);
-                p = pb.start();
-            }catch(IOException ex){
+        // On crée ou récupère un fichier
+        // Intérieur d'un fichier 'frames'
+        // fps
+        // frameType
+        // frameType
+        // ...
+        File framesInFile = new File(file.substring(0, file.lastIndexOf(".")) + ".frames");
+        countCheck = 0;
+        if(framesInFile.exists() == true){
+            try(FileReader fr = new FileReader(framesInFile, StandardCharsets.UTF_8); 
+                    BufferedReader br = new BufferedReader(fr)){
+                String myLine;
+                double myFps = -1d;
+                while((myLine = br.readLine()) != null){
+                    if(myFps == -1d) myFps = Double.parseDouble(myLine);
+                    if(myLine.startsWith("I")){
+                        fs.IFrames.put(countCheck, Time.getTimeFromFrame(countCheck, myFps));
+                        countCheck++;
+                    }else if(myLine.startsWith("P")){
+                        fs.PFrames.put(countCheck, Time.getTimeFromFrame(countCheck, myFps));
+                        countCheck++;
+                    }else if(myLine.startsWith("B")){
+                        fs.BFrames.put(countCheck, Time.getTimeFromFrame(countCheck, myFps));
+                        countCheck++;
+                    }
+                }                
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(FFStuffs.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
                 Logger.getLogger(FFStuffs.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            if(p != null){
-                countCheck = 0;
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))){                    
-                    while ((line = reader.readLine()) != null) {
-                        if(line.contains("pict_type=I")){
-                            fs.IFrames.put(countCheck, Time.getTimeFromFrame(countCheck, fs.fps));
-                        }else if(line.contains("pict_type=P")){
-                            fs.PFrames.put(countCheck, Time.getTimeFromFrame(countCheck, fs.fps));
-                        }else if(line.contains("pict_type=B")){
-                            fs.BFrames.put(countCheck, Time.getTimeFromFrame(countCheck, fs.fps));
-                        }
-                        if(line.contains("pict_type=") == true){
-                            countCheck++;
-                        }                        
-                    }
-                } catch (IOException ex) {        
+        }else{
+            // On obtient les keyframes
+            if(hasVideo == true){
+                try{
+                    pb = new ProcessBuilder(fs.ffprobe, "-i", file, "-select_streams", "v", "-show_frames",
+                            "-show_entries", "frame=pict_type", "-loglevel", "error");
+                    pb.redirectErrorStream(true);
+                    p = pb.start();
+                }catch(IOException ex){
                     Logger.getLogger(FFStuffs.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                p.destroy();
+
+                if(p != null){
+                    countCheck = 0;                    
+                    try(BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                            PrintWriter pw = new PrintWriter(framesInFile, StandardCharsets.UTF_8)){
+                        pw.println(fs.fps);
+                        while ((line = reader.readLine()) != null) {
+                            if(line.contains("pict_type=I")){
+                                fs.IFrames.put(countCheck, Time.getTimeFromFrame(countCheck, fs.fps));
+                                pw.println("I");
+                            }else if(line.contains("pict_type=P")){
+                                fs.PFrames.put(countCheck, Time.getTimeFromFrame(countCheck, fs.fps));
+                                pw.println("P");
+                            }else if(line.contains("pict_type=B")){
+                                fs.BFrames.put(countCheck, Time.getTimeFromFrame(countCheck, fs.fps));
+                                pw.println("B");
+                            }
+                            if(line.contains("pict_type=") == true){
+                                countCheck++;
+                            }                        
+                        }
+                    } catch (IOException ex) {        
+                        Logger.getLogger(FFStuffs.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    p.destroy();
+                }
             }
         }
         

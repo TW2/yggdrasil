@@ -21,18 +21,34 @@ package org.wingate.ygg.karaoke;
  * @author util2
  */
 public enum KaraokeLanguage {
-    Romaji,
-    Hiragana,
-    Katakana,
-    Kanji,
-    Japanese,
-    Bopomofo,
-    TradChinese,
-    SimpChinese,
-    Korean,
-    English,
-    French,
-    Spanish,
-    Deutch,
-    Italian;
+    Romaji("Rômaji"),
+    Hiragana("Hiragana"),
+    Katakana("Katakana"),
+    Kanji("Kanji"),
+    Japanese("Japanese"),
+    Bopomofo("Bopomofo"),
+    TradChinese("Traditional Chinese"),
+    SimpChinese("Simplified Chinese"),
+    Korean("Korean"),
+    English("English"),
+    French("French"),
+    Spanish("Spanish"),
+    Deutch("Deutch"),
+    Italian("Italian");
+    
+    String language;
+    
+    private KaraokeLanguage(String language){
+        this.language = language;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    @Override
+    public String toString() {
+        return language;
+    }
+    
 }

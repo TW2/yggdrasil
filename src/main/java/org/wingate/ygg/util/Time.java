@@ -192,6 +192,48 @@ public class Time {
     }
 
     // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Multiply / Divide ">
+
+    /**
+     * Multiply Time t1 and Time t2.
+     * @param t1 A time object
+     * @param t2 Another time object
+     * @return Result as t1 * t2
+     */
+    public static Time multiply(Time t1, Time t2){
+        Time t;
+
+        long lt1 = toMillisecondsTime(t1);
+        long lt2 = toMillisecondsTime(t2);
+
+        long lt = lt1 * lt2;
+
+        t = fromMillisecondsTime(lt);
+
+        return t;
+    }
+
+    /**
+     * Divide Time t1 to Time t2.
+     * @param t1 A time object
+     * @param t2 Another time object
+     * @return Result as t1 / t2 where t2 != 0 otherwise t1 is returned
+     */
+    public static Time divide(Time t1, Time t2){
+        Time t;
+
+        long lt1 = toMillisecondsTime(t1);
+        long lt2 = toMillisecondsTime(t2);
+
+        long lt = lt2 != 0 ? lt1 / lt2 : lt1;
+
+        t = fromMillisecondsTime(lt);
+
+        return t;
+    }
+
+    // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc=" Conversion Time <> milliseconds ">
 

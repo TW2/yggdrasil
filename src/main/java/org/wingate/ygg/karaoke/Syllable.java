@@ -16,6 +16,7 @@
  */
 package org.wingate.ygg.karaoke;
 
+import java.awt.Point;
 import org.wingate.ygg.util.Time;
 
 /**
@@ -28,6 +29,9 @@ public class Syllable {
     private Time duration = Time.create(0L);
     private Time start = Time.create(0L);
     private Time end = Time.create(0L);
+    
+    private Point startPoint = new Point(0,0);
+    private Point endPoint = new Point(0,0);
     
     public Syllable() {
     }
@@ -88,5 +92,21 @@ public class Syllable {
         this.start = start;
         this.end = end;
         this.duration = Time.substract(start, end);
+    }
+
+    public Point getStartPoint() {
+        return startPoint;
+    }
+
+    public void setStartPoint(Point startPoint) {
+        this.startPoint = startPoint;
+    }
+
+    public Point getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(Point endPoint) {
+        this.endPoint = endPoint;
     }
 }

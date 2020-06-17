@@ -67,15 +67,21 @@ public class AudioWavePanel extends JPanel {
     // To play sound
     File generatedWAV = null, oldSelectedWAV = null;
     float samplesPerPixel = 1000f;
-    int[] startAreaKaraPixels = null, stopAreaKaraPixels = null;
     
-    Point startArea = null, startKaraokeArea = null;
-    Point stopArea = null, stopKaraokeArea = null;
+    Point startArea = null;
+    Point stopArea = null;
     Point currentMouseMotion = null;
     Point currentProgressOnPlay = null;
 
     SyllableCollection karaokeOverlay = null;
-    int activeSyllableIndex = 0;
+    
+    public void setEnableKaraoke(boolean value, SyllableCollection sc){
+        if(value == true){
+            karaokeOverlay = sc;
+        }else{
+            karaokeOverlay = null;
+        }
+    }
     
     public void updateView(){
         // For play area
@@ -89,8 +95,6 @@ public class AudioWavePanel extends JPanel {
         
         // To play sound
         samplesPerPixel = awm.samplesPerPixel;
-        startAreaKaraPixels = awm.startAreaKaraPixels;
-        stopAreaKaraPixels = awm.stopAreaKaraPixels;
         
         repaint();
     }
@@ -125,15 +129,27 @@ public class AudioWavePanel extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                // TODO Glue on karaoke time (start end start end start...)
-                if(startAreaKaraPixels != null) { startAreaKaraPixels[activeSyllableIndex] = e.getX() - offset; }
-                if(stopAreaKaraPixels != null) { stopAreaKaraPixels[activeSyllableIndex] = e.getX() - offset; }
                 if(e.getButton() == MouseEvent.BUTTON1 && karaokeOverlay != null){
-                    startKaraokeArea = new Point(e.getX() - offset, e.getY());
-                    karaokeOverlay.getSyllables().get(activeSyllableIndex).setStart(aws.getTimeFrom(e.getX() - offset));                        
+                    // Syllabe en cours : pointeur de la souris sur le début
+                    Syllable syl = karaokeOverlay.getSyllableAt(karaokeOverlay.getSyllableIndex());
+                    syl.setStart(aws.getTimeFrom(e.getX() - offset));
+                    syl.setStartPoint(new Point(e.getX() - offset, e.getY()));
+                    
+//                    if(karaokeOverlay.getSyllableIndex() > 0){
+//                        Syllable beforeSYL = karaokeOverlay.getSyllableAt(karaokeOverlay.getSyllableIndex() - 1);
+//                        beforeSYL.setEnd(aws.getTimeFrom(e.getX() - offset));
+//                        beforeSYL.setEndPoint(new Point(e.getX() - offset, e.getY()));
+//                    }
                 }else if(e.getButton() == MouseEvent.BUTTON3 && karaokeOverlay != null){
-                    stopKaraokeArea = new Point(e.getX() - offset, e.getY());
-                    karaokeOverlay.getSyllables().get(activeSyllableIndex).setEnd(aws.getTimeFrom(e.getX() - offset));                        
+                    Syllable syl = karaokeOverlay.getSyllableAt(karaokeOverlay.getSyllableIndex());
+                    syl.setEnd(aws.getTimeFrom(e.getX() - offset));
+                    syl.setEndPoint(new Point(e.getX() - offset, e.getY()));
+                    
+//                    if(karaokeOverlay.getSyllableIndex() < karaokeOverlay.getSyllableCount() - 1){
+//                        Syllable afterSYL = karaokeOverlay.getSyllableAt(karaokeOverlay.getSyllableIndex() + 1);
+//                        afterSYL.setStart(aws.getTimeFrom(e.getX() - offset));
+//                        afterSYL.setStartPoint(new Point(e.getX() - offset, e.getY()));
+//                    }
                 }else if(e.getButton() == MouseEvent.BUTTON1){
                     startArea = new Point(e.getX() - offset, e.getY());
                 }else if(e.getButton() == MouseEvent.BUTTON3){
@@ -167,6 +183,25 @@ public class AudioWavePanel extends JPanel {
             } catch (IOException ex) {
                 Logger.getLogger(AudioWavePanel.class.getName()).log(Level.SEVERE, null, ex);
             }
+            
+            // On obtient une valeur corrective de la courbe
+            // à partir des 3 premières valeurs (blanc anormalement non à zéro)
+            int blankCorrection = 0;
+            int blankCounter = 0;
+            int bkv1 = -1, bkv2 = -2, bkv3 = -3;
+            for(Map.Entry<Integer, Integer> entry  : values.entrySet()){
+                blankCounter++;
+                if(blankCounter == 1) bkv1 = entry.getValue();
+                if(blankCounter == 2) bkv2 = entry.getValue();
+                if(blankCounter == 3) bkv3 = entry.getValue();
+                
+                if(blankCounter == 3){
+                    break;
+                }
+            }
+            if(bkv1 == bkv2 && bkv2 == bkv3){
+                blankCorrection = bkv1;
+            }
 
             // On dessine la courbe (ligne du milieu)
             g2d.setColor(AudioWaveColors.WaveForm.getColor(dark));
@@ -177,6 +212,11 @@ public class AudioWavePanel extends JPanel {
             for(Map.Entry<Integer, Integer> entry  : values.entrySet()){
                 int x = offset + entry.getKey();
                 int y = entry.getValue();
+                // z = getHeight() / 2 = blankCorrection
+                // z = y               = entry.getValue()
+                if(blankCorrection != 0){
+                    y = getHeight() / 2 * entry.getValue() / blankCorrection;
+                }
 
                 if(x > 0 && x <= getWidth()){
                     // On dessine la courbe (générale)
@@ -327,15 +367,17 @@ public class AudioWavePanel extends JPanel {
                 for(int i=0; i<karaokeOverlay.getSyllableCount(); i++){                        
                     // Début >> startArea >> xps
                     // Fin >> startArea + ms >> xps + ms = xpe
-                    xps = i == 0 ?
-                            startArea.x :
-                            aws.getXFrom(karaokeOverlay.getSyllables().get(i).getStart());
+                    xps = karaokeOverlay.getStartPointAt(i).x;
+                    xpe = karaokeOverlay.getEndPointAt(i).x;
+                    
+                    if(xps == 0 & xpe == 0){
+                        Time start = karaokeOverlay.getStartTimeAt(i);
+                        Time end = karaokeOverlay.getEndTimeAt(i);
+                        xps = Math.round(awm.getSamplesFromFrame(Time.getFrame(start, ffss.getFps())) / samplesPerPixel);
+                        xpe = Math.round(awm.getSamplesFromFrame(Time.getFrame(end, ffss.getFps())) / samplesPerPixel);
+                    }
 
-                    xpe = i == karaokeOverlay.getSyllableCount() - 1 ?
-                            stopArea.x :
-                            aws.getXFrom(karaokeOverlay.getSyllables().get(i).getEnd());
-
-                    g2d.setColor(activeSyllableIndex == i ?
+                    g2d.setColor(karaokeOverlay.getSyllableIndex() == i ?
                             DrawColor.gold.getColor(0.5f) :
                             DrawColor.medium_purple.getColor(0.2f));                        
                     Rectangle2D r2d = new Rectangle2D.Float(
@@ -355,7 +397,7 @@ public class AudioWavePanel extends JPanel {
                     // On dessine l'overlay de syllabe
                     Syllable syl = karaokeOverlay.getSyllables().get(i);
                     int strSize = fm.stringWidth(syl.getContent()) + 3;
-                    g2d.setColor(activeSyllableIndex == i ?
+                    g2d.setColor(karaokeOverlay.getSyllableIndex() == i ?
                             DrawColor.gold.getColor(0.5f) :
                             DrawColor.medium_purple.getColor(0.5f));                        
                     g2d.fillRect(xPosKaraTime, 140, strSize, 20);

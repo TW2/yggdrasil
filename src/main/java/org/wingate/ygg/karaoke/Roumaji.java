@@ -52,7 +52,7 @@ public class Roumaji {
     public static List<Syllable> getLimits(String sentence){
         List<Syllable> syls = new ArrayList<>();
         
-        String delta = sentence.toLowerCase();
+        String delta = sentence.toLowerCase().trim();
         
         while(delta.isEmpty() == false){
             for (String roman : ROUMAJI_LIST) {

@@ -803,4 +803,31 @@ public class Style {
         return Name;
     }
     
+    public static String toAssStyleLine(Style style){        
+        return "Style: "
+                + style.getName() + ","
+                + style.getFontname() + "," 
+                + Math.ceil(style.getFontsize()) + ","
+                + "&H" + style.getTextColorHex(true) + ","
+                + "&H" + style.getKaraokeColorHex(true) + ","
+                + "&H" + style.getBordColorHex(true) + ","
+                + "&H" + style.getShadColorHex(true) + ","
+                + (style.isBold() == true ? "1" : "0") + ","
+                + (style.isItalic() == true ? "1" : "0") + ","
+                + (style.isUnderline() == true ? "1" : "0") + ","
+                + (style.isStrikeout() == true ? "1" : "0") + ","
+                + Math.ceil(style.getScaleX()) + ","
+                + Math.ceil(style.getScaleY()) + ","
+                + Math.ceil(style.getSpacing()) + ","
+                + Math.ceil(style.getAngle()) + ","
+                + Integer.toString(style.getBorderStyle()) + ","
+                + Double.toString(style.getOutline()) + ","
+                + Double.toString(style.getShadow()) + ","
+                + Integer.toString(style.getAlignment()) + ","
+                + Integer.toString(style.getMarginL()) + ","
+                + Integer.toString(style.getMarginR()) + ","
+                + Integer.toString(style.getMarginV()) + ","
+                + Integer.toString(style.getEncoding());
+    } 
+    
 }

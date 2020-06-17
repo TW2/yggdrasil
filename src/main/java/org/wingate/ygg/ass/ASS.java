@@ -164,9 +164,13 @@ public class ASS {
                     + "Bold, Italic, Underline, StrikeOut, "
                     + "ScaleX, ScaleY, Spacing, Angle, "
                     + "BorderStyle, Outline, Shadow, "
-                    + "Alignment, MarginL, MarginR, MarginV, Encoding");
-            for(Map.Entry<String, Style> entry : styles.entrySet()){
-                pw.println(entry.getValue().getStyle());
+                    + "Alignment, MarginL, MarginR, MarginV, Encoding");            
+            if(styles.isEmpty() == true){
+                pw.println(Style.getStyle());
+            }else{
+                for(Map.Entry<String, Style> entry : styles.entrySet()){
+                    pw.println(Style.toAssStyleLine(entry.getValue()));
+                }
             }
             pw.println("");
             //[Events]

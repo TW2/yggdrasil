@@ -16,6 +16,7 @@
  */
 package org.wingate.ygg.karaoke;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -30,8 +31,8 @@ import org.wingate.ygg.util.Time;
 public class SyllableCollection {
     
     private List<Syllable> syllables = new ArrayList<>();
-    private Time startTime = Time.create(0L);
-
+    private int syllableIndex = -1;
+    
     public SyllableCollection() {
     }
 
@@ -57,19 +58,40 @@ public class SyllableCollection {
         if(event.getText().contains("\\k") == true){
             Pattern p = Pattern.compile("\\{\\\\k(\\d+)\\}([^\\{]*)");
             Matcher m = p.matcher(event.getText());
-            long t_ms = Time.toMillisecondsTime(event.getStartTime());
+            
+            Time t = event.getStartTime();
+            
             while(m.find()){
-                long duration = Integer.parseInt(m.group(1)) * 10;
-                Time startSyl = Time.create(t_ms);
-                Time endSyl = Time.create(duration);
+                Time duration = Time.create((long)Integer.parseInt(m.group(1)) * 10L);
+                Time startSyl = t; // Start time
+                t = Time.addition(t, duration); // End time -> start + duration
+                Time endSyl = t; // End time
                 sc.syllables.add(Syllable.create(m.group(2), startSyl, endSyl));
-                t_ms += duration;
             }
         }else{
             switch(language){
                 case Romaji: sc.syllables = Roumaji.getLimits(event.getText()); break;
                 default: break;
             }
+            if(sc.syllables.isEmpty() == false){
+                Time startOfSentence = event.getStartTime();
+                Time endOfSentence = event.getEndTime();
+                Time durationOfSentence = Time.substract(startOfSentence, endOfSentence);
+                
+                Time partOfKaraoke = Time.divide(durationOfSentence, Time.create((long)sc.getSyllableCount()));
+                Time renewStart = event.getStartTime();
+                
+                for(Syllable syl : sc.syllables){
+                    syl.setStart(renewStart);
+                    renewStart = Time.addition(renewStart, partOfKaraoke);
+                    syl.setEnd(renewStart);
+                    syl.setDuration(partOfKaraoke);
+                }
+            }
+        }
+        
+        if(sc.syllables.isEmpty() == false){
+            sc.syllableIndex = 0;            
         }
         
         return sc;
@@ -97,26 +119,38 @@ public class SyllableCollection {
     }
 
     public Time getStartTime() {
-        return startTime;
+        return syllables.isEmpty() ? Time.create(0L) : syllables.get(0).getStart();
+    }
+    
+    public Time getEndTime() {
+        return syllables.isEmpty() ? Time.create(0L) : syllables.get(syllables.size() - 1).getEnd();
+    }
+    
+    public Time getStartTimeAt(int index) {
+        return syllables.isEmpty() | syllables.size() - 1 < index ? Time.create(0L) : syllables.get(index).getStart();
+    }
+    
+    public Time getEndTimeAt(int index) {
+        return syllables.isEmpty() | syllables.size() - 1 < index ? Time.create(0L) : syllables.get(index).getEnd();
     }
 
-    public void setStartTime(Time startTime) {
-        this.startTime = startTime;
+    public int getSyllableIndex() {
+        return syllableIndex;
+    }
+
+    public void setSyllableIndex(int syllableIndex) {
+        this.syllableIndex = syllableIndex;
     }
     
-    public Time getDurationRange(int from, int to){
-        Time t = syllables.get(from).getDuration();
-        for (int i=from+1; i<to; i++){
-            t = Time.addition(t, syllables.get(i).getDuration());
-        }
-        return t;
+    public Point getStartPointAt(int index){
+        return syllables.get(index).getStartPoint();
     }
     
-    public void setDurationAt(int index, Time startArea, Time current){
-        Time lastSylDuration = index == 0 ? Time.create(0L) : syllables.get(index - 1).getDuration();
-        Time fromStart = Time.addition(startArea, current);
-        Time diff = Time.substract(fromStart, lastSylDuration);
-        syllables.get(index).setDuration(diff);
-        System.out.println("Durée : " + diff.toDisplayTime());
+    public Point getEndPointAt(int index){
+        return syllables.get(index).getEndPoint();
+    }
+    
+    public Syllable getSyllableAt(int index){
+        return syllables.get(index);
     }
 }
