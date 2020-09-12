@@ -14,9 +14,9 @@ Aperçu / Screenshot :
 ```
 java -jar ygg-1.1.jar
 ```
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/ygg004.png" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/ygg004.PNG" />
 
 ```
 java -jar ygg-1.1.jar dark
 ```
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/ygg005.png" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/ygg005.PNG" />
