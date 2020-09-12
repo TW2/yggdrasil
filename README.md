@@ -1,5 +1,6 @@
 # yggdrasil
 Subtitles synchronization software
+
 Status: v1.1 alpha phase
 
 ## Abilities
