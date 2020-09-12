@@ -860,13 +860,15 @@ public class MainFrame extends javax.swing.JFrame {
         tabbedOptions = new javax.swing.JTabbedPane();
         paneChat = new javax.swing.JPanel();
         jPanel10 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
+        btnSend = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTextPane2 = new javax.swing.JTextPane();
-        jButton2 = new javax.swing.JButton();
+        tpChatEntry = new javax.swing.JTextPane();
+        btnSmiley = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        tpChatChannel = new javax.swing.JTextPane();
         panePTP = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         tabbedMainFunctions = new javax.swing.JTabbedPane();
         tabStudio = new javax.swing.JPanel();
         deskYGGY = new javax.swing.JDesktopPane();
@@ -1701,34 +1703,34 @@ public class MainFrame extends javax.swing.JFrame {
         splitMain.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         splitMain.setOneTouchExpandable(true);
 
-        jButton1.setText("SEND");
+        btnSend.setText("SEND");
 
-        jScrollPane4.setViewportView(jTextPane2);
+        jScrollPane4.setViewportView(tpChatEntry);
 
-        jButton2.setText("SMILEY");
+        btnSmiley.setText("SMILEY");
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(jButton1)
+                .addComponent(btnSend)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2)
+                .addComponent(btnSmiley)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE))
         );
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(jButton1)
-                .addComponent(jButton2))
+                .addComponent(btnSend)
+                .addComponent(btnSmiley))
             .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane3.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        jScrollPane3.setViewportView(jTextPane1);
+        jScrollPane3.setViewportView(tpChatChannel);
 
         javax.swing.GroupLayout paneChatLayout = new javax.swing.GroupLayout(paneChat);
         paneChat.setLayout(paneChatLayout);
@@ -1740,7 +1742,7 @@ public class MainFrame extends javax.swing.JFrame {
         paneChatLayout.setVerticalGroup(
             paneChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, paneChatLayout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 184, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -1748,15 +1750,28 @@ public class MainFrame extends javax.swing.JFrame {
 
         tabbedOptions.addTab("Chat", paneChat);
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane5.setViewportView(jTable1);
+
         javax.swing.GroupLayout panePTPLayout = new javax.swing.GroupLayout(panePTP);
         panePTP.setLayout(panePTPLayout);
         panePTPLayout.setHorizontalGroup(
             panePTPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 846, Short.MAX_VALUE)
+            .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 846, Short.MAX_VALUE)
         );
         panePTPLayout.setVerticalGroup(
             panePTPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 224, Short.MAX_VALUE)
+            .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE)
         );
 
         tabbedOptions.addTab("Files", panePTP);
@@ -2365,6 +2380,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnCmdStyleAfter;
     private javax.swing.JButton btnCmdStyleBefore;
     private javax.swing.JButton btnCmdStyleChange;
+    private javax.swing.JButton btnSend;
+    private javax.swing.JButton btnSmiley;
     private javax.swing.JButton btnVideoPause;
     private javax.swing.JButton btnVideoPlay;
     private javax.swing.JButton btnVideoPlayAfter;
@@ -2383,8 +2400,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JInternalFrame ifrVideo;
     private javax.swing.JInternalFrame ifrWave;
     private javax.swing.JInternalFrame ifrtableOne;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -2407,11 +2422,11 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator3;
-    private javax.swing.JTextPane jTextPane1;
-    private javax.swing.JTextPane jTextPane2;
+    private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
     private javax.swing.JMenuBar menuBarYGGY;
@@ -2472,6 +2487,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton toggleCmdRequest;
     private javax.swing.JToggleButton toggleCmdSound;
     private javax.swing.JToggleButton toggleYvesKaraoke;
+    private javax.swing.JTextPane tpChatChannel;
+    private javax.swing.JTextPane tpChatEntry;
     private javax.swing.JTextPane tpText;
     // End of variables declaration//GEN-END:variables
 }

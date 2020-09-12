@@ -25,9 +25,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.rmi.server.RMIClassLoader;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -129,7 +127,6 @@ public class UserChatUID {
             throw new NullPointerException("Bad data!");
         }
         UserChatUID uid = fromBase64(strFromCp);
-        System.out.println(uid.username + "\n" + uid.boy + "\n" + uid.ipv4);
         return uid;
     }
     
@@ -146,7 +143,7 @@ public class UserChatUID {
         }
         try(PrintWriter pw = new PrintWriter("db", StandardCharsets.UTF_16LE)){
             list.forEach(uid -> {
-                pw.append(toBase64(uid));
+                pw.println(toBase64(uid));
             });
         } catch (IOException ex) {
             Logger.getLogger(UserChatUID.class.getName()).log(Level.SEVERE, null, ex);
