@@ -4,12 +4,12 @@ Subtitles synchronization software
 Status: v1.1 alpha phase
 
 ## Abilities
-- [x] Can open videos (VLCj JavaFX)
-- [x] Can open audio (all format thanks to FFMPeg)
+- [x] Can open videos (FFMpeg)
+- [x] Can open audio (FFMpeg via transcode to wave)
+- [ ] Can understand VFR
 - [ ] Can display full ASS
 - [x] Can open/save ASS
 - [x] Can synchronize an ASS event
-- [ ] Can save your work in its format
 
 ## Screenshots
 ```
