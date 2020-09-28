@@ -20,6 +20,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -39,12 +40,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -55,6 +50,9 @@ import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import org.wingate.timelibrary.Time;
+import org.wingate.videocmp.ImageEvent;
+import org.wingate.videocmp.ImageListener;
+import org.wingate.videocmp.Player;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.ass.Style;
@@ -68,13 +66,9 @@ import org.wingate.ygg.util.audio.AudioWave;
 import org.wingate.ygg.util.FFStuffs;
 import org.wingate.ygg.util.FramesPanel;
 import org.wingate.ygg.util.audio.AudioWavePanel;
-import org.wingate.ygg.util.video.VideoTimeEvent;
-import org.wingate.ygg.util.video.VideoTimeHandler;
-import org.wingate.ygg.util.video.VideoTimeListener;
+import org.wingate.ygg.util.dialog.PropsDialog;
+import org.wingate.ygg.util.dialog.StylesDialog;
 import org.wingate.ygg.util.subtitle.YGGY;
-import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactory.videoSurfaceForImageView;
-import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 /**
  *
@@ -92,6 +86,7 @@ public class MainFrame extends javax.swing.JFrame {
     private boolean fcAudioReady = false;
     private boolean fcAssReady = false;
     
+    private Player player = new Player();
     private File video = null;
     private ASS ass = ASS.NoFileToLoad();
     private final YGGY yggy = YGGY.create();
@@ -99,11 +94,6 @@ public class MainFrame extends javax.swing.JFrame {
     
     // ifrVideo components and variables
     private final JLabel lblOnTopOfOverlay = new JLabel();
-    private final JFXPanel fXPanel = new JFXPanel();
-    private final VideoTimeHandler vth = new VideoTimeHandler();
-    private MediaPlayerFactory mediaPlayerFactory;
-    private EmbeddedMediaPlayer embeddedMediaPlayer;
-    private ImageView videoImageView;
     private FramesPanel fp;
     private FFStuffs ffss = null;
     // ifrVideo stop
@@ -170,9 +160,7 @@ public class MainFrame extends javax.swing.JFrame {
         fp = new FramesPanel(darkUI);
         paneTimeline.add(fp, BorderLayout.CENTER);
         
-        paneVideo.add(fXPanel, BorderLayout.CENTER);
-        fXPanel.setLayout(new BorderLayout());
-        fXPanel.add(lblOnTopOfOverlay, BorderLayout.CENTER);        
+        paneVideo.add(lblOnTopOfOverlay, BorderLayout.CENTER);
         lblOnTopOfOverlay.setHorizontalAlignment(SwingConstants.CENTER);
         lblOnTopOfOverlay.setFont(lblOnTopOfOverlay.getFont().deriveFont(50f));
         
@@ -181,76 +169,41 @@ public class MainFrame extends javax.swing.JFrame {
         ifrVideo.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                lblOnTopOfOverlay.setText("<html><b>W: " + paneVideo.getWidth() 
-                        + "<br />H: " + paneVideo.getHeight() + "</b>"
-                );
+                ifrVideo.setTitle("Java VCMP - " + paneVideo.getWidth() + "x" + paneVideo.getHeight());                
             }            
         });
+        ifrVideo.setTitle("Java VCMP");
         deskYGGY.add(ifrVideo);
-        
-        vth.addVideoTimeListener(new VideoTimeListener() {
+        player.addImageListener(new ImageListener() {
             @Override
-            public void timeChanged(VideoTimeEvent event) {
-                tfVideoCurrentTime.setText(event.getCurrentTime().toProgramExtendedTime());
-                tfVideoCurrentFrame.setText(Integer.toString(Time.getFrame(event.getCurrentTime(), ffss.getFps())));
-                fp.updatePosition(event.getCurrentTime());
+            public void imageChanged(ImageEvent event) {
+                Dimension imgSize = new Dimension(
+                        event.getImage().getWidth(),
+                        event.getImage().getHeight()
+                );
+                Dimension d = getScaledDimension(imgSize, lblOnTopOfOverlay.getSize());
+                BufferedImage bufimg = new BufferedImage(
+                        lblOnTopOfOverlay.getWidth(),
+                        lblOnTopOfOverlay.getHeight(),
+                        BufferedImage.TYPE_INT_ARGB
+                );
+                Graphics2D gr = bufimg.createGraphics();
+                gr.setColor(isDark() ? Color.black : Color.white);
+                gr.fillRect(0, 0, lblOnTopOfOverlay.getWidth(), lblOnTopOfOverlay.getHeight());
+                gr.drawImage(
+                        event.getImage(), 
+                        (lblOnTopOfOverlay.getWidth() - d.width) / 2, 
+                        (lblOnTopOfOverlay.getHeight()- d.height) / 2, 
+                        d.width, 
+                        d.height, 
+                        null);
+                gr.dispose();
+                lblOnTopOfOverlay.setIcon(new ImageIcon(bufimg));
                 
-                if(ass != null && ass.getAssFile() != null && ass.getAssFile().exists() == true){
-                    Image subtitlesImage = getAssShape(ass, event.getCurrentTime());
-                    int w = Integer.parseInt(ass.getResX());
-                    int h = Integer.parseInt(ass.getResY());
-                    Dimension size = getScaledDimension(new Dimension(w, h), fXPanel.getSize());
-                    if(subtitlesImage != null){
-                        Image image = subtitlesImage.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
-                        lblOnTopOfOverlay.setIcon(new ImageIcon(image));
-                    }else{
-                        lblOnTopOfOverlay.setIcon(new ImageIcon(new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB)));
-                    }                    
-                    lblOnTopOfOverlay.setLocation((fXPanel.getWidth() - size.width) / 2, (fXPanel.getHeight() - size.height) / 2);   
-                }                             
-            }
-
-            @Override
-            public void timeReached(VideoTimeEvent event) {
-                vth.stopVTH();
-                vth.resetVTH(Time.create(0L));
-                Platform.runLater(() -> {
-                    embeddedMediaPlayer.submit(() -> {
-                        embeddedMediaPlayer.controls().stop();                        
-                    });
-                });
-            }
-
-            @Override
-            public void timeEnded(VideoTimeEvent event) {
                 
             }
         });
-        
-        Platform.runLater(() -> {
-            mediaPlayerFactory = new MediaPlayerFactory();
-            embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
-            
-            videoImageView = new ImageView();
-            videoImageView.setFitWidth(fXPanel.getWidth());
-            videoImageView.setFitHeight(fXPanel.getHeight());
-            videoImageView.setPreserveRatio(true);
-            
-            embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
-            
-            Group root = new Group();
-            Scene scene = new Scene(root, fXPanel.getWidth(), fXPanel.getHeight());            
-            
-            StackPane stack = new StackPane();
-            stack.getChildren().add(videoImageView);
-            scene.setRoot(stack);
-            javafx.scene.paint.Color cLight = javafx.scene.paint.Color.ALICEBLUE;
-            javafx.scene.paint.Color cNight = javafx.scene.paint.Color.SLATEGRAY;
-            scene.setFill(darkUI == true ? cNight : cLight);
-            fXPanel.setScene(scene);
-            fXPanel.setVisible(true);
-        });
-        
+
         // Audio WAVE
         ifrWave.setSize(880, 250);
         ifrWave.setLocation(977, 5);
@@ -317,6 +270,14 @@ public class MainFrame extends javax.swing.JFrame {
     
     private void resizeComponents(){
         splitMain.setDividerLocation(getHeight() * 3 / 4);
+    }
+    
+    public static Language getLanguage(){
+        return chosen;
+    }
+    
+    public static ISO_3166 getISO(){
+        return wantedIso;
     }
     
     // </editor-fold>
@@ -428,19 +389,14 @@ public class MainFrame extends javax.swing.JFrame {
     private void openAudioVideo(File video){
         openVideo(video);
         openAudio(video);
+        player.setFile(video);
     }
     
     private void playAndStop(Time startTime, Time endTime){
         if(currentEvent != null){
-            vth.setStopTime(endTime);
-            vth.setDuration(ffss.getDuration());
-            vth.playVTH();
-            Platform.runLater(() -> {                
-                embeddedMediaPlayer.submit(() -> {
-                    embeddedMediaPlayer.media().play(video.getPath());
-                    embeddedMediaPlayer.controls().setTime(Time.toMillisecondsTime(startTime));
-                });
-            });
+            player.setStartAt(startTime);
+            player.setStopAt(endTime);
+            player.play();
         }
     }
     
@@ -610,6 +566,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     private void initAssComboName(){
         dcbmName.removeAllElements();
+        dcbmName.addElement("");
         ass.getNames().forEach((name) -> {
             dcbmName.addElement(name);
         });
@@ -855,6 +812,8 @@ public class MainFrame extends javax.swing.JFrame {
         btnCmdStyleChange = new javax.swing.JButton();
         btnCmdStyleAfter = new javax.swing.JButton();
         btnCmdStyleBefore = new javax.swing.JButton();
+        btnCmdStyleParam = new javax.swing.JButton();
+        btnCmdStyleProperties = new javax.swing.JButton();
         bgAssType = new javax.swing.ButtonGroup();
         splitMain = new javax.swing.JSplitPane();
         tabbedOptions = new javax.swing.JTabbedPane();
@@ -1666,12 +1625,30 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        btnCmdStyleParam.setText("STYLES");
+        btnCmdStyleParam.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCmdStyleParamActionPerformed(evt);
+            }
+        });
+
+        btnCmdStyleProperties.setText("PROPERTIES");
+        btnCmdStyleProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCmdStylePropertiesActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(539, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(btnCmdStyleProperties)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCmdStyleParam)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 361, Short.MAX_VALUE)
                 .addComponent(btnCmdStyleChange)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnCmdStyleBefore)
@@ -1689,7 +1666,9 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(btnCmdStyleAdd)
                     .addComponent(btnCmdStyleChange)
                     .addComponent(btnCmdStyleAfter)
-                    .addComponent(btnCmdStyleBefore))
+                    .addComponent(btnCmdStyleBefore)
+                    .addComponent(btnCmdStyleParam)
+                    .addComponent(btnCmdStyleProperties))
                 .addContainerGap())
         );
 
@@ -1942,79 +1921,97 @@ public class MainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnVideoPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayActionPerformed
-        vth.setDuration(ffss.getDuration());
-        vth.playVTH();
-        Platform.runLater(() -> {
-            embeddedMediaPlayer.submit(() -> {
-                embeddedMediaPlayer.media().play(video.getPath());
-            });
-        });
+        player.play();
+        if(ffss.hasAudio()){
+            aw.play(Time.create(0L), Time.create(0L));
+        }
     }//GEN-LAST:event_btnVideoPlayActionPerformed
 
     private void btnVideoPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPauseActionPerformed
-        vth.pauseVTH();
-        Platform.runLater(() -> {
-            embeddedMediaPlayer.submit(() -> {
-                embeddedMediaPlayer.controls().pause();
-            });
-        });
+        player.pause();
+        if(ffss.hasAudio()){
+            aw.pause();
+        }
     }//GEN-LAST:event_btnVideoPauseActionPerformed
 
     private void btnVideoStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoStopActionPerformed
-        vth.stopVTH();
-        vth.resetVTH(Time.create(0L));
-        Platform.runLater(() -> {
-            embeddedMediaPlayer.submit(() -> {
-                embeddedMediaPlayer.controls().stop();
-            });
-        });
+        player.stop();
+        if(ffss.hasAudio()){
+            aw.stop();
+        }
     }//GEN-LAST:event_btnVideoStopActionPerformed
 
     private void btnVideoPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayBeforeActionPerformed
         Time end = currentEvent.getStartTime();
         Time start = Time.substract(end, Time.create(500L));
         playAndStop(start, end);
+        if(ffss.hasAudio()){
+            aw.play(start, end);
+        }
     }//GEN-LAST:event_btnVideoPlayBeforeActionPerformed
 
     private void btnVideoPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayBeginActionPerformed
         Time start = currentEvent.getStartTime();
         Time end = Time.addition(start, Time.create(500L));
         playAndStop(start, end);
+        if(ffss.hasAudio()){
+            aw.play(start, end);
+        }
     }//GEN-LAST:event_btnVideoPlayBeginActionPerformed
 
     private void btnVideoPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayAreaActionPerformed
         Time start = currentEvent.getStartTime();
         Time end = currentEvent.getEndTime();
         playAndStop(start, end);
+        if(ffss.hasAudio()){
+            aw.play(start, end);
+        }
     }//GEN-LAST:event_btnVideoPlayAreaActionPerformed
 
     private void btnVideoPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayEndActionPerformed
         Time end = currentEvent.getEndTime();
         Time start = Time.substract(end, Time.create(500L));
         playAndStop(start, end);
+        if(ffss.hasAudio()){
+            aw.play(start, end);
+        }
     }//GEN-LAST:event_btnVideoPlayEndActionPerformed
 
     private void btnVideoPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayAfterActionPerformed
         Time start = currentEvent.getEndTime();
         Time end = Time.addition(start, Time.create(500L));
         playAndStop(start, end);
+        if(ffss.hasAudio()){
+            aw.play(start, end);
+        }
     }//GEN-LAST:event_btnVideoPlayAfterActionPerformed
 
     private void btnAudioPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioPlayActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
             aw.play(Time.create(0L), Time.create(0L));
+            if(ffss.hasVideo()){
+                player.setStartAt(Time.create(0L));
+                player.setStopAt(Time.create(0L));
+                player.play();
+            }
         }
     }//GEN-LAST:event_btnAudioPlayActionPerformed
 
     private void btnAudioPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioPauseActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
-            
+            aw.pause();
+            if(ffss.hasVideo()){
+                player.pause();
+            }
         }
     }//GEN-LAST:event_btnAudioPauseActionPerformed
 
     private void btnAudioStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioStopActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
             aw.stop();
+            if(ffss.hasVideo()){
+                player.stop();
+            }
         }
     }//GEN-LAST:event_btnAudioStopActionPerformed
 
@@ -2023,6 +2020,11 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStop = aw.getTimeOfStartArea();
             Time msStart = Time.substract(msStop, Time.create(500L));
             aw.play(msStart, msStop);
+            if(ffss.hasVideo()){
+                player.setStartAt(msStart);
+                player.setStopAt(msStart);
+                player.play();
+            }
         }
     }//GEN-LAST:event_btnAudioPlayBeforeActionPerformed
 
@@ -2031,6 +2033,11 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStart = aw.getTimeOfStartArea();
             Time msStop = Time.addition(msStart, Time.create(500L));
             aw.play(msStart, msStop);
+            if(ffss.hasVideo()){
+                player.setStartAt(msStart);
+                player.setStopAt(msStart);
+                player.play();
+            }
         }
     }//GEN-LAST:event_btnAudioPlayBeginActionPerformed
 
@@ -2039,6 +2046,11 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStart = aw.getTimeOfStartArea();
             Time msStop = aw.getTimeOfStopArea();
             aw.play(msStart, msStop);
+            if(ffss.hasVideo()){
+                player.setStartAt(msStart);
+                player.setStopAt(msStart);
+                player.play();
+            }
         }
     }//GEN-LAST:event_btnAudioPlayAreaActionPerformed
 
@@ -2047,6 +2059,11 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStop = aw.getTimeOfStopArea();
             Time msStart = Time.substract(msStop, Time.create(500L));
             aw.play(msStart, msStop);
+            if(ffss.hasVideo()){
+                player.setStartAt(msStart);
+                player.setStopAt(msStart);
+                player.play();
+            }
         }
     }//GEN-LAST:event_btnAudioPlayEndActionPerformed
 
@@ -2055,6 +2072,11 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStart = aw.getTimeOfStopArea();
             Time msStop = Time.addition(msStart, Time.create(500L));
             aw.play(msStart, msStop);
+            if(ffss.hasVideo()){
+                player.setStartAt(msStart);
+                player.setStopAt(msStart);
+                player.play();
+            }
         }
     }//GEN-LAST:event_btnAudioPlayAfterActionPerformed
 
@@ -2335,6 +2357,24 @@ public class MainFrame extends javax.swing.JFrame {
         UserChatUID.encodeUID(myselfUID);        
     }//GEN-LAST:event_mnuFileChatGetUIDActionPerformed
 
+    private void btnCmdStylePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCmdStylePropertiesActionPerformed
+        PropsDialog prd = new PropsDialog(this, true);
+        prd.setAssInfos(ass);
+        prd.setVideoInfos(ffss);
+        prd.showDialog(this);
+        if(prd.getDialogResult() == PropsDialog.DialogResult.OK){
+            prd.getAssInfos(ass);
+        }
+    }//GEN-LAST:event_btnCmdStylePropertiesActionPerformed
+
+    private void btnCmdStyleParamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCmdStyleParamActionPerformed
+        StylesDialog sd = new StylesDialog(this, true);
+        sd.showDialog(ass.getStyles());
+        if(sd.getDialogResult() == StylesDialog.DialogResult.Ok){
+            System.out.println("Ok");
+        }
+    }//GEN-LAST:event_btnCmdStyleParamActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -2380,6 +2420,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnCmdStyleAfter;
     private javax.swing.JButton btnCmdStyleBefore;
     private javax.swing.JButton btnCmdStyleChange;
+    private javax.swing.JButton btnCmdStyleParam;
+    private javax.swing.JButton btnCmdStyleProperties;
     private javax.swing.JButton btnSend;
     private javax.swing.JButton btnSmiley;
     private javax.swing.JButton btnVideoPause;

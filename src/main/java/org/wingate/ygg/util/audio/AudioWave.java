@@ -227,6 +227,14 @@ public class AudioWave extends JPanel implements Runnable {
         }
     }
     
+    public void pause(){
+        if(clipPlaying.isRunning() == true){
+            clipPlaying.stop();
+        }else{
+            clipPlaying.start();
+        }
+    }
+    
     public void stop(){
         if(generatedWAV != null){
             // Pense-bête -> generatedWAV est définit dans doWaveForm()

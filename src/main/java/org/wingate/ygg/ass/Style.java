@@ -232,7 +232,7 @@ public class Style {
      * @param color A color
      */
     public void setTextColor(Color color){
-        String sa = Integer.toString(color.getAlpha(), 16);
+        String sa = Integer.toString(255-color.getAlpha(), 16);
         String sb = Integer.toString(color.getBlue(), 16);
         String sg = Integer.toString(color.getGreen(), 16);
         String sr = Integer.toString(color.getRed(), 16);
@@ -277,7 +277,7 @@ public class Style {
         int blue = Integer.parseInt(PrimaryColour.substring(2, 4), 16);
         int green = Integer.parseInt(PrimaryColour.substring(4, 6), 16);
         int red = Integer.parseInt(PrimaryColour.substring(6), 16);
-        return new Color(red, green, blue, alpha);
+        return new Color(red, green, blue, 255-alpha);
     }
     
     //</editor-fold>
@@ -289,7 +289,7 @@ public class Style {
      * @param color A color
      */
     public void setKaraokeColor(Color color){
-        String sa = Integer.toString(color.getAlpha(), 16);
+        String sa = Integer.toString(255-color.getAlpha(), 16);
         String sb = Integer.toString(color.getBlue(), 16);
         String sg = Integer.toString(color.getGreen(), 16);
         String sr = Integer.toString(color.getRed(), 16);
@@ -334,7 +334,7 @@ public class Style {
         int blue = Integer.parseInt(SecondaryColour.substring(2, 4), 16);
         int green = Integer.parseInt(SecondaryColour.substring(4, 6), 16);
         int red = Integer.parseInt(SecondaryColour.substring(6), 16);
-        return new Color(red, green, blue, alpha);
+        return new Color(red, green, blue, 255-alpha);
     }
     
     //</editor-fold>
@@ -346,7 +346,7 @@ public class Style {
      * @param color A color
      */
     public void setBordColor(Color color){
-        String sa = Integer.toString(color.getAlpha(), 16);
+        String sa = Integer.toString(255-color.getAlpha(), 16);
         String sb = Integer.toString(color.getBlue(), 16);
         String sg = Integer.toString(color.getGreen(), 16);
         String sr = Integer.toString(color.getRed(), 16);
@@ -391,7 +391,7 @@ public class Style {
         int blue = Integer.parseInt(OutlineColor.substring(2, 4), 16);
         int green = Integer.parseInt(OutlineColor.substring(4, 6), 16);
         int red = Integer.parseInt(OutlineColor.substring(6), 16);
-        return new Color(red, green, blue, alpha);
+        return new Color(red, green, blue, 255-alpha);
     }
     
     //</editor-fold>
@@ -403,7 +403,7 @@ public class Style {
      * @param color A color
      */
     public void setShadColor(Color color){
-        String sa = Integer.toString(color.getAlpha(), 16);
+        String sa = Integer.toString(255-color.getAlpha(), 16);
         String sb = Integer.toString(color.getBlue(), 16);
         String sg = Integer.toString(color.getGreen(), 16);
         String sr = Integer.toString(color.getRed(), 16);
@@ -448,7 +448,7 @@ public class Style {
         int blue = Integer.parseInt(BackColour.substring(2, 4), 16);
         int green = Integer.parseInt(BackColour.substring(4, 6), 16);
         int red = Integer.parseInt(BackColour.substring(6), 16);
-        return new Color(red, green, blue, alpha);
+        return new Color(red, green, blue, 255-alpha);
     }
     
     //</editor-fold>

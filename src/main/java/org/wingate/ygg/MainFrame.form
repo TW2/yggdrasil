@@ -1184,7 +1184,11 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
-                      <EmptySpace pref="539" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnCmdStyleProperties" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnCmdStyleParam" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="361" max="32767" attributes="0"/>
                       <Component id="btnCmdStyleChange" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnCmdStyleBefore" min="-2" max="-2" attributes="0"/>
@@ -1205,6 +1209,8 @@
                           <Component id="btnCmdStyleChange" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnCmdStyleAfter" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnCmdStyleBefore" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btnCmdStyleParam" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btnCmdStyleProperties" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -1254,6 +1260,22 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCmdStyleBeforeActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="btnCmdStyleParam">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="STYLES"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCmdStyleParamActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="btnCmdStyleProperties">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="PROPERTIES"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCmdStylePropertiesActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

@@ -53,6 +53,9 @@ public class FFStuffs {
     private String sampleFormat = null;
     private double sampleRate = 0d;
     
+    private boolean hasAudio = false;
+    private boolean hasVideo = false;
+    
     public FFStuffs() {
         init();
     }
@@ -69,14 +72,13 @@ public class FFStuffs {
     
     
     public static FFStuffs create(File video){
-        FFStuffs fs = new FFStuffs();        
+        FFStuffs fs = new FFStuffs();
         
         String file = video.getPath();
         String videoReport = "", audioReport = "";
         Process p = null; ProcessBuilder pb;
         String line; int countCheck;
-        boolean hasAudio = false;
-        boolean hasVideo = false;
+        
         
         
         // On se renseigne sur la nature du fichier
@@ -105,7 +107,7 @@ public class FFStuffs {
         }        
         if(countCheck > 0){
             // On a un flux vidéo
-            hasVideo = true;
+            fs.hasVideo = true;
         }
         if(p != null){
             p.destroy();
@@ -133,7 +135,7 @@ public class FFStuffs {
         }        
         if(countCheck > 0){
             // On a un flux vidéo
-            hasAudio = true;
+            fs.hasAudio = true;
         }
         if(p != null){
             p.destroy();
@@ -235,7 +237,7 @@ public class FFStuffs {
             }
         }else{
             // On obtient les keyframes
-            if(hasVideo == true){
+            if(fs.hasVideo == true){
                 try{
                     pb = new ProcessBuilder(fs.ffprobe, "-i", file, "-select_streams", "v", "-show_frames",
                             "-show_entries", "frame=pict_type", "-loglevel", "error");
@@ -345,4 +347,11 @@ public class FFStuffs {
         return sampleRate;
     }
     
+    public boolean hasVideo(){
+        return hasVideo;
+    }
+    
+    public boolean hasAudio(){
+        return hasAudio;
+    }
 }
