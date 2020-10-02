@@ -23,7 +23,7 @@ package org.wingate.ygg.util.subtitle;
 public enum SubtitleType {
     NONE("UKW", "Undefined"),
     ASS("ASS", "Advanced Sub Station"),
-    YVES("VES", "Yggdrasil Vectors Enhanced Subtitles"),
+    YVES("VES", "Yggdrasil, Vectors, Enhanced Subtitles"),
     SSB("SSB", "Sub Station Beta");
     
     String name;

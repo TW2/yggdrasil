@@ -26,22 +26,26 @@ import com.sun.jna.Native;
 public class YGGY {
     
     private YggyLibrary yggy = null;
+    private String toolsPath = null;
     
     public interface YggyLibrary extends Library {
         YggyLibrary INSTANCE = (YggyLibrary)Native.load("yggy", YggyLibrary.class);
         
         int executor(String pngpath, String asspath, String asstime, int width, int height);
-        int mem_executor(String str_assfile, String asstime, int width, int height);
     }
     
     private YGGY(){
-        
+        init();
+    }
+    
+    private void init(){
+        toolsPath =  getClass().getResource("/ass").getPath();
     }
     
     public static YGGY create(){
         YGGY y = new YGGY();
         
-        System.setProperty("jna.library.path", "D:\\Dev\\Java\\NB-ASS\\YGGY\\src\\yggy\\tools");
+        System.setProperty("jna.library.path", y.toolsPath);
         y.yggy = YggyLibrary.INSTANCE;
         
         return y;

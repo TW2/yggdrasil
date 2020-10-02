@@ -509,7 +509,7 @@
       <Properties>
         <Property name="maximizable" type="boolean" value="true"/>
         <Property name="resizable" type="boolean" value="true"/>
-        <Property name="title" type="java.lang.String" value="ASS YGGY Table"/>
+        <Property name="title" type="java.lang.String" value="ASS Table"/>
         <Property name="visible" type="boolean" value="true"/>
       </Properties>
 
@@ -1579,8 +1579,8 @@
             <Container class="javax.swing.JPanel" name="tabStudio">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="YGGY">
-                    <Property name="tabTitle" type="java.lang.String" value="YGGY"/>
+                  <JTabbedPaneConstraints tabName="ASS">
+                    <Property name="tabTitle" type="java.lang.String" value="ASS"/>
                   </JTabbedPaneConstraints>
                 </Constraint>
               </Constraints>

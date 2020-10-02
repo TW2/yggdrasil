@@ -52,7 +52,20 @@ public class FramesPanel extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e); //To change body of generated methods, choose Tools | Templates.
+                switch(e.getButton()){
+                    case MouseEvent.BUTTON1 -> {
+                        areaStartTime = Time.getTimeFromFrame(e.getX() * frameCount / getWidth(), ffss.getFps());
+                        updateArea(areaStartTime, areaEndTime);
+                    }
+                    case MouseEvent.BUTTON3 -> {
+                        areaEndTime = Time.getTimeFromFrame(e.getX() * frameCount / getWidth(), ffss.getFps());
+                        updateArea(areaStartTime, areaEndTime);
+                    }
+                    case MouseEvent.BUTTON2 -> {
+                        currentTime = Time.getTimeFromFrame(e.getX() * frameCount / getWidth(), ffss.getFps());
+                        updatePosition(currentTime);
+                    }
+                }
             }
         });
     }
@@ -82,7 +95,7 @@ public class FramesPanel extends JPanel {
             g.setColor(FramesColors.StartArea.getColor(dark));
             int xStart = Math.round(Time.getFrame(areaStartTime, ffss.getFps()) * getWidth() / frameCount);
             g.drawLine(xStart, 0, xStart, getHeight());
-            
+
             // On peint le temps de fin
             g.setColor(FramesColors.StopArea.getColor(dark));
             int xStop = Math.round(Time.getFrame(areaEndTime, ffss.getFps()) * getWidth() / frameCount);
@@ -112,6 +125,18 @@ public class FramesPanel extends JPanel {
     
     public FFStuffs getFfss() {
         return ffss;
+    }
+
+    public Time getCurrentTime() {
+        return currentTime;
+    }
+
+    public Time getAreaStartTime() {
+        return areaStartTime;
+    }
+
+    public Time getAreaEndTime() {
+        return areaEndTime;
     }
     
     public enum FramesColors{

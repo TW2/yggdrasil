@@ -20,7 +20,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -29,7 +28,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
@@ -46,13 +44,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import org.wingate.timelibrary.Time;
-import org.wingate.videocmp.ImageEvent;
-import org.wingate.videocmp.ImageListener;
-import org.wingate.videocmp.Player;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.ass.Style;
@@ -69,6 +63,9 @@ import org.wingate.ygg.util.audio.AudioWavePanel;
 import org.wingate.ygg.util.dialog.PropsDialog;
 import org.wingate.ygg.util.dialog.StylesDialog;
 import org.wingate.ygg.util.subtitle.YGGY;
+import org.wingate.ygg.util.vlcjfx.VLCjLogic;
+import uk.co.caprica.vlcj.player.base.MediaPlayer;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 
 /**
  *
@@ -86,7 +83,7 @@ public class MainFrame extends javax.swing.JFrame {
     private boolean fcAudioReady = false;
     private boolean fcAssReady = false;
     
-    private Player player = new Player();
+    private final VLCjLogic vlcjEmbed = new VLCjLogic();
     private File video = null;
     private ASS ass = ASS.NoFileToLoad();
     private final YGGY yggy = YGGY.create();
@@ -160,49 +157,29 @@ public class MainFrame extends javax.swing.JFrame {
         fp = new FramesPanel(darkUI);
         paneTimeline.add(fp, BorderLayout.CENTER);
         
-        paneVideo.add(lblOnTopOfOverlay, BorderLayout.CENTER);
-        lblOnTopOfOverlay.setHorizontalAlignment(SwingConstants.CENTER);
-        lblOnTopOfOverlay.setFont(lblOnTopOfOverlay.getFont().deriveFont(50f));
+//        paneVideo.add(lblOnTopOfOverlay, BorderLayout.CENTER);
+//        lblOnTopOfOverlay.setHorizontalAlignment(SwingConstants.CENTER);
+//        lblOnTopOfOverlay.setFont(lblOnTopOfOverlay.getFont().deriveFont(50f));
+        paneVideo.add(vlcjEmbed, BorderLayout.CENTER);
+        vlcjEmbed.getEmbeddedMediaPlayer().events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+            @Override
+            public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
+                Time t = Time.create(newTime);
+                tfVideoCurrentTime.setText(t.toProgramExtendedTime());
+                tfVideoCurrentFrame.setText(Integer.toString(Time.getFrame(t, ffss.getFps())));
+            }            
+        });
         
         ifrVideo.setSize(972, 662);
         ifrVideo.setLocation(5, 5);
         ifrVideo.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                ifrVideo.setTitle("Java VCMP - " + paneVideo.getWidth() + "x" + paneVideo.getHeight());                
+                ifrVideo.setTitle("JavaFx - " + paneVideo.getWidth() + "x" + paneVideo.getHeight());                
             }            
         });
-        ifrVideo.setTitle("Java VCMP");
+        ifrVideo.setTitle("JavaFx");
         deskYGGY.add(ifrVideo);
-        player.addImageListener(new ImageListener() {
-            @Override
-            public void imageChanged(ImageEvent event) {
-                Dimension imgSize = new Dimension(
-                        event.getImage().getWidth(),
-                        event.getImage().getHeight()
-                );
-                Dimension d = getScaledDimension(imgSize, lblOnTopOfOverlay.getSize());
-                BufferedImage bufimg = new BufferedImage(
-                        lblOnTopOfOverlay.getWidth(),
-                        lblOnTopOfOverlay.getHeight(),
-                        BufferedImage.TYPE_INT_ARGB
-                );
-                Graphics2D gr = bufimg.createGraphics();
-                gr.setColor(isDark() ? Color.black : Color.white);
-                gr.fillRect(0, 0, lblOnTopOfOverlay.getWidth(), lblOnTopOfOverlay.getHeight());
-                gr.drawImage(
-                        event.getImage(), 
-                        (lblOnTopOfOverlay.getWidth() - d.width) / 2, 
-                        (lblOnTopOfOverlay.getHeight()- d.height) / 2, 
-                        d.width, 
-                        d.height, 
-                        null);
-                gr.dispose();
-                lblOnTopOfOverlay.setIcon(new ImageIcon(bufimg));
-                
-                
-            }
-        });
 
         // Audio WAVE
         ifrWave.setSize(880, 250);
@@ -389,14 +366,17 @@ public class MainFrame extends javax.swing.JFrame {
     private void openAudioVideo(File video){
         openVideo(video);
         openAudio(video);
-        player.setFile(video);
+        vlcjEmbed.setPath(video.getPath(), ffss);
+//        player.setFile(video);
     }
     
     private void playAndStop(Time startTime, Time endTime){
         if(currentEvent != null){
-            player.setStartAt(startTime);
-            player.setStopAt(endTime);
-            player.play();
+//            player.setStartAt(startTime);
+//            player.setStopAt(endTime);
+//            player.play();
+            vlcjEmbed.play();
+            
         }
     }
     
@@ -1221,7 +1201,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         ifrtableOne.setMaximizable(true);
         ifrtableOne.setResizable(true);
-        ifrtableOne.setTitle("ASS YGGY Table");
+        ifrtableOne.setTitle("ASS Table");
         ifrtableOne.setVisible(true);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1779,7 +1759,7 @@ public class MainFrame extends javax.swing.JFrame {
             .addComponent(deskYGGY, javax.swing.GroupLayout.Alignment.TRAILING)
         );
 
-        tabbedMainFunctions.addTab("YGGY", tabStudio);
+        tabbedMainFunctions.addTab("ASS", tabStudio);
 
         javax.swing.GroupLayout tabTransLayout = new javax.swing.GroupLayout(tabTrans);
         tabTrans.setLayout(tabTransLayout);
@@ -1921,97 +1901,74 @@ public class MainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnVideoPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayActionPerformed
-        player.play();
-        if(ffss.hasAudio()){
-            aw.play(Time.create(0L), Time.create(0L));
-        }
+//        player.play();
+//        if(ffss.hasAudio()){
+//            aw.play(Time.create(0L), Time.create(0L));
+//        }
+        vlcjEmbed.play();
     }//GEN-LAST:event_btnVideoPlayActionPerformed
 
     private void btnVideoPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPauseActionPerformed
-        player.pause();
-        if(ffss.hasAudio()){
-            aw.pause();
-        }
+//        player.pause();
+//        if(ffss.hasAudio()){
+//            aw.pause();
+//        }
+        vlcjEmbed.pause();
     }//GEN-LAST:event_btnVideoPauseActionPerformed
 
     private void btnVideoStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoStopActionPerformed
-        player.stop();
-        if(ffss.hasAudio()){
-            aw.stop();
-        }
+//        player.stop();
+//        if(ffss.hasAudio()){
+//            aw.stop();
+//        }
+        vlcjEmbed.stop();
     }//GEN-LAST:event_btnVideoStopActionPerformed
 
     private void btnVideoPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayBeforeActionPerformed
-        Time end = currentEvent.getStartTime();
+        Time end = fp.getAreaStartTime();
         Time start = Time.substract(end, Time.create(500L));
-        playAndStop(start, end);
-        if(ffss.hasAudio()){
-            aw.play(start, end);
-        }
+        vlcjEmbed.play(start, end);
     }//GEN-LAST:event_btnVideoPlayBeforeActionPerformed
 
     private void btnVideoPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayBeginActionPerformed
-        Time start = currentEvent.getStartTime();
+        Time start = fp.getAreaStartTime();
         Time end = Time.addition(start, Time.create(500L));
-        playAndStop(start, end);
-        if(ffss.hasAudio()){
-            aw.play(start, end);
-        }
+        vlcjEmbed.play(start, end);
     }//GEN-LAST:event_btnVideoPlayBeginActionPerformed
 
     private void btnVideoPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayAreaActionPerformed
-        Time start = currentEvent.getStartTime();
-        Time end = currentEvent.getEndTime();
-        playAndStop(start, end);
-        if(ffss.hasAudio()){
-            aw.play(start, end);
-        }
+        Time start = fp.getAreaStartTime();
+        Time end = fp.getAreaEndTime();
+        vlcjEmbed.play(start, end);
     }//GEN-LAST:event_btnVideoPlayAreaActionPerformed
 
     private void btnVideoPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayEndActionPerformed
-        Time end = currentEvent.getEndTime();
+        Time end = fp.getAreaEndTime();
         Time start = Time.substract(end, Time.create(500L));
-        playAndStop(start, end);
-        if(ffss.hasAudio()){
-            aw.play(start, end);
-        }
+        vlcjEmbed.play(start, end);
     }//GEN-LAST:event_btnVideoPlayEndActionPerformed
 
     private void btnVideoPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayAfterActionPerformed
-        Time start = currentEvent.getEndTime();
+        Time start = fp.getAreaEndTime();
         Time end = Time.addition(start, Time.create(500L));
-        playAndStop(start, end);
-        if(ffss.hasAudio()){
-            aw.play(start, end);
-        }
+        vlcjEmbed.play(start, end);
     }//GEN-LAST:event_btnVideoPlayAfterActionPerformed
 
     private void btnAudioPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioPlayActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
             aw.play(Time.create(0L), Time.create(0L));
-            if(ffss.hasVideo()){
-                player.setStartAt(Time.create(0L));
-                player.setStopAt(Time.create(0L));
-                player.play();
-            }
         }
     }//GEN-LAST:event_btnAudioPlayActionPerformed
 
     private void btnAudioPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioPauseActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
             aw.pause();
-            if(ffss.hasVideo()){
-                player.pause();
-            }
         }
     }//GEN-LAST:event_btnAudioPauseActionPerformed
 
     private void btnAudioStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioStopActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
             aw.stop();
-            if(ffss.hasVideo()){
-                player.stop();
-            }
         }
     }//GEN-LAST:event_btnAudioStopActionPerformed
 
@@ -2020,11 +1977,6 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStop = aw.getTimeOfStartArea();
             Time msStart = Time.substract(msStop, Time.create(500L));
             aw.play(msStart, msStop);
-            if(ffss.hasVideo()){
-                player.setStartAt(msStart);
-                player.setStopAt(msStart);
-                player.play();
-            }
         }
     }//GEN-LAST:event_btnAudioPlayBeforeActionPerformed
 
@@ -2033,11 +1985,6 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStart = aw.getTimeOfStartArea();
             Time msStop = Time.addition(msStart, Time.create(500L));
             aw.play(msStart, msStop);
-            if(ffss.hasVideo()){
-                player.setStartAt(msStart);
-                player.setStopAt(msStart);
-                player.play();
-            }
         }
     }//GEN-LAST:event_btnAudioPlayBeginActionPerformed
 
@@ -2046,11 +1993,6 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStart = aw.getTimeOfStartArea();
             Time msStop = aw.getTimeOfStopArea();
             aw.play(msStart, msStop);
-            if(ffss.hasVideo()){
-                player.setStartAt(msStart);
-                player.setStopAt(msStart);
-                player.play();
-            }
         }
     }//GEN-LAST:event_btnAudioPlayAreaActionPerformed
 
@@ -2059,11 +2001,6 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStop = aw.getTimeOfStopArea();
             Time msStart = Time.substract(msStop, Time.create(500L));
             aw.play(msStart, msStop);
-            if(ffss.hasVideo()){
-                player.setStartAt(msStart);
-                player.setStopAt(msStart);
-                player.play();
-            }
         }
     }//GEN-LAST:event_btnAudioPlayEndActionPerformed
 
@@ -2072,11 +2009,6 @@ public class MainFrame extends javax.swing.JFrame {
             Time msStart = aw.getTimeOfStopArea();
             Time msStop = Time.addition(msStart, Time.create(500L));
             aw.play(msStart, msStop);
-            if(ffss.hasVideo()){
-                player.setStartAt(msStart);
-                player.setStopAt(msStart);
-                player.play();
-            }
         }
     }//GEN-LAST:event_btnAudioPlayAfterActionPerformed
 
