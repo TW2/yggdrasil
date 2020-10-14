@@ -4,12 +4,14 @@ Subtitles synchronization software
 Status: v1.1 alpha phase
 
 ## Abilities
+
 Ass tab :
 - [x] Can open videos (FFMpeg)
 - [x] Can open audio (FFMpeg via transcode to wave)
 - [ ] Can display full ASS
 - [x] Can open/save ASS
 - [x] Can synchronize an ASS event
+
 Drawing tab :
 - [x] Can draw
 - [x] Can extract commands from basics
