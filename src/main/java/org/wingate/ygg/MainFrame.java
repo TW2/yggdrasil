@@ -36,20 +36,34 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.Event;
 import org.wingate.ygg.ass.Style;
+import org.wingate.ygg.drawing.HistoricListRenderer;
+import org.wingate.ygg.drawing.Memories;
+import org.wingate.ygg.drawing.Sketchpad;
+import org.wingate.ygg.fcfilefilter.DrawingFileFilter;
+import org.wingate.ygg.fcfilefilter.ImagesFileFilter;
+import org.wingate.ygg.fcfilefilter.MoviesFileFilter;
+import org.wingate.ygg.fcfilefilter.SoundsFileFilter;
+import org.wingate.ygg.fcfilefilter.SubtitlesFileFilter;
 import org.wingate.ygg.karaoke.AssKaraokeCollection;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
@@ -78,10 +92,6 @@ public class MainFrame extends javax.swing.JFrame {
     static Language chosen = new Language();
     
     private static boolean darkUI = false;
-    
-    private boolean fcVideoReady = false;
-    private boolean fcAudioReady = false;
-    private boolean fcAssReady = false;
     
     private final VLCjLogic vlcjEmbed = new VLCjLogic();
     private File video = null;
@@ -118,6 +128,14 @@ public class MainFrame extends javax.swing.JFrame {
     private float tpTextScaleCur = 1f;
     // ifrAssSubCommands stop
     
+    // ifrSketchpad components and variables
+    private Sketchpad skp;
+    // ifrSketchpad stop
+    
+    // ifrHistoricLayers components and variables
+    private final DefaultListModel dlmHistoric = new DefaultListModel();
+    // ifrHistoricLayers stop
+    
     private final UserChatUID myselfUID = new UserChatUID();
     private List<UserChatUID> userChatUIDList = new ArrayList<>();
     
@@ -141,6 +159,13 @@ public class MainFrame extends javax.swing.JFrame {
         if(chosen.isForced() == true){
             wantedIso = chosen.getIso();
         }
+        
+        // File filters settings
+        fcASS.setFileFilter(new SubtitlesFileFilter());
+        fcVideo.setFileFilter(new MoviesFileFilter());
+        fcAudio.setFileFilter(new SoundsFileFilter());
+        fcDrawingYDS.setFileFilter(new DrawingFileFilter());
+        fcDrawingImages.setFileFilter(new ImagesFileFilter());
         
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -233,6 +258,25 @@ public class MainFrame extends javax.swing.JFrame {
         assEventTableRenderer = new AssEventTableRenderer(darkUI);
         initializeTableOne(chosen, wantedIso);
         
+        // Drawing (Tools)
+        ifrDrawTools.setSize(170, 750);
+        ifrDrawTools.setLocation(5, 5);
+        deskDrawing.add(ifrDrawTools);
+        
+        // Drawing (Sketchpad)
+        skp = new Sketchpad(this);
+        ifrSketchpad.setSize(1400, 750);
+        ifrSketchpad.setLocation(175, 5);
+        ifrSketchpad.setLayout(new BorderLayout());
+        ifrSketchpad.add(skp);
+        deskDrawing.add(ifrSketchpad);
+        
+        // Drawing (Historic and layers)
+        ifrHistoricLayers.setSize(280, 750);
+        ifrHistoricLayers.setLocation(1575, 5);
+        deskDrawing.add(ifrHistoricLayers);
+        listHistoric.setModel(dlmHistoric);
+        listHistoric.setCellRenderer(new HistoricListRenderer(skp));
     }
     
     // <editor-fold defaultstate="collapsed" desc="All">
@@ -692,7 +736,62 @@ public class MainFrame extends javax.swing.JFrame {
     
     // </editor-fold>
     
-
+    // <editor-fold defaultstate="collapsed" desc="Drawing tools, historic and layers">
+    
+    public void setMousePositionFromDrawingTools(int x, int y){
+        lblDrawingCoordinates.setText(x+";"+y);
+    }
+    
+    public boolean isMoveNSelected(){
+        return toggleMoveN.isSelected();
+    }
+    
+    public boolean isMoveMSelected(){
+        return toggleMoveM.isSelected();
+    }
+    
+    public boolean isLineSelected(){
+        return toggleLine.isSelected();
+    }
+    
+    public boolean isQuadraticSelected(){
+        return toggleQuadratic.isSelected();
+    }
+    
+    public boolean isCubicSelected(){
+        return toggleCubic.isSelected();
+    }
+    
+    public boolean isCursorSelected(){
+        return toggleCursor.isSelected();
+    }
+    
+    public boolean isBSplineSelected(){
+        return toggleBSpline.isSelected();
+    }
+    
+    public boolean isGridLockerSelected(){
+        return toggleGLock.isSelected();
+    }
+    
+//    public void reloadHistoric(List<Memories<?>> memories){
+//        dlmHistoric.clear();
+//        dlmHistoric.addAll(memories);
+//    }
+    
+    public void addToHistoric(Memories<?> mem){
+        dlmHistoric.addElement(mem);
+        tfDrawingCommands.setText(skp.getAssCommands());
+    }
+    
+    public void removeLastFromHistoric(){
+        dlmHistoric.removeElementAt(dlmHistoric.size() - 1);
+        tfDrawingCommands.setText(skp.getAssCommands());
+    }
+        
+    // </editor-fold>
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -705,6 +804,8 @@ public class MainFrame extends javax.swing.JFrame {
         fcASS = new javax.swing.JFileChooser();
         fcAudio = new javax.swing.JFileChooser();
         fcVideo = new javax.swing.JFileChooser();
+        fcDrawingYDS = new javax.swing.JFileChooser();
+        fcDrawingImages = new javax.swing.JFileChooser();
         ifrVideo = new javax.swing.JInternalFrame();
         paneVideo = new javax.swing.JPanel();
         paneControls = new javax.swing.JPanel();
@@ -795,6 +896,73 @@ public class MainFrame extends javax.swing.JFrame {
         btnCmdStyleParam = new javax.swing.JButton();
         btnCmdStyleProperties = new javax.swing.JButton();
         bgAssType = new javax.swing.ButtonGroup();
+        ifrDrawTools = new javax.swing.JInternalFrame();
+        lblDrawingFile = new javax.swing.JLabel();
+        lblDrawingTools = new javax.swing.JLabel();
+        lblDrawingImage = new javax.swing.JLabel();
+        lblDrawingCtrls = new javax.swing.JLabel();
+        jPanel11 = new javax.swing.JPanel();
+        btnDrawNew = new javax.swing.JButton();
+        btnDrawOpen = new javax.swing.JButton();
+        btnDrawSave = new javax.swing.JButton();
+        btnDrawFontOpen = new javax.swing.JButton();
+        jPanel12 = new javax.swing.JPanel();
+        toggleCursor = new javax.swing.JToggleButton();
+        toggleLine = new javax.swing.JToggleButton();
+        toggleQuadratic = new javax.swing.JToggleButton();
+        toggleCubic = new javax.swing.JToggleButton();
+        toggleGLock = new javax.swing.JToggleButton();
+        toggleMoveM = new javax.swing.JToggleButton();
+        toggleMoveN = new javax.swing.JToggleButton();
+        toggleBSpline = new javax.swing.JToggleButton();
+        jPanel13 = new javax.swing.JPanel();
+        btnEye = new javax.swing.JButton();
+        btnImageUp = new javax.swing.JButton();
+        btnOpenImage = new javax.swing.JButton();
+        btnClearImage = new javax.swing.JButton();
+        btnImageLeft = new javax.swing.JButton();
+        btnImageCenter = new javax.swing.JButton();
+        btnImageRight = new javax.swing.JButton();
+        btnImageBottom = new javax.swing.JButton();
+        jPanel14 = new javax.swing.JPanel();
+        btnSeeOneLayer = new javax.swing.JButton();
+        btnSeeLayers = new javax.swing.JButton();
+        btnDrawingCopy = new javax.swing.JButton();
+        btnDrawingPaste = new javax.swing.JButton();
+        btnMagicWand = new javax.swing.JButton();
+        btnSelection = new javax.swing.JButton();
+        btnPara = new javax.swing.JButton();
+        btnPerp = new javax.swing.JButton();
+        lblAlphaLayer = new javax.swing.JLabel();
+        slideAlphaLayer = new javax.swing.JSlider();
+        lblDisplaySize = new javax.swing.JLabel();
+        slideDisplaySize = new javax.swing.JSlider();
+        lblAlphaImage = new javax.swing.JLabel();
+        slideAlphaImage = new javax.swing.JSlider();
+        lblImageSize = new javax.swing.JLabel();
+        slideImageSize = new javax.swing.JSlider();
+        lblDrawingCoordinates = new javax.swing.JLabel();
+        tfDrawingCommands = new javax.swing.JTextField();
+        jLabel9 = new javax.swing.JLabel();
+        jPanel15 = new javax.swing.JPanel();
+        toggleOpTranslate = new javax.swing.JToggleButton();
+        toggleOpRotation = new javax.swing.JToggleButton();
+        toggleOpScale = new javax.swing.JToggleButton();
+        toggleOpShear = new javax.swing.JToggleButton();
+        bgDrawingTools = new javax.swing.ButtonGroup();
+        ifrSketchpad = new javax.swing.JInternalFrame();
+        ifrHistoricLayers = new javax.swing.JInternalFrame();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel16 = new javax.swing.JPanel();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        listHistoric = new javax.swing.JList<>();
+        btnHistoricRedo = new javax.swing.JButton();
+        btnHistoricUndo = new javax.swing.JButton();
+        comboHistoricLayers = new javax.swing.JComboBox<>();
+        jPanel17 = new javax.swing.JPanel();
+        jLabel11 = new javax.swing.JLabel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        jTree1 = new javax.swing.JTree();
         splitMain = new javax.swing.JSplitPane();
         tabbedOptions = new javax.swing.JTabbedPane();
         paneChat = new javax.swing.JPanel();
@@ -814,6 +982,7 @@ public class MainFrame extends javax.swing.JFrame {
         tabTrans = new javax.swing.JPanel();
         tabEditing = new javax.swing.JPanel();
         tabDrawing = new javax.swing.JPanel();
+        deskDrawing = new javax.swing.JDesktopPane();
         jPanel5 = new javax.swing.JPanel();
         menuBarYGGY = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
@@ -1654,6 +1823,453 @@ public class MainFrame extends javax.swing.JFrame {
 
         ifrAssTableCommands.getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
 
+        ifrDrawTools.setMaximizable(true);
+        ifrDrawTools.setResizable(true);
+        ifrDrawTools.setTitle("Tools");
+        ifrDrawTools.setVisible(true);
+
+        lblDrawingFile.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDrawingFile.setText("File");
+
+        lblDrawingTools.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDrawingTools.setText("Drawing tools");
+
+        lblDrawingImage.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDrawingImage.setText("Image tools");
+
+        lblDrawingCtrls.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDrawingCtrls.setText("Controls");
+
+        jPanel11.setLayout(null);
+
+        btnDrawNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_newdocument.png"))); // NOI18N
+        btnDrawNew.setToolTipText("New drawing");
+        btnDrawNew.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDrawNewActionPerformed(evt);
+            }
+        });
+        jPanel11.add(btnDrawNew);
+        btnDrawNew.setBounds(0, 0, 40, 38);
+
+        btnDrawOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_folder.png"))); // NOI18N
+        btnDrawOpen.setToolTipText("Open drawing");
+        btnDrawOpen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDrawOpenActionPerformed(evt);
+            }
+        });
+        jPanel11.add(btnDrawOpen);
+        btnDrawOpen.setBounds(40, 0, 40, 38);
+
+        btnDrawSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_floppydisk.png"))); // NOI18N
+        btnDrawSave.setToolTipText("Save drawing");
+        btnDrawSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDrawSaveActionPerformed(evt);
+            }
+        });
+        jPanel11.add(btnDrawSave);
+        btnDrawSave.setBounds(80, 0, 40, 38);
+
+        btnDrawFontOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32px-Crystal_Clear_mimetype_font_type1.png"))); // NOI18N
+        btnDrawFontOpen.setToolTipText("Open outline");
+        btnDrawFontOpen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDrawFontOpenActionPerformed(evt);
+            }
+        });
+        jPanel11.add(btnDrawFontOpen);
+        btnDrawFontOpen.setBounds(120, 0, 40, 38);
+
+        jPanel12.setLayout(null);
+
+        bgDrawingTools.add(toggleCursor);
+        toggleCursor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_cur.png"))); // NOI18N
+        toggleCursor.setSelected(true);
+        toggleCursor.setToolTipText("Cursor");
+        jPanel12.add(toggleCursor);
+        toggleCursor.setBounds(0, 0, 40, 38);
+
+        bgDrawingTools.add(toggleLine);
+        toggleLine.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-DrawingLine.png"))); // NOI18N
+        toggleLine.setToolTipText("Line");
+        jPanel12.add(toggleLine);
+        toggleLine.setBounds(40, 0, 40, 38);
+
+        bgDrawingTools.add(toggleQuadratic);
+        toggleQuadratic.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/afm splines 03.png"))); // NOI18N
+        toggleQuadratic.setToolTipText("Quadratic");
+        jPanel12.add(toggleQuadratic);
+        toggleQuadratic.setBounds(80, 0, 40, 38);
+
+        bgDrawingTools.add(toggleCubic);
+        toggleCubic.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-DrawingBezier.png"))); // NOI18N
+        toggleCubic.setToolTipText("Cubic");
+        jPanel12.add(toggleCubic);
+        toggleCubic.setBounds(120, 0, 40, 38);
+
+        toggleGLock.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/gridlocker.png"))); // NOI18N
+        toggleGLock.setToolTipText("Grid locker");
+        jPanel12.add(toggleGLock);
+        toggleGLock.setBounds(0, 40, 40, 38);
+
+        bgDrawingTools.add(toggleMoveM);
+        toggleMoveM.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew_m_32.png"))); // NOI18N
+        toggleMoveM.setToolTipText("Move M");
+        jPanel12.add(toggleMoveM);
+        toggleMoveM.setBounds(40, 40, 40, 38);
+
+        bgDrawingTools.add(toggleMoveN);
+        toggleMoveN.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew_n_32.png"))); // NOI18N
+        toggleMoveN.setToolTipText("Move N");
+        jPanel12.add(toggleMoveN);
+        toggleMoveN.setBounds(80, 40, 40, 38);
+
+        bgDrawingTools.add(toggleBSpline);
+        toggleBSpline.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-DrawingBSpline.png"))); // NOI18N
+        toggleBSpline.setToolTipText("BSpline");
+        jPanel12.add(toggleBSpline);
+        toggleBSpline.setBounds(120, 40, 40, 38);
+
+        jPanel13.setLayout(null);
+
+        btnEye.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_eye.png"))); // NOI18N
+        btnEye.setToolTipText("Eye");
+        btnEye.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEyeActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnEye);
+        btnEye.setBounds(0, 0, 40, 38);
+
+        btnImageUp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew8_32.png"))); // NOI18N
+        btnImageUp.setToolTipText("Move the image to the up");
+        btnImageUp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnImageUpActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnImageUp);
+        btnImageUp.setBounds(40, 0, 40, 38);
+
+        btnOpenImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32px-Crystal_Clear_app_kpaint.png"))); // NOI18N
+        btnOpenImage.setToolTipText("Open an image...");
+        btnOpenImage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOpenImageActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnOpenImage);
+        btnOpenImage.setBounds(80, 0, 40, 38);
+
+        btnClearImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32px-Crystal_Clear_app_windows_users.png"))); // NOI18N
+        btnClearImage.setToolTipText("Clear the image");
+        btnClearImage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearImageActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnClearImage);
+        btnClearImage.setBounds(120, 0, 40, 38);
+
+        btnImageLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew4_32.png"))); // NOI18N
+        btnImageLeft.setToolTipText("Move the image to the left");
+        btnImageLeft.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnImageLeftActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnImageLeft);
+        btnImageLeft.setBounds(0, 40, 40, 38);
+
+        btnImageCenter.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew5_32.png"))); // NOI18N
+        btnImageCenter.setToolTipText("Center the image");
+        btnImageCenter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnImageCenterActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnImageCenter);
+        btnImageCenter.setBounds(40, 40, 40, 38);
+
+        btnImageRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew6_32.png"))); // NOI18N
+        btnImageRight.setToolTipText("Move the image to the right");
+        btnImageRight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnImageRightActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnImageRight);
+        btnImageRight.setBounds(80, 40, 40, 38);
+
+        btnImageBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew2_32.png"))); // NOI18N
+        btnImageBottom.setToolTipText("Move the image to the bottom");
+        btnImageBottom.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnImageBottomActionPerformed(evt);
+            }
+        });
+        jPanel13.add(btnImageBottom);
+        btnImageBottom.setBounds(40, 80, 40, 40);
+
+        jPanel14.setLayout(null);
+
+        btnSeeOneLayer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_layers_just_one.png"))); // NOI18N
+        btnSeeOneLayer.setToolTipText("See one layer");
+        jPanel14.add(btnSeeOneLayer);
+        btnSeeOneLayer.setBounds(0, 0, 40, 40);
+
+        btnSeeLayers.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_layers_three.png"))); // NOI18N
+        btnSeeLayers.setToolTipText("See all layers");
+        jPanel14.add(btnSeeLayers);
+        btnSeeLayers.setBounds(40, 0, 40, 40);
+
+        btnDrawingCopy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32px-Crystal_Clear_action_editcopy.png"))); // NOI18N
+        btnDrawingCopy.setToolTipText("Copy");
+        jPanel14.add(btnDrawingCopy);
+        btnDrawingCopy.setBounds(80, 0, 40, 40);
+
+        btnDrawingPaste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32px-Crystal_Clear_action_editpaste.png"))); // NOI18N
+        btnDrawingPaste.setToolTipText("Paste");
+        jPanel14.add(btnDrawingPaste);
+        btnDrawingPaste.setBounds(120, 0, 40, 40);
+
+        btnMagicWand.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/magic-wand.png"))); // NOI18N
+        btnMagicWand.setToolTipText("Magic wand");
+        jPanel14.add(btnMagicWand);
+        btnMagicWand.setBounds(0, 40, 40, 40);
+
+        btnSelection.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32px-Selection.png"))); // NOI18N
+        btnSelection.setToolTipText("Selection");
+        jPanel14.add(btnSelection);
+        btnSelection.setBounds(40, 40, 40, 40);
+
+        btnPara.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_parallele.png"))); // NOI18N
+        btnPara.setToolTipText("Parallel");
+        jPanel14.add(btnPara);
+        btnPara.setBounds(80, 40, 40, 40);
+
+        btnPerp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_perpendiculaire.png"))); // NOI18N
+        btnPerp.setToolTipText("Perpendicular");
+        jPanel14.add(btnPerp);
+        btnPerp.setBounds(120, 40, 40, 40);
+
+        lblAlphaLayer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblAlphaLayer.setText("Alpha of layer");
+        jPanel14.add(lblAlphaLayer);
+        lblAlphaLayer.setBounds(0, 80, 80, 16);
+        jPanel14.add(slideAlphaLayer);
+        slideAlphaLayer.setBounds(0, 100, 80, 11);
+
+        lblDisplaySize.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDisplaySize.setText("Display size");
+        jPanel14.add(lblDisplaySize);
+        lblDisplaySize.setBounds(80, 80, 80, 16);
+        jPanel14.add(slideDisplaySize);
+        slideDisplaySize.setBounds(80, 100, 80, 11);
+
+        lblAlphaImage.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblAlphaImage.setText("Alpha of image");
+        jPanel14.add(lblAlphaImage);
+        lblAlphaImage.setBounds(0, 130, 80, 16);
+        jPanel14.add(slideAlphaImage);
+        slideAlphaImage.setBounds(0, 150, 80, 11);
+
+        lblImageSize.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblImageSize.setText("Image size");
+        jPanel14.add(lblImageSize);
+        lblImageSize.setBounds(80, 130, 80, 16);
+        jPanel14.add(slideImageSize);
+        slideImageSize.setBounds(80, 150, 80, 11);
+
+        lblDrawingCoordinates.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lblDrawingCoordinates.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDrawingCoordinates.setText("0,0");
+
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Operations");
+        jLabel9.setToolTipText("");
+
+        jPanel15.setLayout(null);
+
+        toggleOpTranslate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-translate.png"))); // NOI18N
+        toggleOpTranslate.setToolTipText("Translate");
+        jPanel15.add(toggleOpTranslate);
+        toggleOpTranslate.setBounds(0, 0, 40, 40);
+
+        toggleOpRotation.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-rotate.png"))); // NOI18N
+        toggleOpRotation.setToolTipText("Rotate");
+        jPanel15.add(toggleOpRotation);
+        toggleOpRotation.setBounds(40, 0, 40, 40);
+
+        toggleOpScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-scale.png"))); // NOI18N
+        toggleOpScale.setToolTipText("Scale");
+        jPanel15.add(toggleOpScale);
+        toggleOpScale.setBounds(80, 0, 40, 40);
+
+        toggleOpShear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/AFM-shear.png"))); // NOI18N
+        toggleOpShear.setToolTipText("Shear");
+        jPanel15.add(toggleOpShear);
+        toggleOpShear.setBounds(120, 0, 40, 40);
+
+        javax.swing.GroupLayout ifrDrawToolsLayout = new javax.swing.GroupLayout(ifrDrawTools.getContentPane());
+        ifrDrawTools.getContentPane().setLayout(ifrDrawToolsLayout);
+        ifrDrawToolsLayout.setHorizontalGroup(
+            ifrDrawToolsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(lblDrawingCoordinates, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(tfDrawingCommands)
+            .addComponent(lblDrawingFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblDrawingTools, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+            .addComponent(jPanel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblDrawingImage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblDrawingCtrls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel15, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        ifrDrawToolsLayout.setVerticalGroup(
+            ifrDrawToolsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, ifrDrawToolsLayout.createSequentialGroup()
+                .addComponent(lblDrawingCoordinates)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tfDrawingCommands, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDrawingFile)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDrawingTools)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel12, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDrawingImage)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel13, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblDrawingCtrls)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel14, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel15, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(152, Short.MAX_VALUE))
+        );
+
+        ifrSketchpad.setMaximizable(true);
+        ifrSketchpad.setResizable(true);
+        ifrSketchpad.setTitle("Sketchpad");
+        ifrSketchpad.setVisible(true);
+
+        javax.swing.GroupLayout ifrSketchpadLayout = new javax.swing.GroupLayout(ifrSketchpad.getContentPane());
+        ifrSketchpad.getContentPane().setLayout(ifrSketchpadLayout);
+        ifrSketchpadLayout.setHorizontalGroup(
+            ifrSketchpadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 835, Short.MAX_VALUE)
+        );
+        ifrSketchpadLayout.setVerticalGroup(
+            ifrSketchpadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 587, Short.MAX_VALUE)
+        );
+
+        ifrHistoricLayers.setMaximizable(true);
+        ifrHistoricLayers.setResizable(true);
+        ifrHistoricLayers.setTitle("Historic and layers");
+        ifrHistoricLayers.setVisible(true);
+
+        jScrollPane6.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane6.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        listHistoric.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane6.setViewportView(listHistoric);
+
+        btnHistoricRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew6_32.png"))); // NOI18N
+        btnHistoricRedo.setToolTipText("Redo");
+        btnHistoricRedo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricRedoActionPerformed(evt);
+            }
+        });
+
+        btnHistoricUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew4_32.png"))); // NOI18N
+        btnHistoricUndo.setToolTipText("Undo");
+        btnHistoricUndo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricUndoActionPerformed(evt);
+            }
+        });
+
+        comboHistoricLayers.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        javax.swing.GroupLayout jPanel16Layout = new javax.swing.GroupLayout(jPanel16);
+        jPanel16.setLayout(jPanel16Layout);
+        jPanel16Layout.setHorizontalGroup(
+            jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane6)
+            .addGroup(jPanel16Layout.createSequentialGroup()
+                .addComponent(btnHistoricUndo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnHistoricRedo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(comboHistoricLayers, 0, 158, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel16Layout.setVerticalGroup(
+            jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel16Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnHistoricUndo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnHistoricRedo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboHistoricLayers, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Historic", jPanel16);
+
+        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel11.setText("Group or layer in course");
+
+        jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        jScrollPane7.setViewportView(jTree1);
+
+        javax.swing.GroupLayout jPanel17Layout = new javax.swing.GroupLayout(jPanel17);
+        jPanel17.setLayout(jPanel17Layout);
+        jPanel17Layout.setHorizontalGroup(
+            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+            .addComponent(jScrollPane7)
+        );
+        jPanel17Layout.setVerticalGroup(
+            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel17Layout.createSequentialGroup()
+                .addComponent(jLabel11)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 476, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Layers", jPanel17);
+
+        javax.swing.GroupLayout ifrHistoricLayersLayout = new javax.swing.GroupLayout(ifrHistoricLayers.getContentPane());
+        ifrHistoricLayers.getContentPane().setLayout(ifrHistoricLayersLayout);
+        ifrHistoricLayersLayout.setHorizontalGroup(
+            ifrHistoricLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1)
+        );
+        ifrHistoricLayersLayout.setVerticalGroup(
+            ifrHistoricLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1)
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Yggdrasil 1.1");
 
@@ -1787,15 +2403,26 @@ public class MainFrame extends javax.swing.JFrame {
 
         tabbedMainFunctions.addTab("Editing", tabEditing);
 
+        javax.swing.GroupLayout deskDrawingLayout = new javax.swing.GroupLayout(deskDrawing);
+        deskDrawing.setLayout(deskDrawingLayout);
+        deskDrawingLayout.setHorizontalGroup(
+            deskDrawingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 846, Short.MAX_VALUE)
+        );
+        deskDrawingLayout.setVerticalGroup(
+            deskDrawingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 371, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout tabDrawingLayout = new javax.swing.GroupLayout(tabDrawing);
         tabDrawing.setLayout(tabDrawingLayout);
         tabDrawingLayout.setHorizontalGroup(
             tabDrawingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 846, Short.MAX_VALUE)
+            .addComponent(deskDrawing)
         );
         tabDrawingLayout.setVerticalGroup(
             tabDrawingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 371, Short.MAX_VALUE)
+            .addComponent(deskDrawing)
         );
 
         tabbedMainFunctions.addTab("Drawing", tabDrawing);
@@ -2021,31 +2648,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnAudioAcceptActionPerformed
 
     private void mnuFileYGGYAudioOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileYGGYAudioOpenActionPerformed
-        if(fcAudioReady == false){
-            for(FileFilter ff : fcAudio.getChoosableFileFilters()){
-                fcAudio.removeChoosableFileFilter(ff);
-            }
-            
-            fcAudio.addChoosableFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if(f.isDirectory()) return true;
-                    String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toLowerCase();
-                    return switch (ext) {
-                        case "m4a", "wav", "mka", "wma", "ogg", 
-                            "mp2", "mp3", "aac", "opus", "tta", 
-                            "aiff" -> true;
-                        default -> false;
-                    };
-                }
-
-                @Override
-                public String getDescription() {
-                    return "Audio files";
-                }
-            });
-            fcAudioReady = true;
-        }
+        // See org.wingate.ygg.fcfilefiter.SoundsFileFilter
         int z = fcAudio.showOpenDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
             openAudio(fcAudio.getSelectedFile());
@@ -2053,31 +2656,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuFileYGGYAudioOpenActionPerformed
 
     private void mnuFileYGGYAVOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileYGGYAVOpenActionPerformed
-        if(fcVideoReady == false){
-            for(FileFilter ff : fcVideo.getChoosableFileFilters()){
-                fcVideo.removeChoosableFileFilter(ff);
-            }
-            
-            fcVideo.addChoosableFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if(f.isDirectory()) return true;
-                    String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toLowerCase();
-                    return switch (ext) {
-                        case "avi", "mov", "mkv", "asf", "ts", 
-                            "mpeg", "m2ts", "vob", "mp4", "divx", 
-                            "ogm" -> true;
-                        default -> false;
-                    };
-                }
-
-                @Override
-                public String getDescription() {
-                    return "Video files";
-                }
-            });
-            fcVideoReady = true;
-        }
+        // See org.wingate.ygg.fcfilefiter.MoviesFileFilter
         int z = fcVideo.showOpenDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
             openAudioVideo(fcVideo.getSelectedFile());
@@ -2085,31 +2664,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuFileYGGYAVOpenActionPerformed
 
     private void mnuFileYGGYVideoOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileYGGYVideoOpenActionPerformed
-        if(fcVideoReady == false){
-            for(FileFilter ff : fcVideo.getChoosableFileFilters()){
-                fcVideo.removeChoosableFileFilter(ff);
-            }
-            
-            fcVideo.addChoosableFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if(f.isDirectory()) return true;
-                    String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toLowerCase();
-                    return switch (ext) {
-                        case "avi", "mov", "mkv", "asf", "ts", 
-                            "mpeg", "m2ts", "vob", "mp4", "divx", 
-                            "ogm" -> true;
-                        default -> false;
-                    };
-                }
-
-                @Override
-                public String getDescription() {
-                    return "Video files";
-                }
-            });
-            fcVideoReady = true;
-        }
+        // See org.wingate.ygg.fcfilefiter.MoviesFileFilter
         int z = fcVideo.showOpenDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
             openVideo(fcVideo.getSelectedFile());
@@ -2186,29 +2741,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCmdStyleAfterActionPerformed
 
     private void mnuFileYGGYOpenASSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileYGGYOpenASSActionPerformed
-        if(fcAssReady == false){
-            for(FileFilter ff : fcASS.getChoosableFileFilters()){
-                fcASS.removeChoosableFileFilter(ff);
-            }
-            
-            fcASS.addChoosableFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if(f.isDirectory()) return true;
-                    String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toLowerCase();
-                    return switch (ext) {
-                        case "ass" -> true;
-                        default -> false;
-                    };
-                }
-
-                @Override
-                public String getDescription() {
-                    return "ASS files";
-                }
-            });
-            fcAssReady = true;
-        }
+        // See org.wingate.ygg.fcfilefiter.SubtitlesFileFilter
         int z = fcASS.showOpenDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
             loadASSTable(fcASS.getSelectedFile());
@@ -2217,29 +2750,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuFileYGGYOpenASSActionPerformed
 
     private void mnuFileYGGYSaveASSAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileYGGYSaveASSAsActionPerformed
-        if(fcAssReady == false){
-            for(FileFilter ff : fcASS.getChoosableFileFilters()){
-                fcASS.removeChoosableFileFilter(ff);
-            }
-            
-            fcASS.addChoosableFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if(f.isDirectory()) return true;
-                    String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toLowerCase();
-                    return switch (ext) {
-                        case "ass" -> true;
-                        default -> false;
-                    };
-                }
-
-                @Override
-                public String getDescription() {
-                    return "ASS files";
-                }
-            });
-            fcAssReady = true;
-        }
+        // See org.wingate.ygg.fcfilefiter.SubtitlesFileFilter
         int z = fcASS.showSaveDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
             saveASSTable(fcASS.getSelectedFile());
@@ -2247,33 +2758,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuFileYGGYSaveASSAsActionPerformed
 
     private void mnuFileYGGYSaveASSAgainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileYGGYSaveASSAgainActionPerformed
-        if(ass.getAssFile() != null){
-            saveASSTable(fcASS.getSelectedFile());
-            return;
-        }        
-        if(fcAssReady == false){
-            for(FileFilter ff : fcASS.getChoosableFileFilters()){
-                fcASS.removeChoosableFileFilter(ff);
-            }
-            
-            fcASS.addChoosableFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if(f.isDirectory()) return true;
-                    String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toLowerCase();
-                    return switch (ext) {
-                        case "ass" -> true;
-                        default -> false;
-                    };
-                }
-
-                @Override
-                public String getDescription() {
-                    return "ASS files";
-                }
-            });
-            fcAssReady = true;
-        }
+        // See org.wingate.ygg.fcfilefiter.SubtitlesFileFilter
         int z = fcASS.showSaveDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
             saveASSTable(fcASS.getSelectedFile());
@@ -2307,6 +2792,153 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnCmdStyleParamActionPerformed
 
+    private void btnDrawNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawNewActionPerformed
+        // Drawing tools (Create BLANK drawing area)
+        skp.createNewDrawing();
+        dlmHistoric.clear();
+        tfDrawingCommands.setText(skp.getAssCommands());
+    }//GEN-LAST:event_btnDrawNewActionPerformed
+
+    private void btnDrawOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawOpenActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDrawOpenActionPerformed
+
+    private void btnDrawSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawSaveActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDrawSaveActionPerformed
+
+    private void btnDrawFontOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawFontOpenActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDrawFontOpenActionPerformed
+
+    private void btnEyeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEyeActionPerformed
+        // Drawing tools (Open a background image from video)
+        if(ffss.hasVideo() == true){            
+            try {
+                try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(video)) {
+                    grabber.start();
+                    
+                    boolean found = false;
+                    Frame fr = null;
+                    
+                    while(found == false){
+                        fr = grabber.grabImage();
+                        
+                        if(grabber.getFrameNumber() >= Time.getFrame(aw.getTimeOfStartArea(), grabber.getFrameRate())){
+                            found = true;
+                        }
+                    }
+                    
+                    try{
+                        Java2DFrameConverter converter = new Java2DFrameConverter();
+                        ImageIcon icon = new ImageIcon(converter.getBufferedImage(fr));
+                        skp.setDrawingBackgroundImage(icon);
+                    }catch(Exception ex){
+                        System.err.println("Error while converting to image!");
+                    }
+                    
+                    grabber.stop();
+                    grabber.release();    
+                }
+            } catch (FrameGrabber.Exception ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_btnEyeActionPerformed
+
+    private void btnOpenImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenImageActionPerformed
+        // Drawing tools (Open a background image)
+        // See org.wingate.ygg.fcfilefiter.ImagesFileFilter
+        int z = fcDrawingImages.showOpenDialog(this);
+        if(z == JFileChooser.APPROVE_OPTION){
+            skp.setDrawingBackgroundImage(new ImageIcon(fcDrawingImages.getSelectedFile().getPath()));
+        }
+    }//GEN-LAST:event_btnOpenImageActionPerformed
+
+    private void btnClearImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearImageActionPerformed
+        // Drawing tools (Clear a background image)
+        if(skp.hasDrawingBackgroundImage() == true){
+            int z = JOptionPane.showConfirmDialog(this, 
+                    chosen.getTranslated(
+                            "btnClearImageMessage",
+                            wantedIso,
+                            "Do you really want to clear the background image?"),
+                    chosen.getTranslated(
+                            "btnClearImageTitle",
+                            wantedIso,
+                            "Remove background image"),
+                    JOptionPane.YES_NO_OPTION
+            );
+            if(z == JOptionPane.YES_OPTION){
+                skp.setDrawingBackgroundImage(null);
+            }
+        }        
+    }//GEN-LAST:event_btnClearImageActionPerformed
+
+    private void btnImageUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageUpActionPerformed
+        if(skp.hasDrawingBackgroundImage()){
+            skp.setTranslateBackImage(0, -10);
+        }        
+    }//GEN-LAST:event_btnImageUpActionPerformed
+
+    private void btnImageLeftActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageLeftActionPerformed
+        if(skp.hasDrawingBackgroundImage()){
+            skp.setTranslateBackImage(-10, 0);
+        }        
+    }//GEN-LAST:event_btnImageLeftActionPerformed
+
+    private void btnImageCenterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageCenterActionPerformed
+        if(skp.hasDrawingBackgroundImage()){
+            skp.centerDrawingBackgroundImage();
+        }
+    }//GEN-LAST:event_btnImageCenterActionPerformed
+
+    private void btnImageRightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageRightActionPerformed
+        if(skp.hasDrawingBackgroundImage()){
+            skp.setTranslateBackImage(10, 0);
+        }        
+    }//GEN-LAST:event_btnImageRightActionPerformed
+
+    private void btnImageBottomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageBottomActionPerformed
+        if(skp.hasDrawingBackgroundImage()){
+            skp.setTranslateBackImage(0, 10);
+        }        
+    }//GEN-LAST:event_btnImageBottomActionPerformed
+
+    private void btnHistoricUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricUndoActionPerformed
+        int size = skp.getMemories().size();
+        if(size < 1) return;
+        int lastUndoIndex = -1;
+        for(int i = size - 1; i >= 1; i--){
+            if(skp.getMemories().get(i).isUndo() == true){
+                lastUndoIndex = i;
+            }
+        }
+        int index = lastUndoIndex == -1 ? size - 1 : lastUndoIndex - 1;
+        skp.getMemories().get(index).setUndo(true);
+        skp.refreshDrawingAfterUndo(skp.getMemories().get(index));
+        dlmHistoric.clear();
+        dlmHistoric.addAll(skp.getMemories());
+        tfDrawingCommands.setText(skp.getAssCommands());
+    }//GEN-LAST:event_btnHistoricUndoActionPerformed
+
+    private void btnHistoricRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricRedoActionPerformed
+        int size = skp.getMemories().size();
+        if(size == 0) return;
+        int lastUndoIndex = -1;
+        for(int i = size - 1; i >= 0; i--){
+            if(skp.getMemories().get(i).isUndo() == true){
+                lastUndoIndex = i;
+            }
+        }
+        if(lastUndoIndex == -1) return;
+        skp.getMemories().get(lastUndoIndex).setUndo(false);
+        skp.refreshDrawingAfterRedo(skp.getMemories().get(lastUndoIndex));
+        dlmHistoric.clear();
+        dlmHistoric.addAll(skp.getMemories());
+        tfDrawingCommands.setText(skp.getAssCommands());
+    }//GEN-LAST:event_btnHistoricRedoActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -2339,6 +2971,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup bgAssType;
+    private javax.swing.ButtonGroup bgDrawingTools;
     private javax.swing.JButton btnAudioAccept;
     private javax.swing.JButton btnAudioPause;
     private javax.swing.JButton btnAudioPlay;
@@ -2348,12 +2981,34 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnAudioPlayBegin;
     private javax.swing.JButton btnAudioPlayEnd;
     private javax.swing.JButton btnAudioStop;
+    private javax.swing.JButton btnClearImage;
     private javax.swing.JButton btnCmdStyleAdd;
     private javax.swing.JButton btnCmdStyleAfter;
     private javax.swing.JButton btnCmdStyleBefore;
     private javax.swing.JButton btnCmdStyleChange;
     private javax.swing.JButton btnCmdStyleParam;
     private javax.swing.JButton btnCmdStyleProperties;
+    private javax.swing.JButton btnDrawFontOpen;
+    private javax.swing.JButton btnDrawNew;
+    private javax.swing.JButton btnDrawOpen;
+    private javax.swing.JButton btnDrawSave;
+    private javax.swing.JButton btnDrawingCopy;
+    private javax.swing.JButton btnDrawingPaste;
+    private javax.swing.JButton btnEye;
+    private javax.swing.JButton btnHistoricRedo;
+    private javax.swing.JButton btnHistoricUndo;
+    private javax.swing.JButton btnImageBottom;
+    private javax.swing.JButton btnImageCenter;
+    private javax.swing.JButton btnImageLeft;
+    private javax.swing.JButton btnImageRight;
+    private javax.swing.JButton btnImageUp;
+    private javax.swing.JButton btnMagicWand;
+    private javax.swing.JButton btnOpenImage;
+    private javax.swing.JButton btnPara;
+    private javax.swing.JButton btnPerp;
+    private javax.swing.JButton btnSeeLayers;
+    private javax.swing.JButton btnSeeOneLayer;
+    private javax.swing.JButton btnSelection;
     private javax.swing.JButton btnSend;
     private javax.swing.JButton btnSmiley;
     private javax.swing.JButton btnVideoPause;
@@ -2364,17 +3019,25 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnVideoPlayBegin;
     private javax.swing.JButton btnVideoPlayEnd;
     private javax.swing.JButton btnVideoStop;
+    private javax.swing.JComboBox<String> comboHistoricLayers;
     private javax.swing.JComboBox<String> comboName;
     private javax.swing.JComboBox<String> comboStyle;
+    private javax.swing.JDesktopPane deskDrawing;
     private javax.swing.JDesktopPane deskYGGY;
     private javax.swing.JFileChooser fcASS;
     private javax.swing.JFileChooser fcAudio;
+    private javax.swing.JFileChooser fcDrawingImages;
+    private javax.swing.JFileChooser fcDrawingYDS;
     private javax.swing.JFileChooser fcVideo;
     private javax.swing.JInternalFrame ifrAssTableCommands;
+    private javax.swing.JInternalFrame ifrDrawTools;
+    private javax.swing.JInternalFrame ifrHistoricLayers;
+    private javax.swing.JInternalFrame ifrSketchpad;
     private javax.swing.JInternalFrame ifrVideo;
     private javax.swing.JInternalFrame ifrWave;
     private javax.swing.JInternalFrame ifrtableOne;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -2382,8 +3045,16 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel11;
+    private javax.swing.JPanel jPanel12;
+    private javax.swing.JPanel jPanel13;
+    private javax.swing.JPanel jPanel14;
+    private javax.swing.JPanel jPanel15;
+    private javax.swing.JPanel jPanel16;
+    private javax.swing.JPanel jPanel17;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -2397,12 +3068,26 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator3;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
+    private javax.swing.JTree jTree1;
+    private javax.swing.JLabel lblAlphaImage;
+    private javax.swing.JLabel lblAlphaLayer;
+    private javax.swing.JLabel lblDisplaySize;
+    private javax.swing.JLabel lblDrawingCoordinates;
+    private javax.swing.JLabel lblDrawingCtrls;
+    private javax.swing.JLabel lblDrawingFile;
+    private javax.swing.JLabel lblDrawingImage;
+    private javax.swing.JLabel lblDrawingTools;
+    private javax.swing.JLabel lblImageSize;
+    private javax.swing.JList<String> listHistoric;
     private javax.swing.JMenuBar menuBarYGGY;
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuFileChat;
@@ -2421,6 +3106,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel panePTP;
     private javax.swing.JPanel paneTimeline;
     private javax.swing.JPanel paneVideo;
+    private javax.swing.JSlider slideAlphaImage;
+    private javax.swing.JSlider slideAlphaLayer;
+    private javax.swing.JSlider slideDisplaySize;
+    private javax.swing.JSlider slideImageSize;
     private javax.swing.JSpinner spinL;
     private javax.swing.JSpinner spinLayer;
     private javax.swing.JSpinner spinR;
@@ -2436,6 +3125,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTabbedPane tabbedOptions;
     private javax.swing.JTabbedPane tabbedSubsCmd;
     private javax.swing.JTable tableOne;
+    private javax.swing.JTextField tfDrawingCommands;
     private javax.swing.JTextField tfDurationFrame;
     private javax.swing.JTextField tfDurationTime;
     private javax.swing.JTextField tfEndFrame;
@@ -2452,6 +3142,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextField tfVideoStartFrame;
     private javax.swing.JTextField tfVideoStartTime;
     private javax.swing.JToggleButton toggleAssKaraoke;
+    private javax.swing.JToggleButton toggleBSpline;
     private javax.swing.JToggleButton toggleCmdCommands;
     private javax.swing.JToggleButton toggleCmdComment;
     private javax.swing.JToggleButton toggleCmdDialogue;
@@ -2460,6 +3151,17 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToggleButton toggleCmdProposal;
     private javax.swing.JToggleButton toggleCmdRequest;
     private javax.swing.JToggleButton toggleCmdSound;
+    private javax.swing.JToggleButton toggleCubic;
+    private javax.swing.JToggleButton toggleCursor;
+    private javax.swing.JToggleButton toggleGLock;
+    private javax.swing.JToggleButton toggleLine;
+    private javax.swing.JToggleButton toggleMoveM;
+    private javax.swing.JToggleButton toggleMoveN;
+    private javax.swing.JToggleButton toggleOpRotation;
+    private javax.swing.JToggleButton toggleOpScale;
+    private javax.swing.JToggleButton toggleOpShear;
+    private javax.swing.JToggleButton toggleOpTranslate;
+    private javax.swing.JToggleButton toggleQuadratic;
     private javax.swing.JToggleButton toggleYvesKaraoke;
     private javax.swing.JTextPane tpChatChannel;
     private javax.swing.JTextPane tpChatEntry;

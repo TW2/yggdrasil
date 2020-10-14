@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 import org.wingate.timelibrary.Time;
 
 /**
@@ -282,6 +283,24 @@ public class FFStuffs {
 //        waiterFrame.close();
         
         return fs;
+    }
+    
+    public ImageIcon getImageAtTime(String videoPath, Time time){
+        
+        try{
+            ProcessBuilder pb = new ProcessBuilder(ffmpeg, 
+                    "-y",                           // YES for force overwrite
+                    "-ss", time.toFFMpegTime(),     // Time
+                    "-i", videoPath,                // Input
+                    "-vframes", "1",                // Number of frames (here one image)
+                    "-q:v", "2",                    // JPEG 
+                    "eye.jpg");                     // Output
+            pb.start();
+        }catch(IOException ex){
+            return null;
+        }
+        
+        return new ImageIcon("eye.jpg");
     }
     
     // <editor-fold defaultstate="collapsed" desc="Répertoire du programme">
