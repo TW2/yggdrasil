@@ -11,4 +11,4 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 
 # Fichier de projet
-project.txt
+src/main/resources/configuration/project.txt
