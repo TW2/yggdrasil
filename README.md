@@ -18,6 +18,7 @@ Drawing tab :
 - [ ] Can extract commands from bspline
 - [ ] Can use layers
 - [ ] Can do operations
+- [x] Can do undo/redo and break (cancellation of a break is not possible)
 
 ## Screenshots
 ```
