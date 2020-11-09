@@ -10,25 +10,40 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.8.1</version>
                 <configuration>
                     <compilerArgs>
                         <arg>--enable-preview</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
+            <plugin>
+                <!-- Build an executable JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>org.wingate.ygg.Yggdrasil</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>14</maven.compiler.source>
-        <maven.compiler.target>14</maven.compiler.target>
+        <maven.compiler.source>15</maven.compiler.source>
+        <maven.compiler.target>15</maven.compiler.target>
     </properties>
     <dependencies>
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
-            <version>0.38</version>
+            <version>0.41</version>
         </dependency>
         <dependency>
             <groupId>net.java.dev.jna</groupId>
@@ -41,34 +56,24 @@
             <version>5.5.0</version>
         </dependency>
         <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics</artifactId>
-            <version>14.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-base</artifactId>
-            <version>14.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-swing</artifactId>
-            <version>14.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-media</artifactId>
-            <version>14.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.co.caprica</groupId>
-            <artifactId>vlcj-javafx</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.wingate</groupId>
             <artifactId>TimeLibrary</artifactId>
             <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wingate</groupId>
+            <artifactId>PlaceholderTextField</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wingate</groupId>
+            <artifactId>yinggyongg</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.4</version>
         </dependency>
     </dependencies>
 </project>

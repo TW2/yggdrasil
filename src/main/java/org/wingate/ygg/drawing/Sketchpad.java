@@ -38,6 +38,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.drawing.layers.Layer;
 import org.wingate.ygg.util.DrawColor;
 
 /**
@@ -62,7 +63,9 @@ public class Sketchpad extends JScrollPane {
     int offsetY = 0;
     
     // Historic and layers
-    List<Memories<?>> memoriesArray = new ArrayList<>();
+    List<Layer> layers = new ArrayList<>();
+    int currentLayer = 0;
+    //List<Memories<?>> memoriesArray = new ArrayList<>();
     Point2D beforeEditingPoint = null;
     Point2D afterEditingPoint = null;
     List<AShape> editingShapes = new ArrayList<>();
@@ -92,6 +95,13 @@ public class Sketchpad extends JScrollPane {
         setOpaque(true);
         setBackground(MainFrame.isDark() ? new Color(70,70,70) : Color.white);
         
+        Layer initialLayer = new Layer();
+        initialLayer.setName("Default");
+        initialLayer.setColor(Color.yellow);
+        initialLayer.setLayer(currentLayer);
+        initialLayer.setVisible(true);
+        layers.add(initialLayer);
+        
         addMouseListener(new MouseAdapter() {
             
             // <editor-fold defaultstate="collapsed" desc="mouseClicked">
@@ -106,8 +116,10 @@ public class Sketchpad extends JScrollPane {
                     
                     pCurrent = autoGridLocker(pCurrent);
 
-                    if(mf.isLineSelected()){
+                    if(mf.isLineSelected()){                        
                         rerouteElement(); // Undoable now are broken!
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
@@ -117,6 +129,8 @@ public class Sketchpad extends JScrollPane {
                         lastClicked = pCurrent;
                     }else if(mf.isCubicSelected()){
                         rerouteElement(); // Undoable now are broken!
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
@@ -126,6 +140,8 @@ public class Sketchpad extends JScrollPane {
                         lastClicked = pCurrent;
                     }else if(mf.isQuadraticSelected()){
                         rerouteElement(); // Undoable now are broken!
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
@@ -135,6 +151,8 @@ public class Sketchpad extends JScrollPane {
                         lastClicked = pCurrent;
                     }else if(mf.isMoveMSelected()){
                         rerouteElement(); // Undoable now are broken!
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
@@ -144,6 +162,8 @@ public class Sketchpad extends JScrollPane {
                         lastClicked = pCurrent;
                     }else if(mf.isMoveNSelected()){
                         rerouteElement(); // Undoable now are broken!
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
@@ -152,6 +172,8 @@ public class Sketchpad extends JScrollPane {
                         );
                         lastClicked = pCurrent;
                     }else if(mf.isBSplineSelected()){
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         if(memoriesArray.isEmpty() == false 
                                 && memoriesArray.get(memoriesArray.size() - 1).getObject() instanceof BSpline){
                             // Si on a une BSpline en cours de dessin
@@ -258,6 +280,8 @@ public class Sketchpad extends JScrollPane {
                 
                 if(editing == true){
                     // Traitement de modification (avant médian et après médian)
+                    // Get MemoriesArray from actual Layer
+                    List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                     for(Memories<?> mms : memoriesArray){
                         if(mms.getObject().getClass().equals(HistoricalPointChange.class) == true){
                             continue;
@@ -344,6 +368,8 @@ public class Sketchpad extends JScrollPane {
                 
                 if(editing == true){
                     if(editingButtonUsed == true && editingPoint2DTemp != null){
+                        // Get MemoriesArray from actual Layer
+                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
                         // Traitement médian modification (pendant)
                         for(Memories<?> mms : memoriesArray){
                             if(mms.getObject().getClass().equals(HistoricalPointChange.class) == true){
@@ -371,6 +397,8 @@ public class Sketchpad extends JScrollPane {
     
     // <editor-fold defaultstate="collapsed" desc="Functions">
     public void createNewDrawing(){
+        // Get MemoriesArray from actual Layer
+        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
         memoriesArray.clear();
         sheet.updateDrawing();
     }
@@ -548,6 +576,8 @@ public class Sketchpad extends JScrollPane {
         // Check about undo
         //----------------------------------------------------------------------
         int index = -1;
+        // Get MemoriesArray from actual Layer
+        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
         for(int i=0; i<memoriesArray.size(); i++){
             if(memoriesArray.get(i).isUndo()){
                 index = i;
@@ -579,6 +609,8 @@ public class Sketchpad extends JScrollPane {
         mms.setObject(obj);
         
         if(obj instanceof AShape){
+            // Get MemoriesArray from actual Layer
+            List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
             if(memoriesArray.isEmpty()){
                 // Any AShape replace by a Move (M)                    
                 mms.setObjectClass(Move.class);
@@ -588,6 +620,8 @@ public class Sketchpad extends JScrollPane {
                 memoriesArray.add(mms);
             }
         }else if(obj instanceof HistoricalPointChange){
+            // Get MemoriesArray from actual Layer
+            List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
             if(memoriesArray.isEmpty() == false){
                 memoriesArray.add(mms);
             }
@@ -598,11 +632,15 @@ public class Sketchpad extends JScrollPane {
     }
     
     public List<Memories<?>> getMemories(){
+        // Get MemoriesArray from actual Layer
+        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
         return memoriesArray;
     }
     
     public List<AShape> getShapes(){
         List<AShape> shapes = new ArrayList<>();
+        // Get MemoriesArray from actual Layer
+        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
         
         for(Memories mms : memoriesArray){
             if(mms.getObject() instanceof AShape && mms.isUndo() == false){
@@ -615,7 +653,9 @@ public class Sketchpad extends JScrollPane {
     
     public String getAssCommands(){
         StringBuilder sb = new StringBuilder();
-        boolean start = true; 
+        boolean start = true;
+        // Get MemoriesArray from actual Layer
+        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
         
         for(Memories mms : memoriesArray){
             if(mms.getObject() instanceof AShape && mms.isUndo() == false){
@@ -693,6 +733,26 @@ public class Sketchpad extends JScrollPane {
         int mX = p.x -(sheet.getWidth()/sheet.getScaleXY())/2;
         int mY = p.y -(sheet.getHeight()/sheet.getScaleXY())/2;
         return new Point(mX, mY);
+    }
+    
+    public List<Memories<?>> getMemoriesArray(int layer){
+        List<Memories<?>> mas = null;
+        
+        if(layers.isEmpty() == false && layer < layers.size()){
+            mas = layers.get(layer).getMemoriesArray();
+        }else if(layers.isEmpty() == false && layer >= layers.size()){
+            Layer lay = new Layer();
+            layers.add(lay);
+            currentLayer = layers.size();
+            mas = layers.get(layers.size()).getMemoriesArray();
+        }else if(layers.isEmpty() == true){
+            Layer lay = new Layer();
+            layers.add(lay);
+            currentLayer = 0;
+            mas = layers.get(0).getMemoriesArray();
+        }
+        
+        return mas;
     }
     // </editor-fold>
     
@@ -857,6 +917,8 @@ public class Sketchpad extends JScrollPane {
             g2d.setColor(Color.red);
 
             // Consulte la liste des formes et les dessine en utilisant des couleurs différentes.
+            // Get MemoriesArray from actual Layer
+            List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
             for(Memories<?> mms : memoriesArray){
                 if(mms.getObject() instanceof AShape && mms.isUndo() == false){
                     AShape sh = (AShape)mms.getObject();

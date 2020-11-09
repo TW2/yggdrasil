@@ -19,6 +19,7 @@ package org.wingate.ygg.drawing.layers;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -30,8 +31,20 @@ public class LayersGroup {
     private int index;
     private Color color;
     private List<Layer> layers = new ArrayList<>();
+    private DefaultMutableTreeNode node;
 
     public LayersGroup() {
+    }
+    
+    public static LayersGroup create(String name, int index){
+        LayersGroup layersGroup = new LayersGroup();
+        
+        layersGroup.name = name;
+        layersGroup.index = index;
+        layersGroup.color = Color.yellow;
+        layersGroup.node = new DefaultMutableTreeNode(name);
+        
+        return layersGroup;
     }
 
     public String getName() {
@@ -91,5 +104,13 @@ public class LayersGroup {
         if(id != -1){
             layers.remove(id);
         }
+    }
+
+    public DefaultMutableTreeNode getNode() {
+        return node;
+    }
+
+    public void setNode(DefaultMutableTreeNode node) {
+        this.node = node;
     }
 }

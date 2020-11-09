@@ -27,17 +27,17 @@ import org.wingate.ygg.drawing.Memories;
  */
 public class Layer {
     
-    private Color color;
-    private boolean lock;
-    private boolean visible;
-    private String name;
+    private Color color = Color.green;
+    private boolean lock = false;
+    private boolean visible = true;
+    private String name = "Default";
     
-    private int layer;
+    private int layer = 0;
     private LayerDirection layerDirection = LayerDirection.Forward;
     
     private List<Memories<?>> memoriesArray = new ArrayList<>();
     
-    private int UID;
+    private int UID = 0;
 
     public Layer() {
         

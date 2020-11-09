@@ -16,9 +16,11 @@
  */
 package org.wingate.ygg.drawing.layers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -30,10 +32,18 @@ import javax.swing.ListCellRenderer;
  */
 public class HistoricalLayersComboRenderer extends JPanel implements ListCellRenderer {
 
-    private final JLabel lblColor = new JLabel("N");
-    private final JLabel lblLocker = new JLabel("N");
-    private final JLabel lblVisible = new JLabel("N");
-    private final JLabel lblName = new JLabel("N");
+    private final ImageIcon lockOK = new ImageIcon(getClass().getResource("/images/20_linkOK.png"));
+    private final ImageIcon lockNOT = new ImageIcon(getClass().getResource("/images/20_linkNOT.png"));
+    
+    private final ImageIcon vtrue = new ImageIcon(getClass().getResource("/images/red_and_green-green-cross.png"));
+    private final ImageIcon vnot = new ImageIcon(getClass().getResource("/images/red_and_green-red-cross.png"));
+    
+    private final JLabel lblColor = new JLabel();
+    private final JLabel lblLocker = new JLabel();
+    private final JLabel lblVisible = new JLabel();
+    private final JLabel lblName = new JLabel();
+    
+    
     
     public HistoricalLayersComboRenderer() {
         init();
@@ -46,7 +56,7 @@ public class HistoricalLayersComboRenderer extends JPanel implements ListCellRen
         add(lblVisible);
         add(lblName);
         lblColor.setOpaque(true);
-        lblColor.setPreferredSize(new Dimension(10, getBounds().height));
+        lblColor.setPreferredSize(new Dimension(10, 20));
         lblLocker.setOpaque(true);
         lblLocker.setPreferredSize(new Dimension(20, getBounds().height));
         lblVisible.setOpaque(true);
@@ -62,6 +72,20 @@ public class HistoricalLayersComboRenderer extends JPanel implements ListCellRen
         if(value instanceof Layer){
             Layer layer = (Layer)value;
             
+            Color c = layer.getColor();
+            lblColor.setText("    ");
+            lblColor.setBackground(c);
+            
+            boolean lock = layer.isLock();
+            lblLocker.setText("");
+            lblLocker.setIcon(lock ? lockOK : lockNOT);
+            
+            boolean visible = layer.isVisible();
+            lblVisible.setText("");
+            lblVisible.setIcon(visible ? vtrue : vnot);
+            
+            String name = layer.getName();
+            lblName.setText(name == null | name != null && name.isEmpty() ? "   Default" : "   " + name);            
         }
         
         return this;

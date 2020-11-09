@@ -45,6 +45,11 @@ public class Yggdrasil {
             System.out.println("---- HAPPY RUMBA ----");
         }else{
             System.out.println("---- HAPPY FESTA ----");
-        }        
+        }
+        //======================================================================
+        // TEST (activate or deactivate)
+        //======================================================================
+//        org.wingate.ygg.test.TestVideoTimestamp frame = new org.wingate.ygg.test.TestVideoTimestamp();
+//        frame.setVisible(true);
     }
 }

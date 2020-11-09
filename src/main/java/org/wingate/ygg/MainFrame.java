@@ -33,6 +33,7 @@ import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -44,10 +45,12 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.TableColumn;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
@@ -59,6 +62,9 @@ import org.wingate.ygg.ass.Style;
 import org.wingate.ygg.drawing.HistoricListRenderer;
 import org.wingate.ygg.drawing.Memories;
 import org.wingate.ygg.drawing.Sketchpad;
+import org.wingate.ygg.drawing.layers.HistoricalLayersComboRenderer;
+import org.wingate.ygg.drawing.layers.Layer;
+import org.wingate.ygg.drawing.layers.LayersGroup;
 import org.wingate.ygg.fcfilefilter.DrawingFileFilter;
 import org.wingate.ygg.fcfilefilter.ImagesFileFilter;
 import org.wingate.ygg.fcfilefilter.MoviesFileFilter;
@@ -77,15 +83,22 @@ import org.wingate.ygg.util.audio.AudioWavePanel;
 import org.wingate.ygg.util.dialog.PropsDialog;
 import org.wingate.ygg.util.dialog.StylesDialog;
 import org.wingate.ygg.util.subtitle.YGGY;
-import org.wingate.ygg.util.vlcjfx.VLCjLogic;
-import uk.co.caprica.vlcj.player.base.MediaPlayer;
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
+import org.wingate.ygg.videoplayer.AudioVideoPlayer;
+import org.wingate.yinggyongg.io.Client;
+import org.wingate.yinggyongg.io.Server;
+import org.wingate.yinggyongg.peer.Machine;
+import org.wingate.yinggyongg.ruby.Rubygg;
+import org.wingate.yinggyongg.ruby.Scripting;
+import org.wingate.yinggyongg.ruby.XrbReader;
 
 /**
  *
  * @author util2
  */
 public class MainFrame extends javax.swing.JFrame {
+    
+    // Temp folder
+    private static final String TEMP_FOLDER = "tempFolder";
 
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
@@ -93,16 +106,18 @@ public class MainFrame extends javax.swing.JFrame {
     
     private static boolean darkUI = false;
     
-    private final VLCjLogic vlcjEmbed = new VLCjLogic();
     private File video = null;
     private ASS ass = ASS.NoFileToLoad();
     private final YGGY yggy = YGGY.create();
     private Event currentEvent = null;
     
+    private Time end = Time.create(0L);
+    private Time start = Time.create(0L);
+    
     // ifrVideo components and variables
-    private final JLabel lblOnTopOfOverlay = new JLabel();
     private FramesPanel fp;
     private FFStuffs ffss = null;
+    private final AudioVideoPlayer avPanel = new AudioVideoPlayer();
     // ifrVideo stop
     
     // ifrWave components and variables
@@ -134,6 +149,10 @@ public class MainFrame extends javax.swing.JFrame {
     
     // ifrHistoricLayers components and variables
     private final DefaultListModel dlmHistoric = new DefaultListModel();
+    private final DefaultComboBoxModel dcbmLayers = new DefaultComboBoxModel();
+    private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Groups of layers");
+    private final DefaultTreeModel dtmHistoricLayers = new DefaultTreeModel(root);
+    private int layersGroupIndex = 0;
     // ifrHistoricLayers stop
     
     private final UserChatUID myselfUID = new UserChatUID();
@@ -151,6 +170,10 @@ public class MainFrame extends javax.swing.JFrame {
     }
     
     private void init(){
+        File temp_folder = new File(TEMP_FOLDER);
+        temp_folder.mkdir();
+        temp_folder.deleteOnExit();
+        
         setSize(1880, 1058);
         setLocationRelativeTo(null);
         
@@ -172,7 +195,6 @@ public class MainFrame extends javax.swing.JFrame {
             public void componentResized(ComponentEvent e) {
                 resizeComponents();
             }
-            
         });
         
         // Peers
@@ -181,29 +203,16 @@ public class MainFrame extends javax.swing.JFrame {
         // Video Internal Frame
         fp = new FramesPanel(darkUI);
         paneTimeline.add(fp, BorderLayout.CENTER);
-        
-//        paneVideo.add(lblOnTopOfOverlay, BorderLayout.CENTER);
-//        lblOnTopOfOverlay.setHorizontalAlignment(SwingConstants.CENTER);
-//        lblOnTopOfOverlay.setFont(lblOnTopOfOverlay.getFont().deriveFont(50f));
-        paneVideo.add(vlcjEmbed, BorderLayout.CENTER);
-        vlcjEmbed.getEmbeddedMediaPlayer().events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
-            @Override
-            public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
-                Time t = Time.create(newTime);
-                tfVideoCurrentTime.setText(t.toProgramExtendedTime());
-                tfVideoCurrentFrame.setText(Integer.toString(Time.getFrame(t, ffss.getFps())));
-            }            
-        });
-        
         ifrVideo.setSize(972, 662);
         ifrVideo.setLocation(5, 5);
         ifrVideo.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                ifrVideo.setTitle("JavaFx - " + paneVideo.getWidth() + "x" + paneVideo.getHeight());                
+                ifrVideo.setTitle("Java FFmpeg - " + paneVideo.getWidth() + "x" + paneVideo.getHeight());                
             }            
         });
-        ifrVideo.setTitle("JavaFx");
+        paneVideo.add(avPanel.getVideoPanel());
+        ifrVideo.setTitle("Java FFmpeg - " + paneVideo.getWidth() + "x" + paneVideo.getHeight());
         deskYGGY.add(ifrVideo);
 
         // Audio WAVE
@@ -277,6 +286,22 @@ public class MainFrame extends javax.swing.JFrame {
         deskDrawing.add(ifrHistoricLayers);
         listHistoric.setModel(dlmHistoric);
         listHistoric.setCellRenderer(new HistoricListRenderer(skp));
+        comboHistoricLayers.setModel(dcbmLayers);
+        comboHistoricLayers.setRenderer(new HistoricalLayersComboRenderer());
+        dcbmLayers.addElement(new Layer());
+        treeHistoricLayers.setModel(dtmHistoricLayers);
+        
+        // Server launching
+        Server.createServer();
+        
+        // Final touch
+        Rubygg rby = XrbReader.readString(
+                getClass().getResource("/rubygg/chat_activity.xrb").getPath());
+        try {
+            Scripting.runRubyCode(rby.getCode(), "hello");
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     // <editor-fold defaultstate="collapsed" desc="All">
@@ -299,6 +324,10 @@ public class MainFrame extends javax.swing.JFrame {
     
     public static ISO_3166 getISO(){
         return wantedIso;
+    }
+    
+    public static String getTempFolder(){
+        return TEMP_FOLDER;
     }
     
     // </editor-fold>
@@ -410,17 +439,14 @@ public class MainFrame extends javax.swing.JFrame {
     private void openAudioVideo(File video){
         openVideo(video);
         openAudio(video);
-        vlcjEmbed.setPath(video.getPath(), ffss);
-//        player.setFile(video);
+        avPanel.setAudioVideoFile(video);
     }
     
-    private void playAndStop(Time startTime, Time endTime){
+    private void playAndStop(){
         if(currentEvent != null){
-//            player.setStartAt(startTime);
-//            player.setStopAt(endTime);
-//            player.play();
-            vlcjEmbed.play();
-            
+            avPanel.setStart(start);
+            avPanel.setStop(end);
+            avPanel.audioVideoPlay();
         }
     }
     
@@ -431,10 +457,10 @@ public class MainFrame extends javax.swing.JFrame {
         int startSamples = aw.getSamplesFromFrame(startFrame);
         int endSamples = aw.getSamplesFromFrame(endFrame);
         
-        Point start = new Point(Math.round(startSamples / aw.getSamplesPerPixel()), 0);
-        Point stop = new Point(Math.round(endSamples / aw.getSamplesPerPixel()), 0);
+        Point startPoint = new Point(Math.round(startSamples / aw.getSamplesPerPixel()), 0);
+        Point stopPoint = new Point(Math.round(endSamples / aw.getSamplesPerPixel()), 0);
         
-        aw.getAudioWavePanel().updatePoint(start, stop);
+        aw.getAudioWavePanel().updatePoint(startPoint, stopPoint);
         
         try{
             int index = aw.getAudioWavePanel().getAssKaraokeCollectionIndex(ev);
@@ -473,21 +499,21 @@ public class MainFrame extends javax.swing.JFrame {
         
         fp.configure(ffss);
         
-        Time current = Time.create(0L);
-        Time start = Time.create(0L);
-        Time end = ffss.getDuration();
-        Time dur = ffss.getDuration();
+        Time currentTime = Time.create(0L);
+        Time startTime = Time.create(0L);
+        Time endTime = ffss.getDuration();
+        Time durTime = ffss.getDuration();
         
-        tfVideoStartTime.setText(start.toProgramExtendedTime());
-        tfVideoStartFrame.setText(Integer.toString(Time.getFrame(start, ffss.getFps())));
-        tfVideoEndTime.setText(end.toProgramExtendedTime());
-        tfVideoEndFrame.setText(Integer.toString(Time.getFrame(end, ffss.getFps())));
-        tfVideoDurationTime.setText(dur.toProgramExtendedTime());
-        tfVideoDurationFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
-        tfVideoCurrentTime.setText(current.toProgramExtendedTime());
-        tfVideoCurrentFrame.setText(Integer.toString(Time.getFrame(current, ffss.getFps())));
+        tfVideoStartTime.setText(startTime.toProgramExtendedTime());
+        tfVideoStartFrame.setText(Integer.toString(Time.getFrame(startTime, ffss.getFps())));
+        tfVideoEndTime.setText(endTime.toProgramExtendedTime());
+        tfVideoEndFrame.setText(Integer.toString(Time.getFrame(endTime, ffss.getFps())));
+        tfVideoDurationTime.setText(durTime.toProgramExtendedTime());
+        tfVideoDurationFrame.setText(Integer.toString(Time.getFrame(durTime, ffss.getFps())));
+        tfVideoCurrentTime.setText(currentTime.toProgramExtendedTime());
+        tfVideoCurrentFrame.setText(Integer.toString(Time.getFrame(currentTime, ffss.getFps())));
 
-        fp.updatePosition(current);
+        fp.updatePosition(currentTime);
     }
     
     // </editor-fold>
@@ -529,16 +555,16 @@ public class MainFrame extends javax.swing.JFrame {
         snmLayer.setValue(ev.getLayer());
         
         // Start - End - Duration
-        Time start, end, duration;
-        start = ev.getStartTime();
-        end = ev.getEndTime();
-        duration = Time.substract(start, end);
-        tfStartTime.setText(start.toProgramExtendedTime());
-        tfEndTime.setText(end.toProgramExtendedTime());
+        Time startTime, endTime, duration;
+        startTime = ev.getStartTime();
+        endTime = ev.getEndTime();
+        duration = Time.substract(startTime, endTime);
+        tfStartTime.setText(startTime.toProgramExtendedTime());
+        tfEndTime.setText(endTime.toProgramExtendedTime());
         tfDurationTime.setText(duration.toProgramExtendedTime());
         try{
-            tfStartFrame.setText(Integer.toString(Time.getFrame(start, ffss.getFps())));
-            tfEndFrame.setText(Integer.toString(Time.getFrame(end, ffss.getFps())));
+            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, ffss.getFps())));
+            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, ffss.getFps())));
             tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, ffss.getFps())));
         }catch(Exception ex){
             
@@ -660,6 +686,11 @@ public class MainFrame extends javax.swing.JFrame {
         nv.setText(tpText.getText());
         
         return nv;
+    }
+    
+    // Refresh ASS rendering by updating ass temporary file
+    private void refreshTempASS(){
+        saveASSTable(new File(TEMP_FOLDER, "temp.ass"));
     }
     
     // </editor-fold>
@@ -788,7 +819,66 @@ public class MainFrame extends javax.swing.JFrame {
         dlmHistoric.removeElementAt(dlmHistoric.size() - 1);
         tfDrawingCommands.setText(skp.getAssCommands());
     }
-        
+    
+    public void addLayersGroup(){
+        if(treeHistoricLayers.getSelectionCount() > 0){
+            TreePath[] paths = treeHistoricLayers.getSelectionPaths();
+            if (paths != null) {
+                for (TreePath path : paths) {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+                    if(isLayerTreeNode(path) == true 
+                            && treeHistoricLayers.getSelectionPath().equals(path) == true){
+                        String layerName = JOptionPane.showInputDialog(this, "Type a layer name:");
+                        ((DefaultMutableTreeNode)node.getParent()).add(new DefaultMutableTreeNode(layerName));
+                        break;
+                    }else if(isGroupTreeNode(path) == true
+                            && treeHistoricLayers.getSelectionPath().equals(path) == true){
+                        String groupName = JOptionPane.showInputDialog(this, "Type a group name:");
+                        root.add(new DefaultMutableTreeNode(groupName));
+                        break;
+                    }
+                }
+            }            
+        }else{
+            String groupName = JOptionPane.showInputDialog(this, "Type a group name:");
+            LayersGroup layersGroup = LayersGroup.create(groupName, layersGroupIndex);
+            layersGroupIndex++;
+            Layer lay = new Layer();
+            layersGroup.addLayer(lay);
+            DefaultMutableTreeNode groupNode = layersGroup.getNode();
+            DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(lay);
+            root.add(groupNode);
+            groupNode.add(layerNode);
+        }        
+    }
+    
+    public boolean isLayerTreeNode(TreePath path){
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+        return node.getUserObject() instanceof Layer;
+    }
+    
+    public boolean isGroupTreeNode(TreePath path){
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+        return node.getUserObject() instanceof String;
+    }
+    
+    public void deleteLayersGroup(){
+        TreePath[] paths = treeHistoricLayers.getSelectionPaths();
+        if (paths != null) {
+            for (TreePath path : paths) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+                if(isLayerTreeNode(path) == true 
+                        && treeHistoricLayers.getSelectionPath().equals(path) == true){
+                    dtmHistoricLayers.removeNodeFromParent(node);
+                    break;
+                }else if(isGroupTreeNode(path) == true
+                        && treeHistoricLayers.getSelectionPath().equals(path) == true){
+                    dtmHistoricLayers.removeNodeFromParent(node);
+                    break;
+                }
+            }
+        }
+    }
     // </editor-fold>
     
     
@@ -960,19 +1050,23 @@ public class MainFrame extends javax.swing.JFrame {
         btnHistoricUndo = new javax.swing.JButton();
         comboHistoricLayers = new javax.swing.JComboBox<>();
         jPanel17 = new javax.swing.JPanel();
-        jLabel11 = new javax.swing.JLabel();
+        lblHistoricGroupLayers = new javax.swing.JLabel();
         jScrollPane7 = new javax.swing.JScrollPane();
-        jTree1 = new javax.swing.JTree();
+        treeHistoricLayers = new javax.swing.JTree();
+        btnHistoricAddLayer = new javax.swing.JButton();
+        btnHistoricRemoveLayer = new javax.swing.JButton();
         splitMain = new javax.swing.JSplitPane();
         tabbedOptions = new javax.swing.JTabbedPane();
         paneChat = new javax.swing.JPanel();
         jPanel10 = new javax.swing.JPanel();
-        btnSend = new javax.swing.JButton();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        tpChatEntry = new javax.swing.JTextPane();
+        btnRegister = new javax.swing.JButton();
         btnSmiley = new javax.swing.JButton();
+        btnSend = new javax.swing.JButton();
+        lblCom = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         tpChatChannel = new javax.swing.JTextPane();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        tpChatEntry = new javax.swing.JTextPane();
         panePTP = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -2236,25 +2330,52 @@ public class MainFrame extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Historic", jPanel16);
 
-        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel11.setText("Group or layer in course");
+        lblHistoricGroupLayers.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblHistoricGroupLayers.setText("Group or layer in course");
 
         jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        jScrollPane7.setViewportView(jTree1);
+        jScrollPane7.setViewportView(treeHistoricLayers);
+
+        btnHistoricAddLayer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_plus.png"))); // NOI18N
+        btnHistoricAddLayer.setToolTipText("Add layer");
+        btnHistoricAddLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricAddLayerActionPerformed(evt);
+            }
+        });
+
+        btnHistoricRemoveLayer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32_minus.png"))); // NOI18N
+        btnHistoricRemoveLayer.setToolTipText("Remove a layer");
+        btnHistoricRemoveLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricRemoveLayerActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel17Layout = new javax.swing.GroupLayout(jPanel17);
         jPanel17.setLayout(jPanel17Layout);
         jPanel17Layout.setHorizontalGroup(
             jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
             .addComponent(jScrollPane7)
+            .addGroup(jPanel17Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnHistoricAddLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnHistoricRemoveLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblHistoricGroupLayers, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel17Layout.setVerticalGroup(
             jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel17Layout.createSequentialGroup()
-                .addComponent(jLabel11)
+                .addContainerGap()
+                .addGroup(jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(btnHistoricAddLayer, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                    .addComponent(btnHistoricRemoveLayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblHistoricGroupLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 476, Short.MAX_VALUE))
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Layers", jPanel17);
@@ -2278,49 +2399,84 @@ public class MainFrame extends javax.swing.JFrame {
         splitMain.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         splitMain.setOneTouchExpandable(true);
 
-        btnSend.setText("SEND");
-
-        jScrollPane4.setViewportView(tpChatEntry);
+        btnRegister.setText("Register");
+        btnRegister.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegisterActionPerformed(evt);
+            }
+        });
 
         btnSmiley.setText("SMILEY");
+        btnSmiley.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSmileyActionPerformed(evt);
+            }
+        });
+
+        btnSend.setText("SEND");
+        btnSend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSendActionPerformed(evt);
+            }
+        });
+
+        lblCom.setBackground(new java.awt.Color(153, 153, 153));
+        lblCom.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblCom.setOpaque(true);
+
+        jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane3.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        jScrollPane3.setViewportView(tpChatChannel);
+
+        jScrollPane4.setViewportView(tpChatEntry);
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(btnSend)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnSmiley)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel10Layout.createSequentialGroup()
+                        .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnSmiley, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnRegister, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(lblCom, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 763, Short.MAX_VALUE))
+                    .addComponent(jScrollPane4))
+                .addContainerGap())
         );
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(btnSend)
-                .addComponent(btnSmiley))
-            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel10Layout.createSequentialGroup()
+                        .addComponent(btnRegister)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnSmiley)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnSend)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblCom, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-
-        jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane3.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        jScrollPane3.setViewportView(tpChatChannel);
 
         javax.swing.GroupLayout paneChatLayout = new javax.swing.GroupLayout(paneChat);
         paneChat.setLayout(paneChatLayout);
         paneChatLayout.setHorizontalGroup(
             paneChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jScrollPane3)
         );
         paneChatLayout.setVerticalGroup(
             paneChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, paneChatLayout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+            .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         tabbedOptions.addTab("Chat", paneChat);
@@ -2528,57 +2684,61 @@ public class MainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnVideoPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayActionPerformed
-//        player.play();
-//        if(ffss.hasAudio()){
-//            aw.play(Time.create(0L), Time.create(0L));
-//        }
-        vlcjEmbed.play();
+        avPanel.setStart(Time.create(0L));
+        avPanel.setStop(Time.create(0L));
+        avPanel.audioVideoPlay();
     }//GEN-LAST:event_btnVideoPlayActionPerformed
 
     private void btnVideoPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPauseActionPerformed
-//        player.pause();
-//        if(ffss.hasAudio()){
-//            aw.pause();
-//        }
-        vlcjEmbed.pause();
+        avPanel.setStart(Time.create(0L));
+        avPanel.setStop(Time.create(0L));
+        avPanel.audioVideoPause();
     }//GEN-LAST:event_btnVideoPauseActionPerformed
 
     private void btnVideoStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoStopActionPerformed
-//        player.stop();
-//        if(ffss.hasAudio()){
-//            aw.stop();
-//        }
-        vlcjEmbed.stop();
+        avPanel.setStart(Time.create(0L));
+        avPanel.setStop(Time.create(0L));
+        avPanel.audioVideoStop();
     }//GEN-LAST:event_btnVideoStopActionPerformed
 
     private void btnVideoPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayBeforeActionPerformed
-        Time end = fp.getAreaStartTime();
-        Time start = Time.substract(end, Time.create(500L));
-        vlcjEmbed.play(start, end);
+        end = fp.getAreaStartTime();
+        start = Time.substract(end, Time.create(500L));
+        avPanel.setStart(start);
+        avPanel.setStop(end);
+        avPanel.audioVideoPlay();
     }//GEN-LAST:event_btnVideoPlayBeforeActionPerformed
 
     private void btnVideoPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayBeginActionPerformed
-        Time start = fp.getAreaStartTime();
-        Time end = Time.addition(start, Time.create(500L));
-        vlcjEmbed.play(start, end);
+        start = fp.getAreaStartTime();
+        end = Time.addition(start, Time.create(500L));
+        avPanel.setStart(start);
+        avPanel.setStop(end);
+        avPanel.audioVideoPlay();
     }//GEN-LAST:event_btnVideoPlayBeginActionPerformed
 
     private void btnVideoPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayAreaActionPerformed
-        Time start = fp.getAreaStartTime();
-        Time end = fp.getAreaEndTime();
-        vlcjEmbed.play(start, end);
+        start = fp.getAreaStartTime();
+        end = fp.getAreaEndTime();
+        avPanel.setStart(start);
+        avPanel.setStop(end);
+        avPanel.audioVideoPlay();
     }//GEN-LAST:event_btnVideoPlayAreaActionPerformed
 
     private void btnVideoPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayEndActionPerformed
-        Time end = fp.getAreaEndTime();
-        Time start = Time.substract(end, Time.create(500L));
-        vlcjEmbed.play(start, end);
+        end = fp.getAreaEndTime();
+        start = Time.substract(end, Time.create(500L));
+        avPanel.setStart(start);
+        avPanel.setStop(end);
+        avPanel.audioVideoPlay();
     }//GEN-LAST:event_btnVideoPlayEndActionPerformed
 
     private void btnVideoPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVideoPlayAfterActionPerformed
-        Time start = fp.getAreaEndTime();
-        Time end = Time.addition(start, Time.create(500L));
-        vlcjEmbed.play(start, end);
+        start = fp.getAreaEndTime();
+        end = Time.addition(start, Time.create(500L));
+        avPanel.setStart(start);
+        avPanel.setStop(end);
+        avPanel.audioVideoPlay();
     }//GEN-LAST:event_btnVideoPlayAfterActionPerformed
 
     private void btnAudioPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioPlayActionPerformed
@@ -2641,8 +2801,8 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void btnAudioAcceptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAudioAcceptActionPerformed
         if(aw != null && aw.getVideoFilePath() != null){
-            Time start = aw.getTimeOfStartArea();
-            Time end = aw.getTimeOfStopArea();
+            start = aw.getTimeOfStartArea();
+            end = aw.getTimeOfStopArea();
             changeTime(start, end);
         }
     }//GEN-LAST:event_btnAudioAcceptActionPerformed
@@ -2687,6 +2847,7 @@ public class MainFrame extends javax.swing.JFrame {
         Event nv = getFromAssSubCommands();
         dtmASS.insertOne(nv);
         tableOne.updateUI();
+        refreshTempASS();
     }//GEN-LAST:event_btnCmdStyleAddActionPerformed
 
     private void btnCmdStyleChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCmdStyleChangeActionPerformed
@@ -2694,6 +2855,7 @@ public class MainFrame extends javax.swing.JFrame {
             Event nv = getFromAssSubCommands();
             dtmASS.changeEventAt(nv, tableOne.getSelectedRow());
             tableOne.updateUI();
+            refreshTempASS();
         }else{
             JOptionPane.showConfirmDialog(
                     this,                           // Parent
@@ -2709,6 +2871,7 @@ public class MainFrame extends javax.swing.JFrame {
             Event nv = getFromAssSubCommands();
             dtmASS.insertOneAt(nv, tableOne.getSelectedRow());
             tableOne.updateUI();
+            refreshTempASS();
         }else{
             JOptionPane.showConfirmDialog(
                     this,                           // Parent
@@ -2730,6 +2893,7 @@ public class MainFrame extends javax.swing.JFrame {
                 dtmASS.insertOneAt(nv, tableOne.getSelectedRow() + 1);
             }
             tableOne.updateUI();
+            refreshTempASS();
         }else{
             JOptionPane.showConfirmDialog(
                     this,                           // Parent
@@ -2939,6 +3103,43 @@ public class MainFrame extends javax.swing.JFrame {
         tfDrawingCommands.setText(skp.getAssCommands());
     }//GEN-LAST:event_btnHistoricRedoActionPerformed
 
+    private void btnHistoricAddLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricAddLayerActionPerformed
+        addLayersGroup();
+    }//GEN-LAST:event_btnHistoricAddLayerActionPerformed
+
+    private void btnHistoricRemoveLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricRemoveLayerActionPerformed
+        if(treeHistoricLayers.getSelectionCount() > 0){
+            deleteLayersGroup();
+        }
+    }//GEN-LAST:event_btnHistoricRemoveLayerActionPerformed
+
+    private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
+        // Your Machine to upload to database
+        String surname = JOptionPane.showInputDialog(this, "Type your surname:");
+        String codename = JOptionPane.showInputDialog(this, "Type your codename to help identification:");
+        String password = JOptionPane.showInputDialog(this, "Type your password for account manipulation:");
+        Machine m = Machine.createMachine(surname, password);
+        m.setCodename(codename);
+        
+        // Trying to save your date to database
+        // TODO Set server url
+        Machine server = m;
+        try {
+            Client.save(server, m);
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_btnRegisterActionPerformed
+
+    private void btnSmileyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSmileyActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSmileyActionPerformed
+
+    private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSendActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -2995,7 +3196,9 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnDrawingCopy;
     private javax.swing.JButton btnDrawingPaste;
     private javax.swing.JButton btnEye;
+    private javax.swing.JButton btnHistoricAddLayer;
     private javax.swing.JButton btnHistoricRedo;
+    private javax.swing.JButton btnHistoricRemoveLayer;
     private javax.swing.JButton btnHistoricUndo;
     private javax.swing.JButton btnImageBottom;
     private javax.swing.JButton btnImageCenter;
@@ -3006,6 +3209,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnOpenImage;
     private javax.swing.JButton btnPara;
     private javax.swing.JButton btnPerp;
+    private javax.swing.JButton btnRegister;
     private javax.swing.JButton btnSeeLayers;
     private javax.swing.JButton btnSeeOneLayer;
     private javax.swing.JButton btnSelection;
@@ -3037,7 +3241,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JInternalFrame ifrWave;
     private javax.swing.JInternalFrame ifrtableOne;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -3077,15 +3280,16 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
-    private javax.swing.JTree jTree1;
     private javax.swing.JLabel lblAlphaImage;
     private javax.swing.JLabel lblAlphaLayer;
+    private javax.swing.JLabel lblCom;
     private javax.swing.JLabel lblDisplaySize;
     private javax.swing.JLabel lblDrawingCoordinates;
     private javax.swing.JLabel lblDrawingCtrls;
     private javax.swing.JLabel lblDrawingFile;
     private javax.swing.JLabel lblDrawingImage;
     private javax.swing.JLabel lblDrawingTools;
+    private javax.swing.JLabel lblHistoricGroupLayers;
     private javax.swing.JLabel lblImageSize;
     private javax.swing.JList<String> listHistoric;
     private javax.swing.JMenuBar menuBarYGGY;
@@ -3166,5 +3370,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextPane tpChatChannel;
     private javax.swing.JTextPane tpChatEntry;
     private javax.swing.JTextPane tpText;
+    private javax.swing.JTree treeHistoricLayers;
     // End of variables declaration//GEN-END:variables
 }
