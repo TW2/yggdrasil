@@ -22,7 +22,7 @@ Drawing tab :
 - [x] Can clear the sketchpad
 - [ ] Can load a file
 - [ ] Can save to file
-- [ ] can use fonts outline
+- [ ] Can use fonts outline
 
 ## Screenshots
 ```
