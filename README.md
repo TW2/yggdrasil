@@ -16,9 +16,13 @@ Drawing tab :
 - [x] Can draw
 - [x] Can extract commands from basics
 - [ ] Can extract commands from bspline
-- [ ] Can use layers
+- [x] Can use layers
 - [ ] Can do operations
 - [x] Can do undo/redo and break (cancellation of a break is not possible)
+- [x] Can clear the sketchpad
+- [ ] Can load a file
+- [ ] Can save to file
+- [ ] can use fonts outline
 
 ## Screenshots
 ```
