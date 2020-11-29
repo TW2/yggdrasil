@@ -14,17 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package yggdrasil.drawing.layers;
+package yggdrasil.util;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import javax.swing.BoxLayout;
+import java.awt.Graphics;
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import yggdrasil.drawing.layers.Layer;
 
 /**
  *
@@ -38,32 +38,41 @@ public class HistoricalLayersComboRenderer extends JPanel implements ListCellRen
     private final ImageIcon vtrue = new ImageIcon(getClass().getResource("/documents/images/red_and_green-green-cross.png"));
     private final ImageIcon vnot = new ImageIcon(getClass().getResource("/documents/images/red_and_green-red-cross.png"));
     
-    private final JLabel lblColor = new JLabel();
-    private final JLabel lblLocker = new JLabel();
-    private final JLabel lblVisible = new JLabel();
-    private final JLabel lblName = new JLabel();
-    
-    
-    
+    Color c = Color.green;
+    boolean lock = false;
+    boolean visible = true;
+    String name = "Error";
+        
     public HistoricalLayersComboRenderer() {
         init();
     }
     
     private void init(){
-        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-        add(lblColor);
-        add(lblLocker);
-        add(lblVisible);
-        add(lblName);
-        lblColor.setOpaque(true);
-        lblColor.setPreferredSize(new Dimension(10, 20));
-        lblLocker.setOpaque(true);
-        lblLocker.setPreferredSize(new Dimension(20, getBounds().height));
-        lblVisible.setOpaque(true);
-        lblVisible.setPreferredSize(new Dimension(20, getBounds().height));
-        lblName.setOpaque(true);
-        lblName.setPreferredSize(new Dimension(getBounds().width - 50, getBounds().height));
+        setDoubleBuffered(true);
+        setPreferredSize(new Dimension(300, 30));
     }
+
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        
+        // Color
+        g.setColor(c);
+        g.fillRect(1, 5, 20, 20);
+        g.setColor(Color.black);
+        g.drawRect(1, 5, 20, 20);
+        
+        // Lock        
+        g.drawImage(lock ? lockOK.getImage() : lockNOT.getImage(), 1*20+4, 5, null);
+        
+        // Visibility
+        g.drawImage(visible ? vtrue.getImage() : vnot.getImage(), 2*20+8, 5, null);
+        
+        // Name
+        g.drawString(name, 3*20+12, 20);
+    }
+    
+    
 
     @Override
     public Component getListCellRendererComponent(JList list, Object value,
@@ -72,20 +81,12 @@ public class HistoricalLayersComboRenderer extends JPanel implements ListCellRen
         if(value instanceof Layer){
             Layer layer = (Layer)value;
             
-            Color c = layer.getColor();
-            lblColor.setText("    ");
-            lblColor.setBackground(c);
+            c = layer.getColor();
+            lock = layer.isLock();
+            visible = layer.isVisible();
+            name = layer.getName();
             
-            boolean lock = layer.isLock();
-            lblLocker.setText("");
-            lblLocker.setIcon(lock ? lockOK : lockNOT);
-            
-            boolean visible = layer.isVisible();
-            lblVisible.setText("");
-            lblVisible.setIcon(visible ? vtrue : vnot);
-            
-            String name = layer.getName();
-            lblName.setText(name == null | name != null && name.isEmpty() ? "   Default" : "   " + name);            
+            repaint();
         }
         
         return this;

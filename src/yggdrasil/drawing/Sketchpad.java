@@ -38,7 +38,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import yggdrasil.MainFrame;
+import yggdrasil.drawing.bspline.BezierCurve;
 import yggdrasil.drawing.layers.Layer;
+import yggdrasil.drawing.layers.LayersGroup;
 import yggdrasil.util.DrawColor;
 
 /**
@@ -63,9 +65,7 @@ public class Sketchpad extends JScrollPane {
     int offsetY = 0;
     
     // Historic and layers
-    List<Layer> layers = new ArrayList<>();
-    int currentLayer = 0;
-    //List<Memories<?>> memoriesArray = new ArrayList<>();
+    Layer currentLayer = null; // See Memories and LayersGroup
     Point2D beforeEditingPoint = null;
     Point2D afterEditingPoint = null;
     List<AShape> editingShapes = new ArrayList<>();
@@ -95,12 +95,15 @@ public class Sketchpad extends JScrollPane {
         setOpaque(true);
         setBackground(MainFrame.isDark() ? new Color(70,70,70) : Color.white);
         
-        Layer initialLayer = new Layer();
-        initialLayer.setName("Default");
-        initialLayer.setColor(Color.yellow);
-        initialLayer.setLayer(currentLayer);
-        initialLayer.setVisible(true);
-        layers.add(initialLayer);
+        mf.addDefaultLayersGroup();
+        currentLayer = mf.getSelectedLayer();
+        
+//        Layer initialLayer = new Layer();
+//        initialLayer.setName("Default");
+//        initialLayer.setColor(Color.yellow);
+//        initialLayer.setLayer(currentLayer);
+//        initialLayer.setVisible(true);
+//        layers.add(initialLayer);
         
         addMouseListener(new MouseAdapter() {
             
@@ -115,65 +118,71 @@ public class Sketchpad extends JScrollPane {
                     );
                     
                     pCurrent = autoGridLocker(pCurrent);
+                    if(currentLayer == null) return;
 
                     if(mf.isLineSelected()){                        
-                        rerouteElement(); // Undoable now are broken!
+                        lastClicked = currentLayer.rerouteElement(mf, lastClicked); // Undoable now are broken!
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-                        addElement(
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
+                        currentLayer.addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
                                 Line.class,
-                                Line.create(memoriesArray.isEmpty() ? pCurrent : lastClicked, pCurrent)
+                                Line.create(memoriesArray.isEmpty() ? pCurrent : lastClicked, pCurrent),
+                                mf
                         );
                         lastClicked = pCurrent;
                     }else if(mf.isCubicSelected()){
-                        rerouteElement(); // Undoable now are broken!
+                        lastClicked = currentLayer.rerouteElement(mf, lastClicked); // Undoable now are broken!
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-                        addElement(
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
+                        currentLayer.addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
                                 Bezier.class,
-                                Bezier.createCubic(memoriesArray.isEmpty() ? pCurrent : lastClicked, pCurrent)
+                                Bezier.createCubic(memoriesArray.isEmpty() ? pCurrent : lastClicked, pCurrent),
+                                mf
                         );
                         lastClicked = pCurrent;
                     }else if(mf.isQuadraticSelected()){
-                        rerouteElement(); // Undoable now are broken!
+                        lastClicked = currentLayer.rerouteElement(mf, lastClicked); // Undoable now are broken!
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-                        addElement(
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
+                        currentLayer.addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
                                 Bezier.class,
-                                Bezier.createQuadratic(memoriesArray.isEmpty() ? pCurrent : lastClicked, pCurrent)
+                                Bezier.createQuadratic(memoriesArray.isEmpty() ? pCurrent : lastClicked, pCurrent),
+                                mf
                         );
                         lastClicked = pCurrent;
                     }else if(mf.isMoveMSelected()){
-                        rerouteElement(); // Undoable now are broken!
+                        lastClicked = currentLayer.rerouteElement(mf, lastClicked); // Undoable now are broken!
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-                        addElement(
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
+                        currentLayer.addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
                                 Move.class,
-                                Move.create(memoriesArray.isEmpty() ? pCurrent : lastClicked, true)
+                                Move.create(memoriesArray.isEmpty() ? pCurrent : lastClicked, true),
+                                mf
                         );
                         lastClicked = pCurrent;
                     }else if(mf.isMoveNSelected()){
-                        rerouteElement(); // Undoable now are broken!
+                        lastClicked = currentLayer.rerouteElement(mf, lastClicked); // Undoable now are broken!
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-                        addElement(
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
+                        currentLayer.addElement(
                                 memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                 pCurrent,
                                 Move.class,
-                                Move.create(memoriesArray.isEmpty() ? pCurrent : lastClicked, false)
+                                Move.create(memoriesArray.isEmpty() ? pCurrent : lastClicked, false),
+                                mf
                         );
                         lastClicked = pCurrent;
                     }else if(mf.isBSplineSelected()){
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
                         if(memoriesArray.isEmpty() == false 
                                 && memoriesArray.get(memoriesArray.size() - 1).getObject() instanceof BSpline){
                             // Si on a une BSpline en cours de dessin
@@ -184,12 +193,13 @@ public class Sketchpad extends JScrollPane {
                                 bs.addPoint(lastClicked);
                             }                            
                             bs.addPoint(pCurrent);
-                            rerouteElement(); // Undoable now are broken!
-                            addElement(
+                            lastClicked = currentLayer.rerouteElement(mf, lastClicked); // Undoable now are broken!
+                            currentLayer.addElement(
                                     memoriesArray.isEmpty() ? pCurrent : lastClicked, 
                                     pCurrent,
                                     BSpline.class,
-                                    bs
+                                    bs,
+                                    mf
                             );
                         }
                         lastClicked = pCurrent;
@@ -253,7 +263,7 @@ public class Sketchpad extends JScrollPane {
                             hpc = new HistoricalPointChange(sh, beforeEditingPoint, afterEditingPoint);                            
                         }
                         if(hpc != null){
-                            addElement(beforeEditingPoint, afterEditingPoint, HistoricalPointChange.class, hpc);
+                            currentLayer.addElement(beforeEditingPoint, afterEditingPoint, HistoricalPointChange.class, hpc, mf);
                         }                        
                     }                    
                     //==========================================================
@@ -281,7 +291,7 @@ public class Sketchpad extends JScrollPane {
                 if(editing == true){
                     // Traitement de modification (avant médian et après médian)
                     // Get MemoriesArray from actual Layer
-                    List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
+                    List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
                     for(Memories<?> mms : memoriesArray){
                         if(mms.getObject().getClass().equals(HistoricalPointChange.class) == true){
                             continue;
@@ -369,7 +379,7 @@ public class Sketchpad extends JScrollPane {
                 if(editing == true){
                     if(editingButtonUsed == true && editingPoint2DTemp != null){
                         // Get MemoriesArray from actual Layer
-                        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
+                        List<Memories<?>> memoriesArray = currentLayer.getMemoriesArray();
                         // Traitement médian modification (pendant)
                         for(Memories<?> mms : memoriesArray){
                             if(mms.getObject().getClass().equals(HistoricalPointChange.class) == true){
@@ -398,8 +408,9 @@ public class Sketchpad extends JScrollPane {
     // <editor-fold defaultstate="collapsed" desc="Functions">
     public void createNewDrawing(){
         // Get MemoriesArray from actual Layer
-        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-        memoriesArray.clear();
+        mf.getLayersGroups().clear();
+        mf.addDefaultLayersGroup();
+        currentLayer = mf.getSelectedLayer();
         sheet.updateDrawing();
     }
     
@@ -567,82 +578,15 @@ public class Sketchpad extends JScrollPane {
         sheet.updateDrawing();
     }
     
-    /**
-     * Reroute (to do before addElement)
-     * @see addElement
-     */
-    private void rerouteElement(){
-        //======================================================================
-        // Check about undo
-        //----------------------------------------------------------------------
-        int index = -1;
+    public List<Memories<?>> getMemories(Layer layer){
         // Get MemoriesArray from actual Layer
-        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-        for(int i=0; i<memoriesArray.size(); i++){
-            if(memoriesArray.get(i).isUndo()){
-                index = i;
-                break;
-            }
-        }
-        if(index != -1){
-            for(int i=memoriesArray.size() - 1; i >= 0; i--){
-                if(i >= index){
-                    if(memoriesArray.get(i).getObject() instanceof AShape){
-                        Point2D p = (Point2D)memoriesArray.get(i).getOldState();
-                        lastClicked = new Point((int)p.getX(),(int)p.getY());
-                    }
-                    memoriesArray.remove(i);
-                    mf.removeLastFromHistoric();
-                }                
-            }
-        }
+        return layer.getMemoriesArray();
     }
     
-    public void addElement(Point2D oldPoint, Point2D newPoint, Class cls, Object obj){
-        //======================================================================
-        // Add element
-        //----------------------------------------------------------------------
-        Memories mms = new Memories();
-        mms.setOldState(oldPoint);
-        mms.setNewState(newPoint);
-        mms.setObjectClass(cls);
-        mms.setObject(obj);
-        
-        if(obj instanceof AShape){
-            // Get MemoriesArray from actual Layer
-            List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-            if(memoriesArray.isEmpty()){
-                // Any AShape replace by a Move (M)                    
-                mms.setObjectClass(Move.class);
-                mms.setObject(Move.create(newPoint, true));
-                memoriesArray.add(mms);
-            }else{
-                memoriesArray.add(mms);
-            }
-        }else if(obj instanceof HistoricalPointChange){
-            // Get MemoriesArray from actual Layer
-            List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-            if(memoriesArray.isEmpty() == false){
-                memoriesArray.add(mms);
-            }
-        }
-        
-        // Mise à jour de l'historique
-        mf.addToHistoric(mms);
-    }
-    
-    public List<Memories<?>> getMemories(){
-        // Get MemoriesArray from actual Layer
-        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-        return memoriesArray;
-    }
-    
-    public List<AShape> getShapes(){
+    public List<AShape> getShapes(Layer layer){
         List<AShape> shapes = new ArrayList<>();
         // Get MemoriesArray from actual Layer
-        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-        
-        for(Memories mms : memoriesArray){
+        for(Memories mms : layer.getMemoriesArray()){
             if(mms.getObject() instanceof AShape && mms.isUndo() == false){
                 shapes.add((AShape)mms.getObject());
             }
@@ -651,13 +595,11 @@ public class Sketchpad extends JScrollPane {
         return shapes;
     }
     
-    public String getAssCommands(){
+    public String getAssCommands(Layer layer){
         StringBuilder sb = new StringBuilder();
         boolean start = true;
         // Get MemoriesArray from actual Layer
-        List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-        
-        for(Memories mms : memoriesArray){
+        for(Memories mms : layer.getMemoriesArray()){
             if(mms.getObject() instanceof AShape && mms.isUndo() == false){
                 AShape sh = (AShape)mms.getObject();
                 if(start == false){
@@ -735,25 +677,15 @@ public class Sketchpad extends JScrollPane {
         return new Point(mX, mY);
     }
     
-    public List<Memories<?>> getMemoriesArray(int layer){
-        List<Memories<?>> mas = null;
-        
-        if(layers.isEmpty() == false && layer < layers.size()){
-            mas = layers.get(layer).getMemoriesArray();
-        }else if(layers.isEmpty() == false && layer >= layers.size()){
-            Layer lay = new Layer();
-            layers.add(lay);
-            currentLayer = layers.size();
-            mas = layers.get(layers.size()).getMemoriesArray();
-        }else if(layers.isEmpty() == true){
-            Layer lay = new Layer();
-            layers.add(lay);
-            currentLayer = 0;
-            mas = layers.get(0).getMemoriesArray();
-        }
-        
-        return mas;
+    /**
+     * Change value of the transparency of all layers 
+     * @param value From 0 to 100 (in percent). 0 is invisible, 100 is plain.
+     */
+    public void changeLayerAlpha(float value){
+        sheet.updateGeneralPathTransparency(value / 100f);
+        sheet.updateDrawing();
     }
+        
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Sheet and rules">
@@ -768,8 +700,6 @@ public class Sketchpad extends JScrollPane {
         private ImageIcon img = null;
         //Pour connaitre la transparence de l'image (0f = transparent ; 1f=opaque).
         private Float alpha = 1f;
-        //Pour remplir la zone avec une couleur
-        private GeneralPath gp = null;
         //Pour rendre transparente la zone
         private Float gpAlpha = 0.2f;
 
@@ -837,6 +767,7 @@ public class Sketchpad extends JScrollPane {
             g2d.scale(scale, scale);
 
             //Essaie de charger puis dessiner une image et changer sa transparence et sa position.
+            // Image externe            
             if(img!=null){
                 Composite originalComposite = g2d.getComposite();
                 g2d.setComposite(makeComposite(alpha));
@@ -845,6 +776,7 @@ public class Sketchpad extends JScrollPane {
             }
 
             //Essaie de charger puis dessiner une image et changer sa transparence et sa position.
+            // Image de dessin avec outils
             if(imgDraft!=null){
                 Composite originalComposite = g2d.getComposite();
                 g2d.setComposite(makeComposite(alpha));
@@ -867,33 +799,15 @@ public class Sketchpad extends JScrollPane {
             while(i>=0){ i=i-25; g2d.drawLine(0, i, getWidth(), i); }
             i = getHeight()/2;
             while(i<=getHeight()){ i=i+25; g2d.drawLine(0, i, getWidth(), i); }
-
-
-
+            
             // Montre le path en remplissant la zone
-    //        if(layerList!=null){
-    //            Composite originalComposite = g2d.getComposite();//Get default
-    //            g2d.setComposite(makeComposite(gpAlpha));//Change the transparency
-    //            for(Layer lay : layerList){
-    //                if(lay!=null && lay.isSelected()==false){
-    //                    g2d.setColor(lay.getColor());
-    //                    g2d.fill(lay.getGeneralPath());
-    //                }else if(lay!=null && lay.isSelected()==true){
-    //                    g2d.setColor(lay.getColor());
-    //                    g2d.fill(lay.getGeneralPath());
-    //                }
-    //            }
-    //            g2d.setComposite(originalComposite);//Reset default
-    //        }else{
-    //            if(gp!=null){
-    //                Composite originalComposite = g2d.getComposite();//Get default
-    //                g2d.setComposite(makeComposite(gpAlpha));//Change the transparency
-    //                g2d.setColor(Color.green);
-    //                g2d.fill(gp);
-    //                g2d.setComposite(originalComposite);//Reset default
-    //            }
-    //        }
-
+            if(currentLayer != null){
+                Composite originalComposite = g2d.getComposite();//Get default
+                g2d.setComposite(makeComposite(gpAlpha));//Change the transparency
+                g2d.setColor(currentLayer.getColor());
+                g2d.fill(getGeneralPath(currentLayer));
+                g2d.setComposite(originalComposite);//Reset default
+            }            
 
             //Dessine les axes correspondant au curseur de la souris.
             g2d.setColor(MainFrame.isDark() ? DrawColor.chocolate.getColor() : Color.pink);        
@@ -918,11 +832,16 @@ public class Sketchpad extends JScrollPane {
 
             // Consulte la liste des formes et les dessine en utilisant des couleurs différentes.
             // Get MemoriesArray from actual Layer
-            List<Memories<?>> memoriesArray = getMemoriesArray(currentLayer);
-            for(Memories<?> mms : memoriesArray){
-                if(mms.getObject() instanceof AShape && mms.isUndo() == false){
-                    AShape sh = (AShape)mms.getObject();
-                    sh.draw(g2d);
+            for(LayersGroup group : mf.getLayersGroups()){
+                for(Layer layer : group.getLayers()){
+                    if(layer.isVisible()){
+                        for(Memories<?> mms : layer.getMemoriesArray()){
+                            if(mms.getObject() instanceof AShape && mms.isUndo() == false){
+                                AShape sh = (AShape)mms.getObject();
+                                sh.draw(g2d);
+                            }
+                        }
+                    }
                 }
             }
             
@@ -1201,11 +1120,6 @@ public class Sketchpad extends JScrollPane {
             this.alpha = alpha;
         }
 
-        /* Met à jour le chemin de la zone. */
-        public void updateGeneralPath(GeneralPath gp){
-            this.gp = gp;
-        }
-
         /* Met à jour la transparence pour la zone. */
         public void updateGeneralPathTransparency(Float gpAlpha){
             this.gpAlpha = gpAlpha;
@@ -1455,4 +1369,57 @@ public class Sketchpad extends JScrollPane {
     }
     // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc="Sheet IO">
+    
+    public void setCurrentLayer(Layer layer){
+        currentLayer = layer;
+    }
+    
+    public GeneralPath getGeneralPath(Layer layer){
+        GeneralPath gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
+        
+        List<Memories<?>> memoriesArray = layer.getMemoriesArray();        
+        for(Memories mms : memoriesArray){
+            if(mms.getObject() instanceof AShape && mms.isUndo() == false){
+                AShape sh = (AShape)mms.getObject();
+                if(sh instanceof Move){
+                    Move move = (Move)sh;
+                    gp.moveTo(move.getXa(), move.getYa());
+                }else if(sh instanceof Line){
+                    Line line = (Line)sh;
+                    gp.lineTo(line.getXb(), line.getYb());
+                }else if(sh instanceof Bezier){
+                    Bezier bezier = (Bezier)sh;
+                    if(bezier.isCubic() == true){
+                        gp.curveTo(
+                                bezier.getCpxa(), bezier.getCpya(), 
+                                bezier.getCpxb(), bezier.getCpyb(), 
+                                bezier.getX(), bezier.getY()
+                        );
+                    }else{
+                        double[] coordinates = bezier.toCubic();
+                        gp.curveTo(
+                                coordinates[2], coordinates[3], 
+                                coordinates[4], coordinates[5],
+                                coordinates[6], coordinates[7]
+                        );
+                    }
+                }else if(sh instanceof BSpline){
+                    BSpline bs = (BSpline)sh;
+                    List<BezierCurve> bcs = bs.getBSplineCurve().extractAllBezierCurves();
+                    for(BezierCurve bc : bcs){
+                        gp.curveTo(
+                                bc.getControlPoints().get(0).getX(), bc.getControlPoints().get(0).getY(),
+                                bc.getControlPoints().get(1).getX(), bc.getControlPoints().get(1).getY(),
+                                bc.getControlPoints().get(2).getX(), bc.getControlPoints().get(2).getY()
+                        );
+                    }                    
+                }
+            }
+        }
+        
+        return gp;
+    }
+    
+    // </editor-fold>
 }

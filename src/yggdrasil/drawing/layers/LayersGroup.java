@@ -27,21 +27,21 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class LayersGroup {
     
-    private String name;
-    private int index;
-    private Color color;
+    private String name = "Default group";
+    private int index = 0;
+    private Color color = Color.green;
+    private boolean lock = false;
+    private boolean visible = true;
     private List<Layer> layers = new ArrayList<>();
     private DefaultMutableTreeNode node;
 
     public LayersGroup() {
     }
     
-    public static LayersGroup create(String name, int index){
+    public static LayersGroup create(String name){
         LayersGroup layersGroup = new LayersGroup();
         
         layersGroup.name = name;
-        layersGroup.index = index;
-        layersGroup.color = Color.yellow;
         layersGroup.node = new DefaultMutableTreeNode(name);
         
         return layersGroup;
@@ -71,6 +71,22 @@ public class LayersGroup {
         this.color = color;
     }
 
+    public boolean isLock() {
+        return lock;
+    }
+
+    public void setLock(boolean lock) {
+        this.lock = lock;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
     public List<Layer> getLayers() {
         return layers;
     }
@@ -80,30 +96,11 @@ public class LayersGroup {
     }
     
     public void addLayer(Layer layer){
-        boolean add = true;
-        for(Layer l : layers){
-            if(l.getUID() == layer.getUID()){
-                add = false;
-                break;
-            }
-        }
-        if(add == true){
-            layers.add(layer);
-        }
+        layers.add(layer);
     }
     
     public void removeLayer(Layer layer){
-        int id = -1;
-        for(int i=0; i<layers.size(); i++){
-            Layer l = layers.get(i);
-            if(l.getUID() == layer.getUID()){
-                id = i;
-                break;
-            }
-        }
-        if(id != -1){
-            layers.remove(id);
-        }
+        layers.remove(layer);
     }
 
     public DefaultMutableTreeNode getNode() {

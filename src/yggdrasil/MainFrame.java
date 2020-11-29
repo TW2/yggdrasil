@@ -23,7 +23,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.SystemColor;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -47,10 +47,13 @@ import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -66,7 +69,7 @@ import yggdrasil.util.subtitle.ass.Style;
 import yggdrasil.drawing.HistoricListRenderer;
 import yggdrasil.drawing.Memories;
 import yggdrasil.drawing.Sketchpad;
-import yggdrasil.drawing.layers.HistoricalLayersComboRenderer;
+import yggdrasil.util.HistoricalLayersComboRenderer;
 import yggdrasil.drawing.layers.Layer;
 import yggdrasil.drawing.layers.LayersGroup;
 import yggdrasil.fcfilefilter.DrawingFileFilter;
@@ -95,6 +98,7 @@ import org.wingate.yinggyongg.ruby.Rubygg;
 import org.wingate.yinggyongg.ruby.Scripting;
 import org.wingate.yinggyongg.ruby.XrbReader;
 import yggdrasil.util.Clipboard;
+import yggdrasil.util.LayersGroupTreeNodeRenderer;
 
 /**
  *
@@ -150,6 +154,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     // ifrDrawTools2 components and variables
     private ImageIcon iiShapes, iiDraft, iiControls, iiFile, iiSel, iiBool;
+    private boolean oneLayerMode = false;
     // ifrDrawTools2 stop
     
     // ifrSketchpad components and variables
@@ -158,10 +163,10 @@ public class MainFrame extends javax.swing.JFrame {
     
     // ifrHistoricLayers components and variables
     private final DefaultListModel dlmHistoric = new DefaultListModel();
-    private final DefaultComboBoxModel dcbmLayers = new DefaultComboBoxModel();
     private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Groups of layers");
     private final DefaultTreeModel dtmHistoricLayers = new DefaultTreeModel(root);
     private int layersGroupIndex = 0;
+    private Layer selectedLayer = null;
     // ifrHistoricLayers stop
     
     private final UserChatUID myselfUID = new UserChatUID();
@@ -311,11 +316,43 @@ public class MainFrame extends javax.swing.JFrame {
         ifrHistoricLayers.setLocation(1575, 5);
         deskDrawing.add(ifrHistoricLayers);
         listHistoric.setModel(dlmHistoric);
-        listHistoric.setCellRenderer(new HistoricListRenderer(skp));
-        comboHistoricLayers.setModel(dcbmLayers);
-        comboHistoricLayers.setRenderer(new HistoricalLayersComboRenderer());
-        dcbmLayers.addElement(new Layer());
+        listHistoric.setCellRenderer(new HistoricListRenderer(skp, this));
         treeHistoricLayers.setModel(dtmHistoricLayers);
+        treeHistoricLayers.setCellRenderer(new LayersGroupTreeNodeRenderer());
+        //addDefaultLayersGroup(); // Add default group and layer (no need cause add internally by sketchpad)
+        treeHistoricLayers.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                DefaultMutableTreeNode node =
+                        (DefaultMutableTreeNode)treeHistoricLayers.getLastSelectedPathComponent();
+                
+                //Nothing is selected.
+                if (node == null) return;
+                
+                String name;
+                Object obj = node.getUserObject();
+                
+                if(obj instanceof LayersGroup){
+                    name = ((LayersGroup)obj).getName();
+                }else if(obj instanceof Layer){
+                    Layer lay = (Layer)obj;
+                    name = lay.getName();
+                    selectedLayer = lay;
+                    skp.setCurrentLayer(selectedLayer);
+                }else{
+                    name = "Group or layer in course";
+                }
+                lblHistoricGroupLayers.setText(name);
+            }
+        });
+        treeHistoricLayers.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                treeHistoricLayersMouseClicked(e);
+                setCurrentLayerToHistoricList();
+                skp.refreshDrawing();
+            }
+        });
         
 //        // Server launching
 //        Server.createServer();
@@ -354,6 +391,93 @@ public class MainFrame extends javax.swing.JFrame {
     
     public static String getTempFolder(){
         return TEMP_FOLDER;
+    }
+    
+    public void treeHistoricLayersMouseClicked(MouseEvent e){
+        int x = e.getX();
+        int y = e.getY();
+
+        TreePath path = treeHistoricLayers.getClosestPathForLocation(x, y);                
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+        Object obj = node.getUserObject();
+
+        if(obj instanceof LayersGroup){
+            LayersGroup group = (LayersGroup)obj;
+            // Bounds of TreeNode
+            Rectangle rect = treeHistoricLayers.getPathBounds(path);
+            // Default bounds for color
+            Rectangle rColor = new Rectangle(5, 5, 20, 20);
+            // Default bounds for lock
+            Rectangle rLock = new Rectangle(1*30+5, 5, 20, 20);
+            // Default bounds for visibility
+            Rectangle rVisible = new Rectangle(2*30+5, 5, 20, 20);
+            // Default bounds for name
+            Rectangle rName = new Rectangle(3*30, 0, rect.width - 3*30, 30);
+            int xa = x - rect.x;
+            int ya = y - rect.y;
+            
+            if(rColor.contains(xa, ya)){
+                // Color
+                Color c = JColorChooser.showDialog(this, "Choose a new group color", group.getColor());
+                if(c != null){
+                    group.setColor(c);
+                    treeHistoricLayers.updateUI();
+                }
+            }else if(rLock.contains(xa, ya)){
+                // Lock
+                group.setLock(!group.isLock());
+                treeHistoricLayers.updateUI();                
+            }else if(rVisible.contains(xa, ya)){
+                // Visibility
+                group.setVisible(!group.isVisible());
+                treeHistoricLayers.updateUI();                
+            }else if(rName.contains(xa, ya)){
+                // Name
+                String s = JOptionPane.showInputDialog("Choose a new name for this group:");
+                if(s != null && s.isEmpty() == false){
+                    group.setName(s);
+                    treeHistoricLayers.updateUI();
+                }
+            }
+        }else if(obj instanceof Layer){
+            Layer layer = (Layer)obj;
+            // Bounds of TreeNode
+            Rectangle rect = treeHistoricLayers.getPathBounds(path);
+            // Default bounds for color
+            Rectangle rColor = new Rectangle(5, 5, 20, 20);
+            // Default bounds for lock
+            Rectangle rLock = new Rectangle(1*30+5, 5, 20, 20);
+            // Default bounds for visibility
+            Rectangle rVisible = new Rectangle(2*30+5, 5, 20, 20);
+            // Default bounds for name
+            Rectangle rName = new Rectangle(3*30, 0, rect.width - 3*30, 30);
+            int xa = x - rect.x;
+            int ya = y - rect.y;
+            
+            if(rColor.contains(xa, ya)){
+                // Color
+                Color c = JColorChooser.showDialog(this, "Choose a new layer color", layer.getColor());
+                if(c != null){
+                    layer.setColor(c);
+                    treeHistoricLayers.updateUI();
+                }                
+            }else if(rLock.contains(xa, ya)){
+                // Lock
+                layer.setLock(!layer.isLock());
+                treeHistoricLayers.updateUI();                
+            }else if(rVisible.contains(xa, ya)){
+                // Visibility
+                layer.setVisible(!layer.isVisible());
+                treeHistoricLayers.updateUI();                
+            }else if(rName.contains(xa, ya)){
+                // Name
+                String s = JOptionPane.showInputDialog("Choose a new name for this layer:");
+                if(s != null && s.isEmpty() == false){
+                    layer.setName(s);
+                    treeHistoricLayers.updateUI();
+                }                
+            }
+        }
     }
     
     // </editor-fold>
@@ -796,7 +920,6 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Drawing tools, historic and layers">
     
     public void setMousePositionFromDrawingTools(int x, int y){
-        //lblDrawingCoordinates.setText(x+";"+y);
         lblCoordinates2.setText(x+";"+y);
     }
     
@@ -838,73 +961,232 @@ public class MainFrame extends javax.swing.JFrame {
 //    }
     
     public void addToHistoric(Memories<?> mem){
-        dlmHistoric.addElement(mem);
-        tfDrawingCommands.setText(skp.getAssCommands());
+        if(selectedLayer != null){
+            dlmHistoric.addElement(mem);
+            tfDrawingCommands.setText(skp.getAssCommands(selectedLayer));
+        }
+        
     }
     
     public void removeLastFromHistoric(){
-        dlmHistoric.removeElementAt(dlmHistoric.size() - 1);
-        tfDrawingCommands.setText(skp.getAssCommands());
+        if(selectedLayer != null){
+            dlmHistoric.removeElementAt(dlmHistoric.size() - 1);
+            tfDrawingCommands.setText(skp.getAssCommands(selectedLayer));
+        }
+        
     }
     
-    public void addLayersGroup(){
+    public List<LayersGroup> getLayersGroups(){
+        List<LayersGroup> grs = new ArrayList<>();
+        
+        // Si une couche est sélectionnée
+        if(treeHistoricLayers.getSelectionCount() > 0){
+            TreePath path = treeHistoricLayers.getSelectionPath();
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+            if(dtmHistoricLayers.isLeaf(node) && node.getUserObject() instanceof Layer){
+                node = (DefaultMutableTreeNode)path.getParentPath().getLastPathComponent();
+                Object obj = node.getUserObject();
+                if(obj instanceof LayersGroup){
+                    grs.add((LayersGroup)obj);
+                    return grs;
+                }                
+            }
+        }
+        
+        // Si aucun groupe n'est sélectionné mais qu'on a des groupes
+        if(treeHistoricLayers.getSelectionCount() == 0 && root.children().hasMoreElements()){
+            treeHistoricLayers.setSelectionPath(new TreePath(root.getFirstChild()));
+        }
+        
+        // Si un groupe est sélectionné
+        if(treeHistoricLayers.getSelectionCount() > 0){            
+            TreePath[] paths = treeHistoricLayers.getSelectionPaths();
+            if (paths != null) {
+                for (TreePath path : paths) {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+                    if(isGroupTreeNode(path) == true){
+                        Object obj = node.getUserObject();
+                        if(obj instanceof LayersGroup){
+                            grs.add((LayersGroup)obj);
+                            break;
+                        }                        
+                    }
+                }
+            }
+        }
+        
+        return grs;
+    }
+    
+    public Layer getSelectedLayer(){
+        return selectedLayer;
+    }
+    
+    public void addDefaultLayersGroup(){
+        // Création du groupe
+        LayersGroup layersGroup = LayersGroup.create("Default group");
+        DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(layersGroup);
+        
+        // Création de la couche
+        Layer lay = Layer.create("Default layer", Color.green);
+        layersGroup.addLayer(lay);
+        selectedLayer = lay;
+        DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(lay);
+                
+        // Ajout à l'arbre
+        root.add(groupNode);
+        groupNode.add(layerNode);
+        
+        treeHistoricLayers.updateUI();
+    }
+    
+    private void addGroupToRoot(){
+        // Création du groupe
+        String groupName = JOptionPane.showInputDialog(this, "Type a group name:");
+        LayersGroup layersGroup = LayersGroup.create(groupName);
+        DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(layersGroup);
+        
+        // Création de la couche
+        String layerName = JOptionPane.showInputDialog(this, "Type a layer name:");
+        Layer lay = Layer.create(layerName, Color.green);
+        layersGroup.addLayer(lay);
+        skp.setCurrentLayer(lay);
+        selectedLayer = lay;
+        DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(lay);
+                
+        // Ajout à l'arbre
+        root.add(groupNode);
+        groupNode.add(layerNode);
+        
+        treeHistoricLayers.updateUI();
+    }
+    
+    private void addLayerToGroup(DefaultMutableTreeNode node){
+        // Tentative de récupération du groupe
+        Object obj = node.getUserObject();
+        LayersGroup layersGroup;
+        if(obj instanceof LayersGroup){
+            // L'objet est un groupe
+            layersGroup = (LayersGroup)node.getUserObject();
+        }else{
+            // Ici, on sort de la fonction car on a pas trouvé de groupe
+            return;
+        }
+        
+        // Création de la couche
+        String layerName = JOptionPane.showInputDialog(this, "Type a layer name:");
+        Layer lay = Layer.create(layerName, Color.green);
+        layersGroup.addLayer(lay);
+        skp.setCurrentLayer(lay);
+        selectedLayer = lay;
+        DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(lay);
+                
+        // Ajout à l'arbre
+        node.add(layerNode);
+    }
+    
+    private void addLayersGroup(){
         if(treeHistoricLayers.getSelectionCount() > 0){
             TreePath[] paths = treeHistoricLayers.getSelectionPaths();
             if (paths != null) {
                 for (TreePath path : paths) {
                     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
                     if(isLayerTreeNode(path) == true 
-                            && treeHistoricLayers.getSelectionPath().equals(path) == true){
-                        String layerName = JOptionPane.showInputDialog(this, "Type a layer name:");
-                        ((DefaultMutableTreeNode)node.getParent()).add(new DefaultMutableTreeNode(layerName));
+                            && treeHistoricLayers.getSelectionPath().equals(path) == true){                        
+                        addLayerToGroup((DefaultMutableTreeNode)node.getParent());
+                        treeHistoricLayers.updateUI();
                         break;
                     }else if(isGroupTreeNode(path) == true
                             && treeHistoricLayers.getSelectionPath().equals(path) == true){
-                        String groupName = JOptionPane.showInputDialog(this, "Type a group name:");
-                        root.add(new DefaultMutableTreeNode(groupName));
+                        addLayerToGroup(node);
+                        treeHistoricLayers.updateUI();
+                        break;
+                    }else{
+                        addGroupToRoot();
+                        treeHistoricLayers.updateUI();
                         break;
                     }
                 }
-            }            
+            }
         }else{
-            String groupName = JOptionPane.showInputDialog(this, "Type a group name:");
-            LayersGroup layersGroup = LayersGroup.create(groupName, layersGroupIndex);
-            layersGroupIndex++;
-            Layer lay = new Layer();
-            layersGroup.addLayer(lay);
-            DefaultMutableTreeNode groupNode = layersGroup.getNode();
-            DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(lay);
-            root.add(groupNode);
-            groupNode.add(layerNode);
-        }        
+            addGroupToRoot();
+            treeHistoricLayers.updateUI();
+        }
     }
     
-    public boolean isLayerTreeNode(TreePath path){
+    private boolean isLayerTreeNode(TreePath path){
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
         return node.getUserObject() instanceof Layer;
     }
     
-    public boolean isGroupTreeNode(TreePath path){
+    private boolean isGroupTreeNode(TreePath path){
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-        return node.getUserObject() instanceof String;
+        return node.getUserObject() instanceof LayersGroup;
     }
     
-    public void deleteLayersGroup(){
+    private void deleteLayersGroup(){
         TreePath[] paths = treeHistoricLayers.getSelectionPaths();
         if (paths != null) {
             for (TreePath path : paths) {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
                 if(isLayerTreeNode(path) == true 
                         && treeHistoricLayers.getSelectionPath().equals(path) == true){
+                    // Retrait dans la liste
+                    // 1. Récupération de la couche en vue de la supprimer du groupe
+                    Layer layer = (Layer)node.getUserObject();
+                    // 2. Récupération du groupe en vue d'y supprimer une couche
+                    node = (DefaultMutableTreeNode)path.getParentPath().getLastPathComponent();
+                    LayersGroup layersGroup = (LayersGroup)node.getUserObject();
+                    // 3. Suppression
+                    if(layer.equals(selectedLayer) == true){
+                        layersGroup.removeLayer(layer);
+                    }                    
+                    // Retrait dans l'arbre
                     dtmHistoricLayers.removeNodeFromParent(node);
+                    // Réinitialisation du layer dans la planche à dessin (sketchpad)
+                    skp.setCurrentLayer(null);
+                    // On rafraichit la planche à dessin (sketchpad)
+                    skp.refreshDrawing();
                     break;
                 }else if(isGroupTreeNode(path) == true
                         && treeHistoricLayers.getSelectionPath().equals(path) == true){
+                    // Retrait dans l'arbre
                     dtmHistoricLayers.removeNodeFromParent(node);
+                    // Réinitialisation du layer dans la planche à dessin (sketchpad)
+                    skp.setCurrentLayer(null);
+                    // On rafraichit la planche à dessin (sketchpad)
+                    skp.refreshDrawing();
                     break;
                 }
             }
         }
+    }
+    
+    private Layer getCurrentLayerFromTree(){
+        TreePath path = treeHistoricLayers.getSelectionPath();
+        if(path != null){
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+            Object obj = node.getUserObject();
+            if(obj instanceof Layer){
+                // On obtient l'objet sélectioné
+                return (Layer)node.getUserObject();
+            }
+        }
+        try{
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)root.getChildAt(0).getChildAt(0);            
+            return (Layer)node.getUserObject();
+        }catch(Exception exc){
+            // Root has no node!
+        }
+        return null;
+    }
+    
+    private void setCurrentLayerToHistoricList(){
+        selectedLayer = getCurrentLayerFromTree();        
+        dlmHistoric.clear();
+        if(selectedLayer == null) return;
+        dlmHistoric.addAll(skp.getMemories(selectedLayer));
+        tfDrawingCommands.setText(skp.getAssCommands(selectedLayer));
     }
     
     private ImageIcon getTabLeft(String text){
@@ -1087,19 +1369,20 @@ public class MainFrame extends javax.swing.JFrame {
         bgDrawingTools = new javax.swing.ButtonGroup();
         ifrSketchpad = new javax.swing.JInternalFrame();
         ifrHistoricLayers = new javax.swing.JInternalFrame();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel16 = new javax.swing.JPanel();
+        jSplitPane1 = new javax.swing.JSplitPane();
+        jPanel17 = new javax.swing.JPanel();
+        jPanel19 = new javax.swing.JPanel();
+        btnHistoricUndo = new javax.swing.JButton();
+        btnHistoricRedo = new javax.swing.JButton();
+        lblHistoricGroupLayers = new javax.swing.JLabel();
         jScrollPane6 = new javax.swing.JScrollPane();
         listHistoric = new javax.swing.JList<>();
-        btnHistoricRedo = new javax.swing.JButton();
-        btnHistoricUndo = new javax.swing.JButton();
-        comboHistoricLayers = new javax.swing.JComboBox<>();
-        jPanel17 = new javax.swing.JPanel();
-        lblHistoricGroupLayers = new javax.swing.JLabel();
-        jScrollPane7 = new javax.swing.JScrollPane();
-        treeHistoricLayers = new javax.swing.JTree();
+        jPanel18 = new javax.swing.JPanel();
+        jPanel20 = new javax.swing.JPanel();
         btnHistoricAddLayer = new javax.swing.JButton();
         btnHistoricRemoveLayer = new javax.swing.JButton();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        treeHistoricLayers = new javax.swing.JTree();
         ifrDrawTools2 = new javax.swing.JInternalFrame();
         tabbedDrawTools2 = new javax.swing.JTabbedPane();
         panFile = new javax.swing.JPanel();
@@ -1116,6 +1399,12 @@ public class MainFrame extends javax.swing.JFrame {
         toggleMoveM2 = new javax.swing.JToggleButton();
         toggleMoveN2 = new javax.swing.JToggleButton();
         toggleBSpline2 = new javax.swing.JToggleButton();
+        jScrollPane8 = new javax.swing.JScrollPane();
+        listShapesTemplate = new javax.swing.JList<>();
+        jLabel10 = new javax.swing.JLabel();
+        btnShapesTemplate = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
         panDraft = new javax.swing.JPanel();
         btnEye2 = new javax.swing.JButton();
         btnImageUp2 = new javax.swing.JButton();
@@ -2383,6 +2672,50 @@ public class MainFrame extends javax.swing.JFrame {
         ifrHistoricLayers.setTitle("Historic and layers");
         ifrHistoricLayers.setVisible(true);
 
+        jSplitPane1.setDividerLocation(400);
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        jPanel17.setLayout(new java.awt.BorderLayout());
+
+        btnHistoricUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/fnew4_32.png"))); // NOI18N
+        btnHistoricUndo.setToolTipText("Undo");
+        btnHistoricUndo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricUndoActionPerformed(evt);
+            }
+        });
+
+        btnHistoricRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/fnew6_32.png"))); // NOI18N
+        btnHistoricRedo.setToolTipText("Redo");
+        btnHistoricRedo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricRedoActionPerformed(evt);
+            }
+        });
+
+        lblHistoricGroupLayers.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblHistoricGroupLayers.setText("Group or layer in course");
+
+        javax.swing.GroupLayout jPanel19Layout = new javax.swing.GroupLayout(jPanel19);
+        jPanel19.setLayout(jPanel19Layout);
+        jPanel19Layout.setHorizontalGroup(
+            jPanel19Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel19Layout.createSequentialGroup()
+                .addComponent(btnHistoricUndo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnHistoricRedo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblHistoricGroupLayers, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))
+        );
+        jPanel19Layout.setVerticalGroup(
+            jPanel19Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(btnHistoricUndo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(btnHistoricRedo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(lblHistoricGroupLayers, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+
+        jPanel17.add(jPanel19, java.awt.BorderLayout.NORTH);
+
         jScrollPane6.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane6.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -2393,58 +2726,14 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jScrollPane6.setViewportView(listHistoric);
 
-        btnHistoricRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/fnew6_32.png"))); // NOI18N
-        btnHistoricRedo.setToolTipText("Redo");
-        btnHistoricRedo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnHistoricRedoActionPerformed(evt);
-            }
-        });
+        jPanel17.add(jScrollPane6, java.awt.BorderLayout.CENTER);
 
-        btnHistoricUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/fnew4_32.png"))); // NOI18N
-        btnHistoricUndo.setToolTipText("Undo");
-        btnHistoricUndo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnHistoricUndoActionPerformed(evt);
-            }
-        });
+        jSplitPane1.setLeftComponent(jPanel17);
 
-        comboHistoricLayers.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        javax.swing.GroupLayout jPanel16Layout = new javax.swing.GroupLayout(jPanel16);
-        jPanel16.setLayout(jPanel16Layout);
-        jPanel16Layout.setHorizontalGroup(
-            jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane6)
-            .addGroup(jPanel16Layout.createSequentialGroup()
-                .addComponent(btnHistoricUndo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnHistoricRedo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(comboHistoricLayers, 0, 158, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanel16Layout.setVerticalGroup(
-            jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel16Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnHistoricUndo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnHistoricRedo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboHistoricLayers, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("Historic", jPanel16);
-
-        lblHistoricGroupLayers.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblHistoricGroupLayers.setText("Group or layer in course");
-
-        jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        jScrollPane7.setViewportView(treeHistoricLayers);
+        jPanel18.setLayout(new java.awt.BorderLayout());
 
         btnHistoricAddLayer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32_plus.png"))); // NOI18N
+        btnHistoricAddLayer.setText("<html><p align=\"center\">Add<br>group/layer</p>");
         btnHistoricAddLayer.setToolTipText("Add layer");
         btnHistoricAddLayer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2453,6 +2742,7 @@ public class MainFrame extends javax.swing.JFrame {
         });
 
         btnHistoricRemoveLayer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32_minus.png"))); // NOI18N
+        btnHistoricRemoveLayer.setText("<html><p align=\"center\">Remove<br>group/layer</p>");
         btnHistoricRemoveLayer.setToolTipText("Remove a layer");
         btnHistoricRemoveLayer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2460,44 +2750,32 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout jPanel17Layout = new javax.swing.GroupLayout(jPanel17);
-        jPanel17.setLayout(jPanel17Layout);
-        jPanel17Layout.setHorizontalGroup(
-            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane7)
-            .addGroup(jPanel17Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(btnHistoricAddLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+        javax.swing.GroupLayout jPanel20Layout = new javax.swing.GroupLayout(jPanel20);
+        jPanel20.setLayout(jPanel20Layout);
+        jPanel20Layout.setHorizontalGroup(
+            jPanel20Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel20Layout.createSequentialGroup()
+                .addComponent(btnHistoricAddLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnHistoricRemoveLayer, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblHistoricGroupLayers, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(btnHistoricRemoveLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 10, Short.MAX_VALUE))
         );
-        jPanel17Layout.setVerticalGroup(
-            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel17Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(btnHistoricAddLayer, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
-                    .addComponent(btnHistoricRemoveLayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lblHistoricGroupLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE))
+        jPanel20Layout.setVerticalGroup(
+            jPanel20Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(btnHistoricAddLayer)
+            .addComponent(btnHistoricRemoveLayer)
         );
 
-        jTabbedPane1.addTab("Layers", jPanel17);
+        jPanel18.add(jPanel20, java.awt.BorderLayout.NORTH);
 
-        javax.swing.GroupLayout ifrHistoricLayersLayout = new javax.swing.GroupLayout(ifrHistoricLayers.getContentPane());
-        ifrHistoricLayers.getContentPane().setLayout(ifrHistoricLayersLayout);
-        ifrHistoricLayersLayout.setHorizontalGroup(
-            ifrHistoricLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
-        );
-        ifrHistoricLayersLayout.setVerticalGroup(
-            ifrHistoricLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
-        );
+        jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        jScrollPane7.setViewportView(treeHistoricLayers);
+
+        jPanel18.add(jScrollPane7, java.awt.BorderLayout.CENTER);
+
+        jSplitPane1.setRightComponent(jPanel18);
+
+        ifrHistoricLayers.getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         ifrDrawTools2.setVisible(true);
 
@@ -2594,6 +2872,31 @@ public class MainFrame extends javax.swing.JFrame {
         panShapes.add(toggleBSpline2);
         toggleBSpline2.setBounds(120, 40, 40, 40);
 
+        jScrollPane8.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane8.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        listShapesTemplate.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane8.setViewportView(listShapesTemplate);
+
+        panShapes.add(jScrollPane8);
+        jScrollPane8.setBounds(0, 140, 160, 210);
+
+        jLabel10.setText("Insert a shape :");
+        panShapes.add(jLabel10);
+        jLabel10.setBounds(0, 120, 160, 20);
+
+        btnShapesTemplate.setText("Add shape");
+        panShapes.add(btnShapesTemplate);
+        btnShapesTemplate.setBounds(0, 350, 160, 22);
+        panShapes.add(jButton2);
+        jButton2.setBounds(120, 80, 40, 40);
+        panShapes.add(jButton3);
+        jButton3.setBounds(80, 80, 40, 40);
+
         tabbedDrawTools2.addTab("Shapes", panShapes);
 
         panDraft.setLayout(null);
@@ -2683,61 +2986,121 @@ public class MainFrame extends javax.swing.JFrame {
         toggleSeeOneLayer2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32_layers_just_one.png"))); // NOI18N
         toggleSeeOneLayer2.setSelected(true);
         toggleSeeOneLayer2.setToolTipText("One layer");
+        toggleSeeOneLayer2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                toggleSeeOneLayer2ActionPerformed(evt);
+            }
+        });
         panControls.add(toggleSeeOneLayer2);
         toggleSeeOneLayer2.setBounds(0, 0, 40, 40);
 
         bgLayers2.add(toggleSeeLayers2);
         toggleSeeLayers2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32_layers_three.png"))); // NOI18N
         toggleSeeLayers2.setToolTipText("All layers");
+        toggleSeeLayers2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                toggleSeeLayers2ActionPerformed(evt);
+            }
+        });
         panControls.add(toggleSeeLayers2);
         toggleSeeLayers2.setBounds(40, 0, 40, 40);
 
         btnDrawingCopy2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32px-Crystal_Clear_action_editcopy.png"))); // NOI18N
         btnDrawingCopy2.setToolTipText("Copy");
+        btnDrawingCopy2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDrawingCopy2ActionPerformed(evt);
+            }
+        });
         panControls.add(btnDrawingCopy2);
         btnDrawingCopy2.setBounds(80, 0, 40, 40);
 
         btnDrawingPaste2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32px-Crystal_Clear_action_editpaste.png"))); // NOI18N
         btnDrawingPaste2.setToolTipText("Paste");
+        btnDrawingPaste2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDrawingPaste2ActionPerformed(evt);
+            }
+        });
         panControls.add(btnDrawingPaste2);
         btnDrawingPaste2.setBounds(120, 0, 40, 40);
 
         btnMagicWand2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/magic-wand.png"))); // NOI18N
         btnMagicWand2.setToolTipText("Magic wand");
+        btnMagicWand2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMagicWand2ActionPerformed(evt);
+            }
+        });
         panControls.add(btnMagicWand2);
         btnMagicWand2.setBounds(0, 40, 40, 40);
 
         btnPara2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32_parallele.png"))); // NOI18N
         btnPara2.setToolTipText("Parallel");
+        btnPara2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPara2ActionPerformed(evt);
+            }
+        });
         panControls.add(btnPara2);
         btnPara2.setBounds(40, 40, 40, 40);
 
         btnPerp2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/32_perpendiculaire.png"))); // NOI18N
         btnPerp2.setToolTipText("Perpendicular");
+        btnPerp2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPerp2ActionPerformed(evt);
+            }
+        });
         panControls.add(btnPerp2);
         btnPerp2.setBounds(80, 40, 40, 40);
 
         lblAlphaLayer2.setText("Layer transparency :");
         panControls.add(lblAlphaLayer2);
         lblAlphaLayer2.setBounds(10, 90, 150, 16);
+
+        slideAlphaLayer2.setValue(20);
+        slideAlphaLayer2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                slideAlphaLayer2StateChanged(evt);
+            }
+        });
         panControls.add(slideAlphaLayer2);
         slideAlphaLayer2.setBounds(0, 110, 160, 11);
 
         lblDisplaySize2.setText("Display size :");
         panControls.add(lblDisplaySize2);
         lblDisplaySize2.setBounds(10, 130, 150, 16);
+
+        slideDisplaySize2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                slideDisplaySize2StateChanged(evt);
+            }
+        });
         panControls.add(slideDisplaySize2);
         slideDisplaySize2.setBounds(0, 150, 160, 11);
 
         lblAlphaImage2.setText("Image transparency :");
         panControls.add(lblAlphaImage2);
         lblAlphaImage2.setBounds(10, 170, 150, 16);
+
+        slideAlphaImage2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                slideAlphaImage2StateChanged(evt);
+            }
+        });
         panControls.add(slideAlphaImage2);
         slideAlphaImage2.setBounds(0, 190, 160, 11);
 
         lblImageSize2.setText("Image size :");
         panControls.add(lblImageSize2);
         lblImageSize2.setBounds(10, 210, 150, 16);
+
+        slideImageSize2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                slideImageSize2StateChanged(evt);
+            }
+        });
         panControls.add(slideImageSize2);
         slideImageSize2.setBounds(0, 230, 160, 11);
 
@@ -2788,6 +3151,11 @@ public class MainFrame extends javax.swing.JFrame {
         spSelection2.setBounds(0, 40, 160, 146);
 
         btnDoSelection2.setText("Do transformation");
+        btnDoSelection2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDoSelection2ActionPerformed(evt);
+            }
+        });
         panSelection.add(btnDoSelection2);
         btnDoSelection2.setBounds(0, 190, 160, 22);
 
@@ -2796,18 +3164,38 @@ public class MainFrame extends javax.swing.JFrame {
         panBooleanOp.setLayout(null);
 
         btnBOpIntersect.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/intersect.PNG"))); // NOI18N
+        btnBOpIntersect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBOpIntersectActionPerformed(evt);
+            }
+        });
         panBooleanOp.add(btnBOpIntersect);
         btnBOpIntersect.setBounds(0, 0, 160, 90);
 
         btnBOpSubstract.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/substract.PNG"))); // NOI18N
+        btnBOpSubstract.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBOpSubstractActionPerformed(evt);
+            }
+        });
         panBooleanOp.add(btnBOpSubstract);
         btnBOpSubstract.setBounds(0, 90, 160, 90);
 
         btnBOpXOR.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/XOR.PNG"))); // NOI18N
+        btnBOpXOR.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBOpXORActionPerformed(evt);
+            }
+        });
         panBooleanOp.add(btnBOpXOR);
         btnBOpXOR.setBounds(0, 270, 160, 90);
 
         btnBOpUnion.setIcon(new javax.swing.ImageIcon(getClass().getResource("/documents/images/union.PNG"))); // NOI18N
+        btnBOpUnion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBOpUnionActionPerformed(evt);
+            }
+        });
         panBooleanOp.add(btnBOpUnion);
         btnBOpUnion.setBounds(0, 180, 160, 90);
 
@@ -3429,7 +3817,7 @@ public class MainFrame extends javax.swing.JFrame {
         // Drawing tools (Create BLANK drawing area)
         skp.createNewDrawing();
         dlmHistoric.clear();
-        tfDrawingCommands.setText(skp.getAssCommands());
+        tfDrawingCommands.setText("");
     }//GEN-LAST:event_btnDrawNewActionPerformed
 
     private void btnDrawOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawOpenActionPerformed
@@ -3539,37 +3927,39 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnImageBottomActionPerformed
 
     private void btnHistoricUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricUndoActionPerformed
-        int size = skp.getMemories().size();
+        if(selectedLayer == null) return;
+        int size = skp.getMemories(selectedLayer).size();
         if(size < 1) return;
-        int lastUndoIndex = -1;
+        int lastUndoIndex = -1;        
         for(int i = size - 1; i >= 1; i--){
-            if(skp.getMemories().get(i).isUndo() == true){
+            if(skp.getMemories(selectedLayer).get(i).isUndo() == true){
                 lastUndoIndex = i;
             }
         }
         int index = lastUndoIndex == -1 ? size - 1 : lastUndoIndex - 1;
-        skp.getMemories().get(index).setUndo(true);
-        skp.refreshDrawingAfterUndo(skp.getMemories().get(index));
+        skp.getMemories(selectedLayer).get(index).setUndo(true);
+        skp.refreshDrawingAfterUndo(skp.getMemories(selectedLayer).get(index));
         dlmHistoric.clear();
-        dlmHistoric.addAll(skp.getMemories());
-        tfDrawingCommands.setText(skp.getAssCommands());
+        dlmHistoric.addAll(skp.getMemories(selectedLayer));
+        tfDrawingCommands.setText(skp.getAssCommands(selectedLayer));
     }//GEN-LAST:event_btnHistoricUndoActionPerformed
 
     private void btnHistoricRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricRedoActionPerformed
-        int size = skp.getMemories().size();
+        if(selectedLayer == null) return;
+        int size = skp.getMemories(selectedLayer).size();
         if(size == 0) return;
         int lastUndoIndex = -1;
         for(int i = size - 1; i >= 0; i--){
-            if(skp.getMemories().get(i).isUndo() == true){
+            if(skp.getMemories(selectedLayer).get(i).isUndo() == true){
                 lastUndoIndex = i;
             }
         }
         if(lastUndoIndex == -1) return;
-        skp.getMemories().get(lastUndoIndex).setUndo(false);
-        skp.refreshDrawingAfterRedo(skp.getMemories().get(lastUndoIndex));
+        skp.getMemories(selectedLayer).get(lastUndoIndex).setUndo(false);
+        skp.refreshDrawingAfterRedo(skp.getMemories(selectedLayer).get(lastUndoIndex));
         dlmHistoric.clear();
-        dlmHistoric.addAll(skp.getMemories());
-        tfDrawingCommands.setText(skp.getAssCommands());
+        dlmHistoric.addAll(skp.getMemories(selectedLayer));
+        tfDrawingCommands.setText(skp.getAssCommands(selectedLayer));
     }//GEN-LAST:event_btnHistoricRedoActionPerformed
 
     private void btnHistoricAddLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricAddLayerActionPerformed
@@ -3628,9 +4018,17 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void btnDrawNew2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawNew2ActionPerformed
         // Drawing tools (Create BLANK drawing area)
+        // Retrait dans l'arbre de tous les membres
+        root.removeAllChildren();
+        treeHistoricLayers.updateUI();
+        // Réinitialisation du layer dans la planche à dessin (sketchpad)
+        skp.setCurrentLayer(null);
+        // On rafraichit la planche à dessin (sketchpad)
+        skp.refreshDrawing();
         skp.createNewDrawing();
         dlmHistoric.clear();
-        tfCommands2.setText(skp.getAssCommands());
+        listHistoric.updateUI();
+        tfCommands2.setText("");
     }//GEN-LAST:event_btnDrawNew2ActionPerformed
 
     private void btnDrawOpen2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawOpen2ActionPerformed
@@ -3739,6 +4137,74 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnImageBottom2ActionPerformed
 
+    private void toggleSeeOneLayer2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleSeeOneLayer2ActionPerformed
+        oneLayerMode = true;
+        skp.refreshDrawing();
+    }//GEN-LAST:event_toggleSeeOneLayer2ActionPerformed
+
+    private void toggleSeeLayers2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleSeeLayers2ActionPerformed
+        oneLayerMode = false;
+        skp.refreshDrawing();
+    }//GEN-LAST:event_toggleSeeLayers2ActionPerformed
+
+    private void btnDrawingCopy2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawingCopy2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDrawingCopy2ActionPerformed
+
+    private void btnDrawingPaste2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDrawingPaste2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDrawingPaste2ActionPerformed
+
+    private void btnMagicWand2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMagicWand2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnMagicWand2ActionPerformed
+
+    private void btnPara2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPara2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnPara2ActionPerformed
+
+    private void btnPerp2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPerp2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnPerp2ActionPerformed
+
+    private void slideAlphaLayer2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_slideAlphaLayer2StateChanged
+        // Change la transparence de la couche
+        skp.changeLayerAlpha(slideAlphaLayer2.getValue());
+    }//GEN-LAST:event_slideAlphaLayer2StateChanged
+
+    private void slideDisplaySize2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_slideDisplaySize2StateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_slideDisplaySize2StateChanged
+
+    private void slideAlphaImage2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_slideAlphaImage2StateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_slideAlphaImage2StateChanged
+
+    private void slideImageSize2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_slideImageSize2StateChanged
+        // Change la taille de l'image
+        // TODO without Java heap space
+    }//GEN-LAST:event_slideImageSize2StateChanged
+
+    private void btnDoSelection2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDoSelection2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDoSelection2ActionPerformed
+
+    private void btnBOpIntersectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBOpIntersectActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBOpIntersectActionPerformed
+
+    private void btnBOpSubstractActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBOpSubstractActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBOpSubstractActionPerformed
+
+    private void btnBOpUnionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBOpUnionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBOpUnionActionPerformed
+
+    private void btnBOpXORActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBOpXORActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBOpXORActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -3837,6 +4303,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnSeeOneLayer;
     private javax.swing.JButton btnSelection;
     private javax.swing.JButton btnSend;
+    private javax.swing.JButton btnShapesTemplate;
     private javax.swing.JButton btnSmiley;
     private javax.swing.JButton btnVideoPause;
     private javax.swing.JButton btnVideoPlay;
@@ -3846,7 +4313,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnVideoPlayBegin;
     private javax.swing.JButton btnVideoPlayEnd;
     private javax.swing.JButton btnVideoStop;
-    private javax.swing.JComboBox<String> comboHistoricLayers;
     private javax.swing.JComboBox<String> comboName;
     private javax.swing.JComboBox<String> comboStyle;
     private javax.swing.JDesktopPane deskDrawing;
@@ -3864,7 +4330,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JInternalFrame ifrVideo;
     private javax.swing.JInternalFrame ifrWave;
     private javax.swing.JInternalFrame ifrtableOne;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -3880,9 +4349,11 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel15;
-    private javax.swing.JPanel jPanel16;
     private javax.swing.JPanel jPanel17;
+    private javax.swing.JPanel jPanel18;
+    private javax.swing.JPanel jPanel19;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel20;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -3897,10 +4368,11 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JScrollPane jScrollPane8;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator3;
-    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
@@ -3923,6 +4395,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lblSelection2;
     private javax.swing.JList<String> listHistoric;
     private javax.swing.JList<String> listSelection2;
+    private javax.swing.JList<String> listShapesTemplate;
     private javax.swing.JMenuBar menuBarYGGY;
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuFileChat;

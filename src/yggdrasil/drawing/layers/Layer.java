@@ -17,9 +17,15 @@
 package yggdrasil.drawing.layers;
 
 import java.awt.Color;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import yggdrasil.MainFrame;
+import yggdrasil.drawing.AShape;
+import yggdrasil.drawing.HistoricalPointChange;
 import yggdrasil.drawing.Memories;
+import yggdrasil.drawing.Move;
 
 /**
  *
@@ -32,15 +38,22 @@ public class Layer {
     private boolean visible = true;
     private String name = "Default";
     
-    private int layer = 0;
-    private LayerDirection layerDirection = LayerDirection.Forward;
-    
+    private LayerDirection layerDirection = LayerDirection.Forward;    
     private List<Memories<?>> memoriesArray = new ArrayList<>();
+    private float generalPathAlpha = 0.2f;
+    private float scale = 1f;
     
-    private int UID = 0;
-
     public Layer() {
         
+    }
+    
+    public static Layer create(String name, Color color){
+        Layer layer = new Layer();
+        
+        layer.name = name;
+        layer.color = color;
+        
+        return layer;
     }
 
     public Color getColor() {
@@ -75,14 +88,6 @@ public class Layer {
         this.name = name;
     }
 
-    public int getLayer() {
-        return layer;
-    }
-
-    public void setLayer(int layer) {
-        this.layer = layer;
-    }
-
     public LayerDirection getLayerDirection() {
         return layerDirection;
     }
@@ -99,12 +104,84 @@ public class Layer {
         this.memoriesArray = memoriesArray;
     }
 
-    public int getUID() {
-        return UID;
+    public float getGeneralPathAlpha() {
+        return generalPathAlpha;
     }
 
-    public void setUID(int UID) {
-        this.UID = UID;
+    public void setGeneralPathAlpha(float generalPathAlpha) {
+        this.generalPathAlpha = generalPathAlpha;
+    }
+
+    public float getScale() {
+        return scale;
+    }
+
+    public void setScale(float scale) {
+        this.scale = scale;
     }
     
+    // Opérations sur les couches :
+    // 1. Génération de la forme
+    
+    /**
+     * Reroute (to do before addElement)
+     * @see addElement
+     */
+    public Point rerouteElement(MainFrame mf, Point lastClicked){
+        //======================================================================
+        // Check about undo
+        //----------------------------------------------------------------------
+        int index = -1;
+        // Get MemoriesArray from actual Layer
+        for(int i=0; i<memoriesArray.size(); i++){
+            if(memoriesArray.get(i).isUndo()){
+                index = i;
+                break;
+            }
+        }
+        if(index != -1){
+            for(int i=memoriesArray.size() - 1; i >= 0; i--){
+                if(i >= index){
+                    if(memoriesArray.get(i).getObject() instanceof AShape){
+                        Point2D p = (Point2D)memoriesArray.get(i).getOldState();
+                        lastClicked = new Point((int)p.getX(),(int)p.getY());
+                    }
+                    memoriesArray.remove(i);
+                    mf.removeLastFromHistoric();
+                }                
+            }
+        }
+        return lastClicked;
+    }
+    
+    public void addElement(Point2D oldPoint, Point2D newPoint, Class cls, Object obj, MainFrame mf){
+        //======================================================================
+        // Add element
+        //----------------------------------------------------------------------
+        Memories mms = new Memories();
+        mms.setOldState(oldPoint);
+        mms.setNewState(newPoint);
+        mms.setObjectClass(cls);
+        mms.setObject(obj);
+        
+        if(obj instanceof AShape){
+            // Get MemoriesArray from actual Layer
+            if(memoriesArray.isEmpty()){
+                // Any AShape replace by a Move (M)                    
+                mms.setObjectClass(Move.class);
+                mms.setObject(Move.create(newPoint, true));
+                memoriesArray.add(mms);
+            }else{
+                memoriesArray.add(mms);
+            }
+        }else if(obj instanceof HistoricalPointChange){
+            // Get MemoriesArray from actual Layer
+            if(memoriesArray.isEmpty() == false){
+                memoriesArray.add(mms);
+            }
+        }
+        
+        // Mise à jour de l'historique
+        mf.addToHistoric(mms);
+    }
 }

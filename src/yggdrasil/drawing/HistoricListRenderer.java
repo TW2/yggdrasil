@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import yggdrasil.MainFrame;
 import yggdrasil.util.DrawColor;
 
 /**
@@ -43,9 +44,11 @@ public class HistoricListRenderer extends JPanel implements ListCellRenderer {
     private final JPanel paneInfos = new JPanel();
     
     private Sketchpad sketchpad = null;
+    private MainFrame mainFrame = null;
     
-    public HistoricListRenderer(Sketchpad sketchpad) {
+    public HistoricListRenderer(Sketchpad sketchpad, MainFrame mainFrame) {
         this.sketchpad = sketchpad;
+        this.mainFrame = mainFrame;
         init();
     }
 
@@ -154,7 +157,7 @@ public class HistoricListRenderer extends JPanel implements ListCellRenderer {
     private boolean isUndo(Object obj){
         boolean undo = false;
         
-        List<Memories<?>> mms = sketchpad.getMemories();
+        List<Memories<?>> mms = sketchpad.getMemories(mainFrame.getSelectedLayer());
         
         if(mms.isEmpty() == false){
             for(Memories<?> mem : mms){
