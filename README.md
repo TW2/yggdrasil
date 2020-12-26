@@ -55,6 +55,7 @@ Drawing tab :
 ## Screenshots
 <img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20LightTheme%20-%20yggdrasil%201.2%20main%20frame.PNG" />
 <img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20LightTheme%20-%20Styles.PNG" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20DarkTheme%20-%20Properties.PNG" />
 
 ## About
 This program is a tool around subtitles stuffs (ASS and more in the future).
