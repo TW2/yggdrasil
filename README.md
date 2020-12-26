@@ -1,39 +1,61 @@
 # yggdrasil
-Subtitles synchronization software
+Subtitles synchronization software compatible with dark mode
 
-Status: v1.1 alpha phase
+Run with Light Theme
+```
+java --enable-preview -jar ygg.jar
+```
+Run with Dark Theme
+```
+java --enable-preview -jar ygg.jar dark
+```
+
+Status: v1.1 alpha phase - (as model for 1.2 reworking)
+Status: v1.2 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
 
 ## Abilities
 
-Ass tab :
+Replica online personal server :
+- [ ] Working in production
+
+Chat tab :
+- [ ] Can send text
+- [ ] Can received text
+
+Files tab :
+- [ ] Can send file
+- [ ] Can received file
+
+Timing tab :
 - [x] Can open videos (FFMpeg)
-- [x] Can open audio (FFMpeg via transcode to wave)
+- [ ] Can open audio (FFMpeg via transcode to wave)
 - [ ] Can display full ASS
-- [x] Can open/save ASS
-- [x] Can synchronize an ASS event
+- [ ] Can open/save ASS
+- [ ] Can synchronize an ASS event
+- [x] Can edit style of an event
+- [x] Can use table
+- [ ] Can compare two scripts
+- [ ] Can send request
+- [ ] Can received request
+- [ ] Can send proposal
+- [ ] Can received proposal
 
 Drawing tab :
-- [x] Can draw
-- [x] Can extract commands from basics
+- [ ] Can draw
+- [ ] Can extract commands from basics
 - [ ] Can extract commands from bspline
-- [x] Can use layers
+- [ ] Can use layers
 - [ ] Can do operations
-- [x] Can do undo/redo and break (cancellation of a break is not possible)
-- [x] Can clear the sketchpad
+- [ ] Can do undo/redo and break (cancellation of a break is not possible)
+- [ ] Can clear the sketchpad
 - [ ] Can load a file
 - [ ] Can save to file
 - [ ] Can use fonts outline
 
 ## Screenshots
-```
-java -jar ygg-1.1.jar
-```
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/ygg004.PNG" />
 
-```
-java -jar ygg-1.1.jar dark
-```
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/ygg005.PNG" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20LightTheme%20-%20yggdrasil%201.2%20main%20frame.PNG" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20LightTheme%20-%20Styles.PNG" />
 
 ## About
 This program is a tool around subtitles stuffs (ASS and more in the future).
