@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import org.bytedeco.javacpp.Loader;
 import org.wingate.timelibrary.Time;
 import ygg.io.video.VideoRatio;
 
@@ -38,9 +39,6 @@ import ygg.io.video.VideoRatio;
  * @author util2
  */
 public class FFStuffs {
-    
-    private String ffmpeg = getClass().getResource("/configuration/ffmpeg.exe").getPath();
-    private String ffprobe = getClass().getResource("/configuration/ffprobe.exe").getPath();
     
     private final Map<Integer, Time> IFrames = new HashMap<>();
     private final Map<Integer, Time> PFrames = new HashMap<>();
@@ -58,19 +56,8 @@ public class FFStuffs {
     private boolean hasVideo = false;
     
     public FFStuffs() {
-        init();
+        
     }
-    
-    private void init(){
-        if(ffmpeg.isEmpty()){
-            ffmpeg = getApplicationDirectory() + File.separator + "configuration" + File.separator + "ffmpeg.exe";
-        }
-        if(ffprobe.isEmpty()){
-            ffprobe = getApplicationDirectory() + File.separator + "configuration" + File.separator + "ffprobe.exe";
-        }
-    }
-    
-    
     
     public static FFStuffs create(File video){
         FFStuffs fs = new FFStuffs();
@@ -88,7 +75,8 @@ public class FFStuffs {
         //----------------------------------------------------------------------
         // Vérification de la présence de vidéo :
         try{
-            pb = new ProcessBuilder(fs.ffprobe, "-i", file, "-show_streams", "-select_streams", "v", "-loglevel", "error");
+            String ffprobe = Loader.load(org.bytedeco.ffmpeg.ffprobe.class);
+            pb = new ProcessBuilder(ffprobe, "-i", file, "-show_streams", "-select_streams", "v", "-loglevel", "error");
             pb.redirectErrorStream(true);
             p = pb.start();
         }catch(IOException ex){
@@ -116,7 +104,8 @@ public class FFStuffs {
         
         // Vérification de la présence d'audio :
         try{
-            pb = new ProcessBuilder(fs.ffprobe, "-i", file, "-show_streams", "-select_streams", "a", "-loglevel", "error");
+            String ffprobe = Loader.load(org.bytedeco.ffmpeg.ffprobe.class);
+            pb = new ProcessBuilder(ffprobe, "-i", file, "-show_streams", "-select_streams", "a", "-loglevel", "error");
             pb.redirectErrorStream(true);
             p = pb.start();
         }catch(IOException ex){
@@ -240,7 +229,8 @@ public class FFStuffs {
             // On obtient les keyframes
             if(fs.hasVideo == true){
                 try{
-                    pb = new ProcessBuilder(fs.ffprobe, "-i", file, "-select_streams", "v", "-show_frames",
+                    String ffprobe = Loader.load(org.bytedeco.ffmpeg.ffprobe.class);
+                    pb = new ProcessBuilder(ffprobe, "-i", file, "-select_streams", "v", "-show_frames",
                             "-show_entries", "frame=pict_type", "-loglevel", "error");
                     pb.redirectErrorStream(true);
                     p = pb.start();
@@ -288,6 +278,7 @@ public class FFStuffs {
     public ImageIcon getImageAtTime(String videoPath, Time time){
         
         try{
+            String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
             ProcessBuilder pb = new ProcessBuilder(ffmpeg, 
                     "-y",                           // YES for force overwrite
                     "-ss", time.toFFMpegTime(),     // Time

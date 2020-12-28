@@ -16,10 +16,16 @@
  */
 package ygg;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.Locale;
+import javax.swing.JOptionPane;
+import replica.ygg.PeerServer;
+import ygg.io.YggConf;
 import ygg.io.language.ISO_3166;
 import ygg.io.language.Language;
+import ygg.ui.IfrChat;
 import ygg.ui.IfrTable;
 import ygg.ui.IfrTableLink;
 import ygg.ui.IfrVideo;
@@ -40,6 +46,9 @@ public class MainFrame extends javax.swing.JFrame {
     
     private static boolean darkUI = false;
     
+    // Chat components
+    private static final IfrChat chat = new IfrChat();
+    
     // Timing components
     private static final IfrTable table = new IfrTable();
     private static final IfrVideo video = new IfrVideo();
@@ -53,6 +62,20 @@ public class MainFrame extends javax.swing.JFrame {
     }
     
     private void init(){
+        // Load configuration...
+        YggConf.load();
+        mnuFileReplicaAddr.setText("Set the address of the replica, currently " + YggConf.getIpReplica() + "...");
+        
+        // Prepare save configuration
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                YggConf.save();
+            }
+        });
+        
+        // Default usage
         File temp_folder = new File(TEMP_FOLDER);
         temp_folder.mkdir();
         temp_folder.deleteOnExit();
@@ -61,6 +84,15 @@ public class MainFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         tabbedApp.setSelectedIndex(2); // Timing
+        
+        //----------------------------------------------------------------------
+        // Chat configuration
+        //----------------------------------------------------------------------
+        deskChat.add(chat);
+        chat.setSize(1500, 915);
+        chat.setLocation(0, 0);
+        chat.setVisible(true);
+        //--------------------------------------------------------- CHAT END ---
         
         //----------------------------------------------------------------------
         // Timing configuration
@@ -82,6 +114,8 @@ public class MainFrame extends javax.swing.JFrame {
         tableLink.setLocation(1864/2, 300);
         tableLink.setVisible(true);
         //------------------------------------------------------- TIMING END ---
+        
+        PeerServer.createServer();
     }
     
     public void setDarkUI(boolean darkUI) {
@@ -134,6 +168,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         tabbedApp = new javax.swing.JTabbedPane();
         panChat = new javax.swing.JPanel();
+        deskChat = new javax.swing.JDesktopPane();
         panPTP = new javax.swing.JPanel();
         panTiming = new javax.swing.JPanel();
         deskTiming = new javax.swing.JDesktopPane();
@@ -141,21 +176,26 @@ public class MainFrame extends javax.swing.JFrame {
         pbDownload = new javax.swing.JProgressBar();
         mbTop = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
-        jMenu2 = new javax.swing.JMenu();
+        mnuFileP2P = new javax.swing.JMenu();
+        mnuFileReplicaAddr = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Yggdrasil 2020-11 - \"Happy go ducky\"");
 
-        javax.swing.GroupLayout panChatLayout = new javax.swing.GroupLayout(panChat);
-        panChat.setLayout(panChatLayout);
-        panChatLayout.setHorizontalGroup(
-            panChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        panChat.setLayout(new java.awt.BorderLayout());
+
+        javax.swing.GroupLayout deskChatLayout = new javax.swing.GroupLayout(deskChat);
+        deskChat.setLayout(deskChatLayout);
+        deskChatLayout.setHorizontalGroup(
+            deskChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 630, Short.MAX_VALUE)
         );
-        panChatLayout.setVerticalGroup(
-            panChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        deskChatLayout.setVerticalGroup(
+            deskChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 424, Short.MAX_VALUE)
         );
+
+        panChat.add(deskChat, java.awt.BorderLayout.CENTER);
 
         tabbedApp.addTab("Chat", panChat);
 
@@ -190,10 +230,20 @@ public class MainFrame extends javax.swing.JFrame {
         tabbedApp.addTab("Timing", panTiming);
 
         jMenu1.setText("File");
-        mbTop.add(jMenu1);
 
-        jMenu2.setText("Edit");
-        mbTop.add(jMenu2);
+        mnuFileP2P.setText("Network");
+
+        mnuFileReplicaAddr.setText("Set the address of the replica, currently 127.0.0.1...");
+        mnuFileReplicaAddr.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuFileReplicaAddrActionPerformed(evt);
+            }
+        });
+        mnuFileP2P.add(mnuFileReplicaAddr);
+
+        jMenu1.add(mnuFileP2P);
+
+        mbTop.add(jMenu1);
 
         setJMenuBar(mbTop);
 
@@ -223,6 +273,13 @@ public class MainFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void mnuFileReplicaAddrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileReplicaAddrActionPerformed
+        // Set the address of the replica, currently 127.0.0.1...
+        String ip = JOptionPane.showInputDialog("Please puts your Replica address here :");
+        YggConf.setIpReplica(ip.matches("\\d+\\.\\d+\\.\\d+\\.\\d+") == true ? ip : "127.0.0.1");
+        mnuFileReplicaAddr.setText("Set the address of the replica, currently " + YggConf.getIpReplica() + "...");
+    }//GEN-LAST:event_mnuFileReplicaAddrActionPerformed
 
     /**
      * @param args the command line arguments
@@ -255,10 +312,12 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDesktopPane deskChat;
     private javax.swing.JDesktopPane deskTiming;
     private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar mbTop;
+    private javax.swing.JMenu mnuFileP2P;
+    private javax.swing.JMenuItem mnuFileReplicaAddr;
     private javax.swing.JPanel panChat;
     private javax.swing.JPanel panPTP;
     private javax.swing.JPanel panTiming;

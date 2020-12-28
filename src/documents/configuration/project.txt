@@ -1,4 +1,0 @@
-Studio (Video-Wave-Table-Commands)
-Editing (Video-ASSToolsForEditing-MotionTracker)
-Drawing (Video-ASSToolsForDrawing)
-Translation (Lang1Table-Lang2Table-ToolsForTranslating)
