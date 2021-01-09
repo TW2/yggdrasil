@@ -29,7 +29,7 @@ Files tab :
 
 Timing tab :
 - [x] Can open videos (FFMpeg)
-- [x] Can open audio (FFMpeg via transcode to wave)
+- [x] Can open audio (FFMpeg)
 - [ ] Can display full ASS
 - [x] Can open/save ASS
 - [ ] Can synchronize an ASS event
