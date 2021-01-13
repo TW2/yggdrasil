@@ -3,15 +3,16 @@ Subtitles synchronization software in Java 15 compatible with dark mode
 
 Run with Light Theme
 ```
-java --enable-preview -jar ygg.jar
+java -jar ygg-1.2.1.jar
 ```
 Run with Dark Theme
 ```
-java --enable-preview -jar ygg.jar dark
+java -jar ygg-1.2.1.jar dark
 ```
 ## Evolution
 - Status: v1.1 alpha phase - (as model for 1.2 reworking)
 - Status: v1.2 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
+- Status: v1.2.1 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
 
 ## Abilities
 
@@ -28,9 +29,9 @@ Files tab :
 
 Timing tab :
 - [x] Can open videos (FFMpeg)
-- [ ] Can open audio (FFMpeg via transcode to wave)
+- [x] Can open audio (FFMpeg)
 - [ ] Can display full ASS
-- [ ] Can open/save ASS
+- [x] Can open/save ASS
 - [ ] Can synchronize an ASS event
 - [x] Can edit style of an event
 - [x] Can use table
