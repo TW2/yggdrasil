@@ -16,18 +16,15 @@ java -jar ygg-1.2.1.jar dark
 
 ## Abilities
 
-Replica online personal server :
-- [ ] Working in production
-
-Chat tab :
+Chat area :
 - [ ] Can send text
 - [ ] Can received text
 
-Files tab :
+Files area :
 - [ ] Can send file
 - [ ] Can received file
 
-Timing tab :
+Timing area :
 - [x] Can open videos (FFMpeg)
 - [x] Can open audio (FFMpeg)
 - [ ] Can display full ASS
@@ -41,7 +38,14 @@ Timing tab :
 - [ ] Can send proposal
 - [ ] Can received proposal
 
-Drawing tab :
+Translate area :
+- [x] Can open videos (FFMpeg)
+- [x] Can open audio (FFMpeg)
+- [x] Can open ASS
+- [ ] Can save ASS
+- [ ] Can select dictionaries
+
+Drawing area :
 - [ ] Can draw
 - [ ] Can extract commands from basics
 - [ ] Can extract commands from bspline
