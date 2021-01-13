@@ -36,21 +36,26 @@ import org.wingate.ygg.ui.IfrTable;
 import org.wingate.ygg.ui.IfrTableLink;
 import org.wingate.ygg.ui.IfrVideo;
 import org.wingate.ygg.ui.IfrWave;
-import org.wingate.ygg.util.FFStuffs;
 import org.wingate.ygg.io.VideoFileChooserFileFilter;
+import org.wingate.ygg.ui.IfrTranslation;
 
 /**
  *
  * @author util2
  */
 public class MainFrame extends javax.swing.JFrame {
-    private YggConf yggConf = new YggConf();
+    private final YggConf yggConf = new YggConf();
 
     private static boolean darkUI = false;
     
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
     static Language chosen = null;
+    
+    public enum Section {
+        None, Chat, Files, Time, Edit, Drawing, Translate;
+    }
+    private Section section = Section.None;
     
     // Chat components
     private static IfrChat chat;
@@ -60,6 +65,7 @@ public class MainFrame extends javax.swing.JFrame {
     private static IfrVideo video;
     private static IfrWave wave;
     private static IfrTableLink tableLink;
+    private static IfrTranslation translation;
     
     public MainFrame(boolean dark) {        
         initComponents();
@@ -68,6 +74,9 @@ public class MainFrame extends javax.swing.JFrame {
     }
     
     private void init(){
+        // Chargement du titre de l'application
+        setTitle("Yggdrasil v1.2.2 alpha - \"Happy Go Ducky\"");
+        
         // Chargement de la configuration...
         yggConf.load();
         
@@ -80,6 +89,8 @@ public class MainFrame extends javax.swing.JFrame {
         video = new IfrVideo();
         tableLink = new IfrTableLink(); // tl must be init before table cause table needs for it in its init
         table = new IfrTable(tableLink);
+        tableLink.externallyInitAfterRealInit(wave, video);
+        translation = new IfrTranslation();
         
         // Changer la taille de la fenêtre
         setSize(1880, 1058);
@@ -132,6 +143,14 @@ public class MainFrame extends javax.swing.JFrame {
         tableLink.setLocation(1864/2, 300);
         tableLink.setVisible(true);
         //------------------------------------------------------- TIMING END ---
+        
+        //----------------------------------------------------------------------
+        // Translation configuration
+        //----------------------------------------------------------------------
+        translation.setSize(1865, 965);
+        translation.setLocation(0, 0);
+        translation.setVisible(true);
+        //--------------------------------------------------------- CHAT END ---
         
         // Affiche le mode de synchronisation par défaut
         displayTime();
@@ -216,6 +235,10 @@ public class MainFrame extends javax.swing.JFrame {
         return chat;
     }
     
+    public static void setProgress(float value, String text){
+        progressTask.setValue(Math.round(value * 100f));
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Affichage des éléments">
@@ -229,6 +252,7 @@ public class MainFrame extends javax.swing.JFrame {
         cleanDesktop();
         deskMain.add(chat);
         deskMain.updateUI();
+        section = Section.Chat;
     }
     
     private void displayTime(){
@@ -238,6 +262,14 @@ public class MainFrame extends javax.swing.JFrame {
         deskMain.add(table);
         deskMain.add(tableLink);
         deskMain.updateUI();
+        section = Section.Time;
+    }
+    
+    private void displayTranslation(){
+        cleanDesktop();
+        deskMain.add(translation);
+        deskMain.updateUI();
+        section = Section.Translate;
     }
     
     // </editor-fold>
@@ -254,11 +286,13 @@ public class MainFrame extends javax.swing.JFrame {
         fcAudio = new javax.swing.JFileChooser();
         fcASS = new javax.swing.JFileChooser();
         deskMain = new javax.swing.JDesktopPane();
-        progressP2P = new javax.swing.JProgressBar();
         btnMessageTop = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jTextField3 = new javax.swing.JTextField();
         jTextField4 = new javax.swing.JTextField();
+        jPanel2 = new javax.swing.JPanel();
+        progressP2P = new javax.swing.JProgressBar();
+        progressTask = new javax.swing.JProgressBar();
         jMenuBar1 = new javax.swing.JMenuBar();
         vmnFile = new org.wingate.freectrl.VMenu();
         vmnFileOpenSubtitles = new org.wingate.freectrl.VMenuItem();
@@ -269,6 +303,7 @@ public class MainFrame extends javax.swing.JFrame {
         vmnDisplayHideAll = new org.wingate.freectrl.VMenuItem();
         vmnDisplayChat = new org.wingate.freectrl.VMenuItem();
         vmnDisplayFiles = new org.wingate.freectrl.VMenuItem();
+        vmnDisplayTranslate = new org.wingate.freectrl.VMenuItem();
         vmnDisplayTime = new org.wingate.freectrl.VMenuItem();
         vmnDisplayEdit = new org.wingate.freectrl.VMenuItem();
         vmnDisplayDrawing = new org.wingate.freectrl.VMenuItem();
@@ -294,6 +329,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         jTextField4.setEditable(false);
         jPanel1.add(jTextField4);
+
+        jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
+        jPanel2.add(progressP2P);
+        jPanel2.add(progressTask);
 
         vmnFile.setText("File");
         vmnFile.setVariableName("vmnFile");
@@ -358,7 +397,7 @@ public class MainFrame extends javax.swing.JFrame {
         vmnDisplay.add(vmnDisplayChat);
 
         vmnDisplayFiles.setMnemonic('D');
-        vmnDisplayFiles.setText("vMenuItem2");
+        vmnDisplayFiles.setText("Display files");
         vmnDisplayFiles.setVariableName("vmnDisplayFiles");
         vmnDisplayFiles.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -366,6 +405,15 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
         vmnDisplay.add(vmnDisplayFiles);
+
+        vmnDisplayTranslate.setText("Display translate");
+        vmnDisplayTranslate.setVariableName("vmnDisplayTranslate");
+        vmnDisplayTranslate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                vmnDisplayTranslateActionPerformed(evt);
+            }
+        });
+        vmnDisplay.add(vmnDisplayTranslate);
 
         vmnDisplayTime.setText("Display timing");
         vmnDisplayTime.setToolTipText("");
@@ -407,9 +455,9 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(btnMessageTop)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 489, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 443, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(progressP2P, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
             .addComponent(deskMain)
         );
@@ -418,7 +466,7 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(progressP2P, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnMessageTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -430,17 +478,23 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void vmnFileOpenAudioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnFileOpenAudioActionPerformed
         int z = fcAudio.showOpenDialog(this);
-        if(z == JFileChooser.APPROVE_OPTION){
+        if(z == JFileChooser.APPROVE_OPTION){            
             // Préparation de variables
-            File video = fcAudio.getSelectedFile();
-            boolean darkUI = MainFrame.isDark();
+            File videoFile = fcAudio.getSelectedFile();
             
-            // Etude du signal
-            FFStuffs ffss = FFStuffs.create(video);
-
-            // Si audio faire waveform
-            if(ffss.hasAudio()){
-                wave.openAudio(video, ffss, darkUI);
+            switch(section){
+                case Time -> {
+                    // Si synchronisation est activée (Time)
+                    try{
+                        wave.openAudio(videoFile);
+                    }catch(Exception exc){
+                        
+                    }
+                }
+                case Translate -> {
+                    // Si traduction est activée (Translation)
+                    translation.loadAudio(videoFile);
+                }
             }
         }
     }//GEN-LAST:event_vmnFileOpenAudioActionPerformed
@@ -448,15 +502,44 @@ public class MainFrame extends javax.swing.JFrame {
     private void vmnFileOpenVideoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnFileOpenVideoActionPerformed
         int z = fcAudio.showOpenDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
-            video.setVideoPath(fcAudio.getSelectedFile().getPath());
+            // Préparation de variables
+            File videoFile = fcAudio.getSelectedFile();
+            
+            switch(section){
+                case Time -> {
+                    // Si synchronisation est activée (Time)
+                    try{
+                        video.setVideoPath(videoFile.getPath());
+                    }catch(Exception exc){
+                        
+                    }
+                }
+                case Translate -> {
+                    // Si traduction est activée (Translation)
+                    translation.loadAudio(videoFile);
+                }
+            }
         }
     }//GEN-LAST:event_vmnFileOpenVideoActionPerformed
 
     private void vmnFileOpenSubtitlesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnFileOpenSubtitlesActionPerformed
         // See yggdrasil.fcfilefiter.SubtitlesFileFilter
         int z = fcASS.showOpenDialog(this);
-        if(z == JFileChooser.APPROVE_OPTION){
-            table.loadASSTable(fcASS.getSelectedFile());            
+        if(z == JFileChooser.APPROVE_OPTION){            
+            switch(section){
+                case Time -> {
+                    // Si synchronisation est activée (Time)
+                    try{
+                        table.loadASSTable(fcASS.getSelectedFile());
+                    }catch(Exception exc){
+                        
+                    }
+                }
+                case Translate -> {
+                    // Si traduction est activée (Translation)
+                    translation.loadASS(fcASS.getSelectedFile());
+                }
+            }
         }
     }//GEN-LAST:event_vmnFileOpenSubtitlesActionPerformed
 
@@ -464,7 +547,20 @@ public class MainFrame extends javax.swing.JFrame {
         // See yggdrasil.fcfilefiter.SubtitlesFileFilter
         int z = fcASS.showSaveDialog(this);
         if(z == JFileChooser.APPROVE_OPTION){
-            table.saveASSTable(fcASS.getSelectedFile());
+            switch(section){
+                case Time -> {
+                    // Si synchronisation est activée (Time)
+                    try{
+                        table.saveASSTable(fcASS.getSelectedFile());
+                    }catch(Exception exc){
+                        
+                    }
+                }
+                case Translate -> {
+                    // Si traduction est activée (Translation)
+                    
+                }
+            }
         }
     }//GEN-LAST:event_vmnFileSaveSubtitlesActionPerformed
 
@@ -491,6 +587,10 @@ public class MainFrame extends javax.swing.JFrame {
     private void vmnDisplayDrawingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnDisplayDrawingActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_vmnDisplayDrawingActionPerformed
+
+    private void vmnDisplayTranslateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnDisplayTranslateActionPerformed
+        displayTranslation();
+    }//GEN-LAST:event_vmnDisplayTranslateActionPerformed
 
     /**
      * @param args the command line arguments
@@ -529,9 +629,11 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JFileChooser fcAudio;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
     private javax.swing.JProgressBar progressP2P;
+    private static javax.swing.JProgressBar progressTask;
     private org.wingate.freectrl.VMenu vmnDisplay;
     private org.wingate.freectrl.VMenuItem vmnDisplayChat;
     private org.wingate.freectrl.VMenuItem vmnDisplayDrawing;
@@ -539,6 +641,7 @@ public class MainFrame extends javax.swing.JFrame {
     private org.wingate.freectrl.VMenuItem vmnDisplayFiles;
     private org.wingate.freectrl.VMenuItem vmnDisplayHideAll;
     private org.wingate.freectrl.VMenuItem vmnDisplayTime;
+    private org.wingate.freectrl.VMenuItem vmnDisplayTranslate;
     private org.wingate.freectrl.VMenu vmnFile;
     private org.wingate.freectrl.VMenuItem vmnFileOpenAudio;
     private org.wingate.freectrl.VMenuItem vmnFileOpenSubtitles;

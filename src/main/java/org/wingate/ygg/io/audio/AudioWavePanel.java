@@ -483,7 +483,37 @@ public class AudioWavePanel extends JPanel {
 
     private final EventListenerList listeners = new EventListenerList();
     
+    public void addAudioListener(IAudioListener listener) {
+        listeners.add(AudioListener.class, (AudioListener)listener);
+    }
+
+    public void removeAudioListener(IAudioListener listener) {
+        listeners.remove(AudioListener.class, (AudioListener)listener);
+    }
+
+    public Object[] getListeners() {
+        return listeners.getListenerList();
+    }
     
+    protected void fireStartTime(Time start) {
+        for(Object o : getListeners()){
+            if(o instanceof AudioListener){
+                AudioListener listen = (AudioListener)o;
+                listen.startTimeChanged(start);
+                break;
+            }
+        }
+    }
+    
+    protected void fireEndTime(Time end) {
+        for(Object o : getListeners()){
+            if(o instanceof AudioListener){
+                AudioListener listen = (AudioListener)o;
+                listen.endTimeChanged(end);
+                break;
+            }
+        }
+    }
     
     public enum AudioWaveColors{
         Background("Background", DrawColor.white_smoke.getColor(), new Color(71, 75, 76)),

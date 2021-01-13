@@ -22,11 +22,18 @@ import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.AdjustmentEvent;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioFileFormat;
@@ -35,12 +42,17 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.event.EventListenerList;
 import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.util.DrawColor;
 import org.wingate.ygg.util.FFStuffs;
 
@@ -55,38 +67,86 @@ public class AudioWave extends JPanel implements Runnable {
     
     // Composants
     AudioWavePanel wp = null;
-    AudioWaveScale aws = null;    
+    AudioWaveScale aws = new AudioWaveScale();   
     JScrollBar horizontalWaveBar = new JScrollBar(JScrollBar.HORIZONTAL);
     
     // Hauteur du composant de la courbe
     int waveHeight = 100;
 
-    private AudioWave() {
-        
+    public AudioWave() {
+        init();
     }
     
-    public static AudioWave create(File file, FFStuffs ffss, boolean dark){
-        // On crée un nouveau objet principal
-        AudioWave aw = new AudioWave();
+    private void init(){
+        // On lance les dépendances
+        wp = new AudioWavePanel(ffss, aws, this, MainFrame.isDark());
         
+        setLayout(new BorderLayout());
+        
+        add(wp, BorderLayout.CENTER);
+        add(horizontalWaveBar, BorderLayout.SOUTH);
+        
+        horizontalWaveBar.addAdjustmentListener((AdjustmentEvent e) -> {
+            // e.getValue() > frames
+            // on raisonne en samples
+            if(ffss != null){
+                int samples = Math.round(getSamplesFromFrame(e.getValue()) / samplesPerPixel);
+                updateDisplayWithOffset(-samples, timeStart, timeEnd);
+            }
+        });
+        
+        try { 
+            clipPlaying = AudioSystem.getClip();
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(AudioWave.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        addAudioListener(new AudioAdapter() {
+            @Override
+            public void endOfSoundReached() {
+                try{
+                    stop();
+                }catch(Exception ex){
+                    System.out.println("End of sound error!");
+                }
+            }
+
+            @Override
+            public void endOfAreaReached() {
+                try{
+                    stop();
+                }catch(Exception ex){
+                    System.out.println("End of area error!");
+                }
+            }
+
+            @Override
+            public void displayProgress(AudioEvent event) {
+                try{
+                    msCurrent = event.getCurrentPosition();
+                    wp.updateView();
+                }catch(Exception ex){
+                    System.out.println("Progress error!");
+                }
+            }
+        });
+        
+        thread = new Thread(this);
+        thread.start();
+    }
+    
+    public void open(File file, FFStuffs ffss){
         // On définit le fichier pour l'affichage de la forme d'onde
-        aw.setVideoFilePath(file);
+        setVideoFilePath(file);
         
         // On renseigne (on obtient les infos)
         if(ffss == null){
-            aw.ffss = FFStuffs.create(file);            
+            this.ffss = FFStuffs.create(file);            
         }else{
-            aw.ffss = ffss;
+            this.ffss = ffss;
         }
         
-        // On lance les dépendances
-        aw.aws = new AudioWaveScale();
-        aw.wp = new AudioWavePanel(aw.ffss, aw.aws, aw, dark);
-        
-        // On lance l'initialisation
-        aw.init();
-        
-        return aw;
+        wp.updateView();
     }
     
     // Pour info :
@@ -140,60 +200,7 @@ public class AudioWave extends JPanel implements Runnable {
     //--------------------------------------------------------------------------
     int[] startAreaKaraPixels = null, stopAreaKaraPixels = null;
     //--------------------------------------------------------------------------
-    
-    private void init(){
-        setLayout(new BorderLayout());
         
-        add(wp, BorderLayout.CENTER);
-        add(horizontalWaveBar, BorderLayout.SOUTH);
-        
-        horizontalWaveBar.addAdjustmentListener((AdjustmentEvent e) -> {
-            // e.getValue() > frames
-            // on raisonne en samples
-            int samples = Math.round(getSamplesFromFrame(e.getValue()) / samplesPerPixel);
-            updateDisplayWithOffset(-samples, timeStart, timeEnd);
-        });
-        
-        try { 
-            clipPlaying = AudioSystem.getClip();
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(AudioWave.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        addAudioListener(new AudioAdapter() {
-            @Override
-            public void endOfSoundReached() {
-                try{
-                    stop();
-                }catch(Exception ex){
-                    System.out.println("End of sound error!");
-                }
-            }
-
-            @Override
-            public void endOfAreaReached() {
-                try{
-                    stop();
-                }catch(Exception ex){
-                    System.out.println("End of area error!");
-                }
-            }
-
-            @Override
-            public void displayProgress(AudioEvent event) {
-                try{
-                    msCurrent = event.getCurrentPosition();
-                    wp.updateView();
-                }catch(Exception ex){
-                    System.out.println("Progress error!");
-                }
-            }
-        });
-        
-        thread = new Thread(this);
-        thread.start();
-    }
-    
     @Override
     public void run() {
         while(true){
@@ -595,7 +602,161 @@ public class AudioWave extends JPanel implements Runnable {
             }
         }
         
-    }    
+    }
+    
+    private Map<Double, Double> doWaveForm2() throws FrameGrabber.Exception{
+        
+        Map<Double, Double> xy = new HashMap<>();
+                
+        int w;
+        // w > largeur totale
+        // on veut des samples on a des milliseconds
+        Time substractWhole = Time.substract(Time.create(0L), ffss.getDuration());
+        Time substractArea = Time.substract(timeStart, timeEnd);
+        
+        if(Time.toMillisecondsTime(substractArea) != 0){
+            w = Math.round(getSamplesFromFrame(Time.getFrame(substractArea, ffss.getFps())) / samplesPerPixel);
+        }else{
+            w = Math.round(getSamplesFromFrame(Time.getFrame(substractWhole, ffss.getFps())) / samplesPerPixel);
+        }
+        
+        if(w == 0){
+            w = 20000;
+        }
+        
+        AudioFormat format;
+        
+        FFmpegFrameGrabber g = new FFmpegFrameGrabber(videoFilePath);
+        g.start();
+        
+        boolean stop = false;
+        
+        while(stop == false){
+            try {
+                Frame frame = g.grab();
+                
+                if (frame == null) {
+                    stop = true;
+                    continue;
+                }
+
+                if (frame.samples != null) {
+                    ShortBuffer channelSamplesShortBuffer = (ShortBuffer) frame.samples[0];
+                    channelSamplesShortBuffer.rewind();
+
+                    ByteBuffer outBuffer = ByteBuffer.allocate(channelSamplesShortBuffer.capacity() * 2);
+
+                    for (int i = 0; i < channelSamplesShortBuffer.capacity(); i++) {
+                        short val = channelSamplesShortBuffer.get(i);
+                        outBuffer.putShort(val);
+                    }
+                    
+                    //----------------------------------------------------------
+                    // On souhaite maintenant lire les bytes
+                    // afin de créer la courbe
+                    //----------------------------------------------------------
+
+                    try(ByteArrayInputStream bais = 
+                            new ByteArrayInputStream(outBuffer.array(), 0, outBuffer.capacity());
+                            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(bais);){
+                        
+                        format = audioInputStream.getFormat();
+
+                        byte[] audioBytes = new byte[(int)(audioInputStream.getFrameLength() * format.getFrameSize())];
+
+                        audioInputStream.read(audioBytes);
+
+                        if(audioBytes != null){
+
+                            int[] audioData = null;
+
+                            if (format.getSampleSizeInBits() == 16) {
+                                int nlengthInSamples = audioBytes.length / 2;
+                                audioData = new int[nlengthInSamples];
+                                if (format.isBigEndian()) {
+                                    for (int i = 0; i < nlengthInSamples; i++) {
+                                        /* First byte is MSB (high order) */
+                                        int MSB = (int) audioBytes[2*i];
+                                        /* Second byte is LSB (low order) */
+                                        int LSB = (int) audioBytes[2*i+1];
+                                        audioData[i] = MSB << 8 | (255 & LSB);
+                                    }
+                                }else{
+                                    for (int i = 0; i < nlengthInSamples; i++) {
+                                        /* First byte is LSB (low order) */
+                                        int LSB = (int) audioBytes[2*i];
+                                        /* Second byte is MSB (high order) */
+                                        int MSB = (int) audioBytes[2*i+1];
+                                        audioData[i] = MSB << 8 | (255 & LSB);
+                                    }
+                                }
+                            } else if (format.getSampleSizeInBits() == 8) {
+                                int nlengthInSamples = audioBytes.length;
+                                audioData = new int[nlengthInSamples];
+                                if (format.getEncoding().toString().startsWith("PCM_SIGN")) {
+                                    for (int i = 0; i < audioBytes.length; i++) {
+                                        audioData[i] = audioBytes[i];
+                                    }
+                                } else {
+                                    for (int i = 0; i < audioBytes.length; i++) {
+                                        audioData[i] = audioBytes[i] - 128;
+                                    }
+                                }
+                            }
+
+                            int frames_per_pixel = audioBytes.length / format.getFrameSize()/w;
+                            byte my_byte;
+                            int numChannels = format.getChannels();
+                            
+                            List<AudioWaveValues> values = new ArrayList<>();
+
+                            for (double x = 1; x < w && audioData != null; x++) {
+                                int idx = (int) (frames_per_pixel * numChannels * x);
+                                if (format.getSampleSizeInBits() == 8) {
+                                     my_byte = (byte) audioData[idx];
+                                } else {
+                                     my_byte = (byte) (128 * audioData[idx] / 32768 );
+                                }
+                                double y_new = (double) (waveHeight * (128 - my_byte) / 256);
+
+                                values.add(AudioWaveValues.create(x, y_new));
+                            }
+
+                            // On cherche les valeurs hautes et basses
+                            double ceiling = values.get(0).getY();
+                            double floor = values.get(0).getY();
+                            for(AudioWaveValues val : values){
+                                ceiling = Math.max(val.getY(), ceiling);
+                                floor = Math.min(val.getY(), floor);
+                            }
+
+                            // On détermine les valeurs à entrer avec un ratio
+                            double amplitude = ceiling - floor;
+                            double max = waveHeight;
+                            for(AudioWaveValues val : values){
+                                double x = val.getX();
+                                double y_calc = val.getY() - floor;
+                                double y = max * y_calc / amplitude;
+                                xy.put(x, y);
+                            }
+                        }
+                        
+                        outBuffer.clear();
+                    } catch (IOException | UnsupportedAudioFileException ex) {
+                        Logger.getLogger(AudioPlayer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                            
+                }
+            } catch (FrameGrabber.Exception ex) {
+                Logger.getLogger(AudioPlayer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        g.stop();
+        g.release();
+        
+        return xy;
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Evenements">
@@ -670,7 +831,7 @@ public class AudioWave extends JPanel implements Runnable {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Accesseurs">
-    
+        
     public File getVideoFilePath() {
         return videoFilePath;
     }

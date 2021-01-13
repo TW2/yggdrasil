@@ -82,21 +82,14 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         //free();
         // Préparation de variables
         File video = new File(videopath);
-        boolean darkUI = MainFrame.isDark();
         
         try {
             player.setVideo(video);
             media = video.exists();
+            
+            wave.openAudio(video);
         } catch (FrameGrabber.Exception ex) {
-            return;
-        }
-        
-        // Etude du signal
-        ffss = FFStuffs.create(video);
-        
-        // Si audio faire waveform
-        if(ffss.hasAudio()){
-            wave.openAudio(video, ffss, darkUI);
+            
         }
     }
     
@@ -410,33 +403,43 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnBeforeStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeforeStartActionPerformed
-        Time end = fp.getAreaStartTime();
-        Time start = Time.substract(end, Time.create(500L));
-        playArea(start, end);
+        if(fp != null){
+            Time end = fp.getAreaStartTime();
+            Time start = Time.substract(end, Time.create(500L));
+            playArea(start, end);
+        }        
     }//GEN-LAST:event_btnBeforeStartActionPerformed
 
     private void btnBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeginActionPerformed
-        Time start = fp.getAreaStartTime();
-        Time end = Time.addition(start, Time.create(500L));
-        playArea(start, end);
+        if(fp != null){
+            Time start = fp.getAreaStartTime();
+            Time end = Time.addition(start, Time.create(500L));
+            playArea(start, end);
+        }
     }//GEN-LAST:event_btnBeginActionPerformed
 
     private void btnInsideActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsideActionPerformed
-        Time start = fp.getAreaStartTime();
-        Time end = fp.getAreaEndTime();
-        playArea(start, end);
+        if(fp != null){
+            Time start = fp.getAreaStartTime();
+            Time end = fp.getAreaEndTime();
+            playArea(start, end);
+        }        
     }//GEN-LAST:event_btnInsideActionPerformed
 
     private void btnEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEndActionPerformed
-        Time end = fp.getAreaEndTime();
-        Time start = Time.substract(end, Time.create(500L));
-        playArea(start, end);
+        if(fp != null){
+            Time end = fp.getAreaEndTime();
+            Time start = Time.substract(end, Time.create(500L));
+            playArea(start, end);
+        }        
     }//GEN-LAST:event_btnEndActionPerformed
 
     private void btnAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAfterActionPerformed
-        Time start = fp.getAreaEndTime();
-        Time end = Time.addition(start, Time.create(500L));
-        playArea(start, end);
+        if(fp != null){
+            Time start = fp.getAreaEndTime();
+            Time end = Time.addition(start, Time.create(500L));
+            playArea(start, end);
+        }        
     }//GEN-LAST:event_btnAfterActionPerformed
 
 

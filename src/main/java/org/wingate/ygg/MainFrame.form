@@ -79,11 +79,20 @@
             <Menu class="org.wingate.freectrl.VMenuItem" name="vmnDisplayFiles">
               <Properties>
                 <Property name="mnemonic" type="int" value="68"/>
-                <Property name="text" type="java.lang.String" value="vMenuItem2"/>
+                <Property name="text" type="java.lang.String" value="Display files"/>
                 <Property name="variableName" type="java.lang.String" value="vmnDisplayFiles"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnDisplayFilesActionPerformed"/>
+              </Events>
+            </Menu>
+            <Menu class="org.wingate.freectrl.VMenuItem" name="vmnDisplayTranslate">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Display translate"/>
+                <Property name="variableName" type="java.lang.String" value="vmnDisplayTranslate"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnDisplayTranslateActionPerformed"/>
               </Events>
             </Menu>
             <Menu class="org.wingate.freectrl.VMenuItem" name="vmnDisplayTime">
@@ -147,9 +156,9 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="btnMessageTop" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jPanel1" pref="489" max="32767" attributes="0"/>
+              <Component id="jPanel1" pref="443" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="progressP2P" min="-2" pref="100" max="-2" attributes="0"/>
+              <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
           <Component id="deskMain" alignment="0" max="32767" attributes="0"/>
@@ -160,7 +169,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Component id="progressP2P" max="32767" attributes="0"/>
+                  <Component id="jPanel2" max="32767" attributes="0"/>
                   <Component id="btnMessageTop" max="32767" attributes="0"/>
                   <Component id="jPanel1" max="32767" attributes="0"/>
               </Group>
@@ -186,8 +195,6 @@
         </DimensionLayout>
       </Layout>
     </Container>
-    <Component class="javax.swing.JProgressBar" name="progressP2P">
-    </Component>
     <Component class="javax.swing.JButton" name="btnMessageTop">
       <Properties>
         <Property name="text" type="java.lang.String" value="Send message"/>
@@ -203,6 +210,21 @@
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
           </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPanel" name="jPanel2">
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout">
+        <Property name="axis" type="int" value="1"/>
+      </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JProgressBar" name="progressP2P">
+        </Component>
+        <Component class="javax.swing.JProgressBar" name="progressTask">
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+          </AuxValues>
         </Component>
       </SubComponents>
     </Container>

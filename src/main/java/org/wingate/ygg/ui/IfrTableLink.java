@@ -28,6 +28,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.io.audio.AudioAdapter;
 import org.wingate.ygg.io.subs.ass.ASS;
 import org.wingate.ygg.io.subs.ass.Event;
 import org.wingate.ygg.io.subs.ass.Style;
@@ -60,6 +61,11 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     private final float tpTextScaleMax = 5f;
     private float tpTextScaleCur = 1f;
     // ifrAssSubCommands stop
+    
+    // ifr after init
+    private IfrWave wave = null;
+    private IfrVideo video = null;
+    //=============== ifr after init stop
     
     /**
      * Creates new form IfrTableLink
@@ -99,6 +105,40 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         });
         initAssComboStyle();
         initAssComboName();
+    }
+    
+    public void externallyInitAfterRealInit(IfrWave wave, IfrVideo video){
+        this.wave = wave;
+        this.video = video;
+        
+        wave.a.addVideoListener(new AudioAdapter(){
+            @Override
+            public void startTimeChanged(Time start) {
+                tfStartTime.setText(start.toProgramExtendedTime());
+                Time duration = Time.substract(start, wave.a.getTimeOfStopArea());
+                tfDurationTime.setText(duration.toProgramExtendedTime());
+                if(ffss != null){
+                    int t = Time.getFrame(start, ffss.getFps());
+                    tfStartFrame.setText(Integer.toString(t));
+                    int d = Time.getFrame(duration, ffss.getFps());
+                    tfDurationFrame.setText(Integer.toString(d));
+                }
+            }
+
+            @Override
+            public void endTimeChanged(Time end) {
+                tfEndTime.setText(end.toProgramExtendedTime());
+                Time duration = Time.substract(wave.a.getTimeOfStartArea(), end);
+                tfDurationTime.setText(duration.toProgramExtendedTime());
+                if(ffss != null){
+                    int t = Time.getFrame(end, ffss.getFps());
+                    tfEndFrame.setText(Integer.toString(t));
+                    int d = Time.getFrame(duration, ffss.getFps());
+                    tfDurationFrame.setText(Integer.toString(d));
+                }
+            }
+            
+        });
     }
     
     public void alter(Event ev){

@@ -18,11 +18,15 @@ package org.wingate.ygg.ui;
 
 import java.awt.BorderLayout;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.filechooser.FileFilter;
+import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.io.audio.AudioWave;
 import org.wingate.ygg.util.FFStuffs;
 import org.wingate.ygg.io.VideoFileChooserFileFilter;
+import org.wingate.ygg.io.audio.Audio;
 
 /**
  *
@@ -30,7 +34,7 @@ import org.wingate.ygg.io.VideoFileChooserFileFilter;
  */
 public class IfrWave extends javax.swing.JInternalFrame {
 
-    AudioWave aw = null;
+    Audio a = new Audio();
     
     /**
      * Creates new form IfrWave
@@ -45,17 +49,27 @@ public class IfrWave extends javax.swing.JInternalFrame {
             fcAV.removeChoosableFileFilter(ff);
         }
         fcAV.addChoosableFileFilter(new VideoFileChooserFileFilter());
-    }
-    
-    public void openAudio(File audio, FFStuffs ffss, boolean darkUI){
-        aw = AudioWave.create(audio, ffss, darkUI);
         
         paneWave.setLayout(new BorderLayout());
-        paneWave.add(aw, BorderLayout.CENTER);
-        aw.setWaveHeight(paneWave.getHeight());
-        aw.updateDisplayWithOffset(0, Time.create(0L), Time.create(0L));
+        paneWave.add(a, BorderLayout.CENTER);
+        a.setWaveHeight(paneWave.getHeight());
         
         updateUI();
+    }
+    
+    public void openAudio(File audio){        
+        try {
+            a.setFile(audio);
+            a.refresh();
+            updateUI();
+        } catch (FrameGrabber.Exception | LineUnavailableException ex) {
+            Logger.getLogger(IfrWave.class.getName()).log(Level.SEVERE, null, ex);
+        }
+//        aw.open(audio, ffss);
+//        aw.updateDisplayWithOffset(0, Time.create(0L), Time.create(0L));
+//
+//
+//        updateUI();
     }
 
     /**
@@ -232,60 +246,60 @@ public class IfrWave extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayActionPerformed
-        if(aw != null){
-            aw.play(Time.create(0L), Time.create(0L));
+        if(a != null){
+            a.playAudio();
         }
     }//GEN-LAST:event_btnPlayActionPerformed
 
     private void btnPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPauseActionPerformed
-        if(aw != null){
-            aw.pause();
+        if(a != null){
+            a.pauseAudio();
         }
     }//GEN-LAST:event_btnPauseActionPerformed
 
     private void btnStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopActionPerformed
-        if(aw != null){
-            aw.stop();
+        if(a != null){
+            a.stopAudio();
         }
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeActionPerformed
-        if(aw != null){
-            Time real_start = aw.getTimeOfStartArea(false);
+        if(a != null){
+            Time real_start = a.getTimeOfStartArea(false);
             Time start = Time.substract(real_start, Time.create(500L));
-            aw.play(start, real_start);
+            a.playAudioAndStop(start, real_start);
         }
     }//GEN-LAST:event_btnPlayBeforeActionPerformed
 
     private void btnPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeginActionPerformed
-        if(aw != null){
-            Time real_start = aw.getTimeOfStartArea(false);
+        if(a != null){
+            Time real_start = a.getTimeOfStartArea(false);
             Time end = Time.addition(real_start, Time.create(500L));
-            aw.play(real_start, end);
+            a.playAudioAndStop(real_start, end);
         }
     }//GEN-LAST:event_btnPlayBeginActionPerformed
 
     private void btnPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaActionPerformed
-        if(aw != null){
-            Time real_start = aw.getTimeOfStartArea(false);
-            Time real_end = aw.getTimeOfStopArea(false);
-            aw.play(real_start, real_end);
+        if(a != null){
+            Time real_start = a.getTimeOfStartArea(false);
+            Time real_end = a.getTimeOfStopArea(false);
+            a.playAudioAndStop(real_start, real_end);
         }
     }//GEN-LAST:event_btnPlayAreaActionPerformed
 
     private void btnPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayEndActionPerformed
-        if(aw != null){
-            Time real_end = aw.getTimeOfStopArea(false);
+        if(a != null){
+            Time real_end = a.getTimeOfStopArea(false);
             Time start = Time.substract(real_end, Time.create(500L));            
-            aw.play(start, real_end);
+            a.playAudioAndStop(start, real_end);
         }
     }//GEN-LAST:event_btnPlayEndActionPerformed
 
     private void btnPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterActionPerformed
-        if(aw != null){
-            Time real_end = aw.getTimeOfStopArea(false);
+        if(a != null){
+            Time real_end = a.getTimeOfStopArea(false);
             Time end = Time.addition(real_end, Time.create(500L));            
-            aw.play(real_end, end);
+            a.playAudioAndStop(real_end, end);
         }
     }//GEN-LAST:event_btnPlayAfterActionPerformed
 

@@ -45,7 +45,7 @@ public class FFStuffs {
     
     private int videoWidth = 0, videoHeight = 0;
     private VideoRatio ratio = null;
-    private double fps = 0d;
+    private double fps = 1d;
     private int frameCount = 0;
     private Time duration = null;
     private String sampleFormat = null;
