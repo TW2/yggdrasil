@@ -18,6 +18,7 @@ package org.wingate.ygg.io.video;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.EventListenerList;
@@ -26,6 +27,7 @@ import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.wingate.timelibrary.Time;
+import org.wingate.ygg.ui.IfrTranslation;
 
 /**
  *
@@ -193,19 +195,25 @@ public class VideoPlayer implements Runnable {
                         // On transmet les éléments à l'event
                         VideoEvent event = new VideoEvent(bi, milliseconds, frameNumber);
                         fireVideo(event);
-
-
-                        // On prend le temps à l'instant T                        
-                        long before = System.nanoTime();
-                        long timestamp = frame.timestamp * 1000L;
-                        long calculatedTimestampNanos = oldNanos + System.nanoTime() - before;
-
-                        // On attend le temps requis entre deux frames
-                        while(timestamp > calculatedTimestampNanos){
-                            calculatedTimestampNanos = oldNanos + System.nanoTime() - before;
+                        
+                        try {
+                            TimeUnit.NANOSECONDS.sleep(
+                                    Math.round(1L / g.getVideoFrameRate() * Math.pow(10, 9)));
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(IfrTranslation.class.getName()).log(Level.SEVERE, null, ex);
                         }
-
-                        oldNanos = calculatedTimestampNanos;
+                        
+//                        // On prend le temps à l'instant T                        
+//                        long before = System.nanoTime();
+//                        long timestamp = frame.timestamp * 1000L;
+//                        long calculatedTimestampNanos = oldNanos + System.nanoTime() - before;
+//
+//                        // On attend le temps requis entre deux frames
+//                        while(timestamp > calculatedTimestampNanos){
+//                            calculatedTimestampNanos = oldNanos + System.nanoTime() - before;
+//                        }
+//
+//                        oldNanos = calculatedTimestampNanos;
                     }
                     
                 } catch (FrameGrabber.Exception ex) {

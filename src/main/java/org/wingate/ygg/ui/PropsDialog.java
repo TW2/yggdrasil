@@ -24,7 +24,7 @@ import javax.swing.filechooser.FileFilter;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
-import org.wingate.ygg.io.subs.ass.ASS;
+import org.wingate.ygg.subs.ASS;
 import org.wingate.ygg.util.FFStuffs;
 
 /**

@@ -24,13 +24,13 @@ import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
-import org.wingate.ygg.io.subs.ass.ASS;
+import org.wingate.ygg.subs.ASS;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
-import org.wingate.ygg.io.subs.ass.Event;
-import org.wingate.ygg.io.subs.ass.Style;
-import org.wingate.ygg.io.subs.ass.model.AssEventTableModel;
-import org.wingate.ygg.io.subs.ass.renderer.AssEventTableRenderer;
+import org.wingate.ygg.subs.AssEvent;
+import org.wingate.ygg.subs.AssStyle;
+import org.wingate.ygg.subs.AssEventTableModel;
+import org.wingate.ygg.subs.AssEventTableRenderer;
 
 /**
  *
@@ -110,16 +110,16 @@ public class IfrTable extends javax.swing.JInternalFrame {
         }
         
         tableV1.setDefaultRenderer(String.class, assEventTableRenderer);
-        tableV1.setDefaultRenderer(Event.LineType.class, assEventTableRenderer);
+        tableV1.setDefaultRenderer(AssEvent.LineType.class, assEventTableRenderer);
         tableV1.setDefaultRenderer(Time.class, assEventTableRenderer);
-        tableV1.setDefaultRenderer(Style.class, assEventTableRenderer);
+        tableV1.setDefaultRenderer(AssStyle.class, assEventTableRenderer);
         tableV1.setDefaultRenderer(Integer.class, assEventTableRenderer);
         
         tableV1.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(e.getButton() == MouseEvent.BUTTON1){
-                    Event ev = dtmASS.getEventAt(tableV1.getSelectedRow());
+                    AssEvent ev = dtmASS.getEventAt(tableV1.getSelectedRow());
                     MainFrame.getTableLinkFrame().alter(ev);
                     try{
                         MainFrame.getTableLinkFrame().displayEventTime(ev);
@@ -153,7 +153,7 @@ public class IfrTable extends javax.swing.JInternalFrame {
     
     public void saveASSTable(File f){
         ASS saving = new ASS();
-        List<Event> events = dtmASS.getAllEvents();
+        List<AssEvent> events = dtmASS.getAllEvents();
         saving.setEvents(events);
         ASS.Save(f.getPath(), saving);
     }

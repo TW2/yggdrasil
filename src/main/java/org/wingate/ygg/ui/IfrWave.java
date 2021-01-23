@@ -16,7 +16,8 @@
  */
 package org.wingate.ygg.ui;
 
-import java.awt.BorderLayout;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,17 +25,42 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.swing.filechooser.FileFilter;
 import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.util.FFStuffs;
+import org.wingate.ygg.audiovideo.AVInfo;
+import org.wingate.ygg.audiovideo.AudioPanel;
+import org.wingate.ygg.audiovideo.AudioRender;
+import org.wingate.ygg.audiovideo.PlayAudio;
 import org.wingate.ygg.io.VideoFileChooserFileFilter;
-import org.wingate.ygg.io.audio.Audio;
 
 /**
  *
  * @author util2
  */
-public class IfrWave extends javax.swing.JInternalFrame {
+public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
 
-    Audio a = new Audio();
+    // Lire le son
+    private final PlayAudio playAudio = new PlayAudio();
+    
+    // Faire des images en forme d'onde ou spectrogramme
+    private final AudioRender audioRender = new AudioRender();
+    
+    // Montrer les images
+    private final AudioPanel audioPanel = new AudioPanel();
+    
+    // Echelle
+    private float msPerPixel = 0.25f;
+    
+    // Conserve le fichier audio
+    private File media = null;
+    
+    // Conserve la base d'infos
+    private AVInfo info = null;
+    
+    // Etat de la boucle de création d'images de forme d'onde et de spectrograme
+    private volatile boolean ended = true;
+    private volatile int counter = 0;
+    
+    // Contrôle de la tâche
+    private Thread th = null;
     
     /**
      * Creates new form IfrWave
@@ -48,28 +74,89 @@ public class IfrWave extends javax.swing.JInternalFrame {
         for(FileFilter ff : fcAV.getChoosableFileFilters()){
             fcAV.removeChoosableFileFilter(ff);
         }
-        fcAV.addChoosableFileFilter(new VideoFileChooserFileFilter());
+        fcAV.addChoosableFileFilter(new VideoFileChooserFileFilter());        
         
-        paneWave.setLayout(new BorderLayout());
-        paneWave.add(a, BorderLayout.CENTER);
-        a.setWaveHeight(paneWave.getHeight());
+        panGraph.setSize(920, 135);
+        audioPanel.setSize(920, 135);
+        panGraph.add(audioPanel);
+        
+        scGraph.setMinimum(0);
+        scGraph.setMaximum(1000000);
+        scGraph.addAdjustmentListener((AdjustmentEvent e) -> {
+            audioPanel.setCurrentScrolledMilliseconds(e.getValue());
+        });
+        panGraph.addMouseWheelListener((MouseWheelEvent e) -> {
+            scGraph.setValue(e.getWheelRotation() < 0 ? 
+                    scGraph.getValue() + 100 : 
+                    scGraph.getValue() - 100);
+        });
         
         updateUI();
+        
+        th = new Thread(this);
+        th.start();
     }
     
-    public void openAudio(File audio){        
+    public void stopThread(){
+        if(th != null){
+            th.interrupt();
+            th = null;
+        }
+    }
+    
+    public void openAudio(File audio){
+        this.media = audio;
         try {
-            a.setFile(audio);
-            a.refresh();
-            updateUI();
+            playAudio.setAudio(audio);
+            info = new AVInfo(audio);
+            audioPanel.setInfo(info, 1000000, 920);
+            //==================================================================
+            // On relance la tâche de création de forme d'onde et spectrogramme
+            //------------------------------------------------------------------
+            counter = 0;
+            ended = false;
+            //------------------------------------------------- FIN ONDE SPECTRO
         } catch (FrameGrabber.Exception | LineUnavailableException ex) {
             Logger.getLogger(IfrWave.class.getName()).log(Level.SEVERE, null, ex);
         }
-//        aw.open(audio, ffss);
-//        aw.updateDisplayWithOffset(0, Time.create(0L), Time.create(0L));
-//
-//
-//        updateUI();
+    }
+    
+    private void playAudioAndStop(Time from, Time to){
+        playAudio.setMsAreaStart(Time.toMillisecondsTime(from));
+        playAudio.setMsAreaStop(Time.toMillisecondsTime(to));
+        playAudio.setAction(PlayAudio.Action.Ready);
+        playAudio.playStopAudio();
+    }
+    
+    private boolean createImages(int counter){
+        if(info != null){
+            long frMs = Math.round(8000 * msPerPixel * counter);
+            long toMs = Math.round(8000 * msPerPixel * (counter + 1));
+            long drMs = info.getDuration() / 1000L;
+            Time from = Time.create(frMs);
+            Time to = Time.create(toMs);
+            int w = 920;
+            int h = 135;
+            if(toMs > drMs){
+                long diff = drMs - frMs;
+                long total = Math.round(8000 * msPerPixel);
+                w = (int)Math.round(920 * diff / total);
+                to = Time.create(drMs);
+            }
+            audioRender.renderWaveform(media, w, h, from, to);
+            audioRender.renderSpectrogram(media, w, h, from, to);
+            audioPanel.repaint();
+            return toMs > drMs;
+        }
+        return false;
+    }
+
+    public float getMsPerPixel() {
+        return msPerPixel;
+    }
+
+    public void setMsPerPixel(float msPerPixel) {
+        this.msPerPixel = msPerPixel;
     }
 
     /**
@@ -83,6 +170,8 @@ public class IfrWave extends javax.swing.JInternalFrame {
 
         fcAV = new javax.swing.JFileChooser();
         paneWave = new javax.swing.JPanel();
+        panGraph = new javax.swing.JPanel();
+        scGraph = new javax.swing.JScrollBar();
         tabbedWave = new javax.swing.JTabbedPane();
         paneCtrl = new javax.swing.JPanel();
         toolBarCtrl = new javax.swing.JToolBar();
@@ -95,21 +184,37 @@ public class IfrWave extends javax.swing.JInternalFrame {
         btnPlayArea = new javax.swing.JButton();
         btnPlayEnd = new javax.swing.JButton();
         btnPlayAfter = new javax.swing.JButton();
+        panKaraoke = new javax.swing.JPanel();
+        panSignal = new javax.swing.JPanel();
+        jToolBar1 = new javax.swing.JToolBar();
+        cbSpectrum = new javax.swing.JCheckBox();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        jLabel1 = new javax.swing.JLabel();
+        jSlider1 = new javax.swing.JSlider();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        jLabel2 = new javax.swing.JLabel();
+        jSlider2 = new javax.swing.JSlider();
 
         setMaximizable(true);
         setResizable(true);
         setTitle("Audio");
 
-        javax.swing.GroupLayout paneWaveLayout = new javax.swing.GroupLayout(paneWave);
-        paneWave.setLayout(paneWaveLayout);
-        paneWaveLayout.setHorizontalGroup(
-            paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+        paneWave.setLayout(new java.awt.BorderLayout());
+
+        javax.swing.GroupLayout panGraphLayout = new javax.swing.GroupLayout(panGraph);
+        panGraph.setLayout(panGraphLayout);
+        panGraphLayout.setHorizontalGroup(
+            panGraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 883, Short.MAX_VALUE)
         );
-        paneWaveLayout.setVerticalGroup(
-            paneWaveLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 175, Short.MAX_VALUE)
+        panGraphLayout.setVerticalGroup(
+            panGraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 135, Short.MAX_VALUE)
         );
+
+        paneWave.add(panGraph, java.awt.BorderLayout.CENTER);
+
+        scGraph.setOrientation(javax.swing.JScrollBar.HORIZONTAL);
 
         toolBarCtrl.setFloatable(false);
         toolBarCtrl.setRollover(true);
@@ -215,7 +320,7 @@ public class IfrWave extends javax.swing.JInternalFrame {
         paneCtrl.setLayout(paneCtrlLayout);
         paneCtrlLayout.setHorizontalGroup(
             paneCtrlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(toolBarCtrl, javax.swing.GroupLayout.DEFAULT_SIZE, 871, Short.MAX_VALUE)
+            .addComponent(toolBarCtrl, javax.swing.GroupLayout.DEFAULT_SIZE, 883, Short.MAX_VALUE)
         );
         paneCtrlLayout.setVerticalGroup(
             paneCtrlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -227,81 +332,125 @@ public class IfrWave extends javax.swing.JInternalFrame {
 
         tabbedWave.addTab("Time", paneCtrl);
 
+        javax.swing.GroupLayout panKaraokeLayout = new javax.swing.GroupLayout(panKaraoke);
+        panKaraoke.setLayout(panKaraokeLayout);
+        panKaraokeLayout.setHorizontalGroup(
+            panKaraokeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 883, Short.MAX_VALUE)
+        );
+        panKaraokeLayout.setVerticalGroup(
+            panKaraokeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 76, Short.MAX_VALUE)
+        );
+
+        tabbedWave.addTab("Karaoke", panKaraoke);
+
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        cbSpectrum.setText("Spectrum");
+        cbSpectrum.setFocusable(false);
+        cbSpectrum.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        cbSpectrum.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        cbSpectrum.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbSpectrumActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(cbSpectrum);
+        jToolBar1.add(jSeparator2);
+
+        jLabel1.setText("Scale on X :");
+        jToolBar1.add(jLabel1);
+        jToolBar1.add(jSlider1);
+        jToolBar1.add(jSeparator3);
+
+        jLabel2.setText("Scale on Y :");
+        jToolBar1.add(jLabel2);
+        jToolBar1.add(jSlider2);
+
+        javax.swing.GroupLayout panSignalLayout = new javax.swing.GroupLayout(panSignal);
+        panSignal.setLayout(panSignalLayout);
+        panSignalLayout.setHorizontalGroup(
+            panSignalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 883, Short.MAX_VALUE)
+        );
+        panSignalLayout.setVerticalGroup(
+            panSignalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panSignalLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(27, Short.MAX_VALUE))
+        );
+
+        tabbedWave.addTab("Signal", panSignal);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(tabbedWave)
             .addComponent(paneWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(scGraph, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(paneWave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(paneWave, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tabbedWave, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(scGraph, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(tabbedWave, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayActionPerformed
-        if(a != null){
-            a.playAudio();
-        }
+        playAudio.playStopAudio();
     }//GEN-LAST:event_btnPlayActionPerformed
 
     private void btnPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPauseActionPerformed
-        if(a != null){
-            a.pauseAudio();
-        }
+        playAudio.playStopAudio();
     }//GEN-LAST:event_btnPauseActionPerformed
 
     private void btnStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopActionPerformed
-        if(a != null){
-            a.stopAudio();
-        }
+        playAudio.setAction(PlayAudio.Action.Stop);
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeActionPerformed
-        if(a != null){
-            Time real_start = a.getTimeOfStartArea(false);
-            Time start = Time.substract(real_start, Time.create(500L));
-            a.playAudioAndStop(start, real_start);
-        }
+//        Time real_start = a.getTimeOfStartArea(false);
+//        Time start = Time.substract(real_start, Time.create(500L));
+//        playAudioAndStop(start, real_start);
     }//GEN-LAST:event_btnPlayBeforeActionPerformed
 
     private void btnPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeginActionPerformed
-        if(a != null){
-            Time real_start = a.getTimeOfStartArea(false);
-            Time end = Time.addition(real_start, Time.create(500L));
-            a.playAudioAndStop(real_start, end);
-        }
+//        Time real_start = a.getTimeOfStartArea(false);
+//        Time end = Time.addition(real_start, Time.create(500L));
+//        playAudioAndStop(real_start, end);
     }//GEN-LAST:event_btnPlayBeginActionPerformed
 
     private void btnPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaActionPerformed
-        if(a != null){
-            Time real_start = a.getTimeOfStartArea(false);
-            Time real_end = a.getTimeOfStopArea(false);
-            a.playAudioAndStop(real_start, real_end);
-        }
+//        Time real_start = a.getTimeOfStartArea(false);
+//        Time real_end = a.getTimeOfStopArea(false);
+//        playAudioAndStop(real_start, real_end);
     }//GEN-LAST:event_btnPlayAreaActionPerformed
 
     private void btnPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayEndActionPerformed
-        if(a != null){
-            Time real_end = a.getTimeOfStopArea(false);
-            Time start = Time.substract(real_end, Time.create(500L));            
-            a.playAudioAndStop(start, real_end);
-        }
+//        Time real_end = a.getTimeOfStopArea(false);
+//        Time start = Time.substract(real_end, Time.create(500L));            
+//        playAudioAndStop(start, real_end);
     }//GEN-LAST:event_btnPlayEndActionPerformed
 
     private void btnPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterActionPerformed
-        if(a != null){
-            Time real_end = a.getTimeOfStopArea(false);
-            Time end = Time.addition(real_end, Time.create(500L));            
-            a.playAudioAndStop(real_end, end);
-        }
+//        Time real_end = a.getTimeOfStopArea(false);
+//        Time end = Time.addition(real_end, Time.create(500L));            
+//        playAudioAndStop(real_end, end);
     }//GEN-LAST:event_btnPlayAfterActionPerformed
+
+    private void cbSpectrumActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbSpectrumActionPerformed
+        audioPanel.setShowSpectrum(cbSpectrum.isSelected());
+    }//GEN-LAST:event_cbSpectrumActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -313,11 +462,33 @@ public class IfrWave extends javax.swing.JInternalFrame {
     private javax.swing.JButton btnPlayBegin;
     private javax.swing.JButton btnPlayEnd;
     private javax.swing.JButton btnStop;
+    private javax.swing.JCheckBox cbSpectrum;
     private javax.swing.JFileChooser fcAV;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JSlider jSlider1;
+    private javax.swing.JSlider jSlider2;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JPanel panGraph;
+    private javax.swing.JPanel panKaraoke;
+    private javax.swing.JPanel panSignal;
     private javax.swing.JPanel paneCtrl;
     private javax.swing.JPanel paneWave;
+    private javax.swing.JScrollBar scGraph;
     private javax.swing.JTabbedPane tabbedWave;
     private javax.swing.JToolBar toolBarCtrl;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        while (true){
+            while(ended == false){
+                ended = createImages(counter);
+                counter++;
+            }
+        }
+    }
 }

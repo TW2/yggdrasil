@@ -28,10 +28,9 @@ import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
-import org.wingate.ygg.io.audio.AudioAdapter;
-import org.wingate.ygg.io.subs.ass.ASS;
-import org.wingate.ygg.io.subs.ass.Event;
-import org.wingate.ygg.io.subs.ass.Style;
+import org.wingate.ygg.subs.ASS;
+import org.wingate.ygg.subs.AssEvent;
+import org.wingate.ygg.subs.AssStyle;
 import org.wingate.ygg.util.FFStuffs;
 import org.wingate.ygg.util.FramesPanel;
 
@@ -42,7 +41,7 @@ import org.wingate.ygg.util.FramesPanel;
 public class IfrTableLink extends javax.swing.JInternalFrame {
 
     private final ASS ass = ASS.NoFileToLoad();
-    private Event currentEvent = new Event();
+    private AssEvent currentEvent = new AssEvent();
     private final IfrTable table = MainFrame.getTableFrame();
     
     private final FramesPanel fp = null;
@@ -111,37 +110,37 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         this.wave = wave;
         this.video = video;
         
-        wave.a.addVideoListener(new AudioAdapter(){
-            @Override
-            public void startTimeChanged(Time start) {
-                tfStartTime.setText(start.toProgramExtendedTime());
-                Time duration = Time.substract(start, wave.a.getTimeOfStopArea());
-                tfDurationTime.setText(duration.toProgramExtendedTime());
-                if(ffss != null){
-                    int t = Time.getFrame(start, ffss.getFps());
-                    tfStartFrame.setText(Integer.toString(t));
-                    int d = Time.getFrame(duration, ffss.getFps());
-                    tfDurationFrame.setText(Integer.toString(d));
-                }
-            }
-
-            @Override
-            public void endTimeChanged(Time end) {
-                tfEndTime.setText(end.toProgramExtendedTime());
-                Time duration = Time.substract(wave.a.getTimeOfStartArea(), end);
-                tfDurationTime.setText(duration.toProgramExtendedTime());
-                if(ffss != null){
-                    int t = Time.getFrame(end, ffss.getFps());
-                    tfEndFrame.setText(Integer.toString(t));
-                    int d = Time.getFrame(duration, ffss.getFps());
-                    tfDurationFrame.setText(Integer.toString(d));
-                }
-            }
-            
-        });
+//        wave.a.addVideoListener(new AudioAdapter(){
+//            @Override
+//            public void startTimeChanged(Time start) {
+//                tfStartTime.setText(start.toProgramExtendedTime());
+//                Time duration = Time.substract(start, wave.a.getTimeOfStopArea());
+//                tfDurationTime.setText(duration.toProgramExtendedTime());
+//                if(ffss != null){
+//                    int t = Time.getFrame(start, ffss.getFps());
+//                    tfStartFrame.setText(Integer.toString(t));
+//                    int d = Time.getFrame(duration, ffss.getFps());
+//                    tfDurationFrame.setText(Integer.toString(d));
+//                }
+//            }
+//
+//            @Override
+//            public void endTimeChanged(Time end) {
+//                tfEndTime.setText(end.toProgramExtendedTime());
+//                Time duration = Time.substract(wave.a.getTimeOfStartArea(), end);
+//                tfDurationTime.setText(duration.toProgramExtendedTime());
+//                if(ffss != null){
+//                    int t = Time.getFrame(end, ffss.getFps());
+//                    tfEndFrame.setText(Integer.toString(t));
+//                    int d = Time.getFrame(duration, ffss.getFps());
+//                    tfDurationFrame.setText(Integer.toString(d));
+//                }
+//            }
+//            
+//        });
     }
     
-    public void alter(Event ev){
+    public void alter(AssEvent ev){
         currentEvent = ev;
         
         // Type de ligne
@@ -192,7 +191,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         tpText.setText(ev.getText());
     }
     
-    public void updateAreaFrames(Event ev){
+    public void updateAreaFrames(AssEvent ev){
         currentEvent = ev;
         
         if(fp != null){
@@ -209,7 +208,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
     }
     
-    public void displayEventTime(Event ev){
+    public void displayEventTime(AssEvent ev){
 //        int startFrame = Time.getFrame(ev.getStartTime(), ffss.getFps());
 //        int endFrame = Time.getFrame(ev.getEndTime(), ffss.getFps());
 //        
@@ -247,14 +246,14 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         });
     }
     
-    private Event getFromAssSubCommands(){
-        Event nv = new Event();
+    private AssEvent getFromAssSubCommands(){
+        AssEvent nv = new AssEvent();
         
         // Type
-        if(toggleDialogue.isSelected()) nv.setLineType(Event.LineType.Dialogue);
-        if(toggleComment.isSelected()) nv.setLineType(Event.LineType.Comment);
-        if(toggleProposal.isSelected()) nv.setLineType(Event.LineType.Proposal);
-        if(toggleRequest.isSelected()) nv.setLineType(Event.LineType.Request);
+        if(toggleDialogue.isSelected()) nv.setLineType(AssEvent.LineType.Dialogue);
+        if(toggleComment.isSelected()) nv.setLineType(AssEvent.LineType.Comment);
+        if(toggleProposal.isSelected()) nv.setLineType(AssEvent.LineType.Proposal);
+        if(toggleRequest.isSelected()) nv.setLineType(AssEvent.LineType.Request);
         
         // Layer
         nv.setLayer(snmLayer.getNumber().intValue());
@@ -295,7 +294,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         nv.setMarginV(snmVertical.getNumber().intValue());
         
         // Style        
-        nv.setStyle(dcbmStyle.getSize() == 0 ? new Style() : (Style)dcbmStyle.getSelectedItem());
+        nv.setStyle(dcbmStyle.getSize() == 0 ? new AssStyle() : (AssStyle)dcbmStyle.getSelectedItem());
         
         // Name
         nv.setName(dcbmName.getSize() == 0 ? "" : (String)dcbmName.getSelectedItem());
@@ -331,7 +330,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     @SuppressWarnings("static-access")
     public void saveASSTable(File f){
         ASS saving = new ASS();        
-        List<Event> events = table.getAssTableModel().getAllEvents();
+        List<AssEvent> events = table.getAssTableModel().getAllEvents();
         saving.setEvents(events);
         ASS.Save(f.getPath(), saving);
     }
@@ -853,7 +852,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     @SuppressWarnings("static-access")
     private void btnChangeSubActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeSubActionPerformed
         if(table.getTableV1().getSelectedRow() != -1){
-            Event nv = getFromAssSubCommands();
+            AssEvent nv = getFromAssSubCommands();
             table.getAssTableModel().changeEventAt(nv, table.getTableV1().getSelectedRow());
             table.getTableV1().updateUI();
             refreshTempASS();
@@ -870,7 +869,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     @SuppressWarnings("static-access")
     private void btnbAddSubBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnbAddSubBeforeActionPerformed
         if(table.getTableV1().getSelectedRow() != -1){
-            Event nv = getFromAssSubCommands();
+            AssEvent nv = getFromAssSubCommands();
             table.getAssTableModel().insertOneAt(nv, table.getTableV1().getSelectedRow());
             table.getTableV1().updateUI();
             refreshTempASS();
@@ -887,7 +886,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     @SuppressWarnings("static-access")
     private void btnAddSubAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSubAfterActionPerformed
         if(table.getTableV1().getSelectedRow() != -1){
-            Event nv = getFromAssSubCommands();
+            AssEvent nv = getFromAssSubCommands();
             if(table.getTableV1().getRowCount() - 1 == table.getTableV1().getSelectedRow()){
                 // We are at last event
                 table.getAssTableModel().insertOne(nv);
@@ -909,7 +908,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
 
     @SuppressWarnings("static-access")
     private void btnAddSubAtEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSubAtEndActionPerformed
-        Event nv = getFromAssSubCommands();
+        AssEvent nv = getFromAssSubCommands();
         table.getAssTableModel().insertOne(nv);
         table.getTableV1().updateUI();
         refreshTempASS();

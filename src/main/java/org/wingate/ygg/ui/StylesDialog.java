@@ -37,14 +37,14 @@ import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
-import org.wingate.ygg.io.subs.ass.ASS;
-import org.wingate.ygg.io.subs.ass.Event;
-import org.wingate.ygg.io.subs.ass.Style;
-import org.wingate.ygg.io.subs.ass.collection.StylesCollection;
-import org.wingate.ygg.io.subs.ass.collection.StylesCollectionConf;
-import org.wingate.ygg.io.subs.ass.rendersubs.YggyApply;
-import org.wingate.ygg.io.subs.ass.model.StylesCollectionTableModel;
-import org.wingate.ygg.io.subs.ass.renderer.StylesCollectionTableRenderer;
+import org.wingate.ygg.subs.ASS;
+import org.wingate.ygg.subs.AssEvent;
+import org.wingate.ygg.subs.AssStyle;
+import org.wingate.ygg.subs.AssStylesCollection;
+import org.wingate.ygg.subs.AssStylesCollectionConf;
+import org.wingate.ygg.subs.AssYggyApply;
+import org.wingate.ygg.subs.AssStylesCollectionTableModel;
+import org.wingate.ygg.subs.AssStylesCollectionTableRenderer;
 
 /**
  *
@@ -122,7 +122,7 @@ public class StylesDialog extends javax.swing.JDialog {
     }
     
     private DialogResult dialogResult = DialogResult.Unknown;    
-    private Map<String, Style> styles = new HashMap<>();    
+    private Map<String, AssStyle> styles = new HashMap<>();    
     private final DefaultComboBoxModel dcbmStyles = new DefaultComboBoxModel();
     private final DefaultComboBoxModel dcbmFonts = new DefaultComboBoxModel();
     private final SpinnerNumberModel snmFontsize = new SpinnerNumberModel(12, 1, 10000, 1);
@@ -149,16 +149,16 @@ public class StylesDialog extends javax.swing.JDialog {
     // ASS
     private ASS ass = ASS.NoFileToLoad();
     // Style
-    private final Style style = Style.getDefault();
+    private final AssStyle style = AssStyle.getDefault();
     // Event
-    private final Event ev = new Event();
+    private final AssEvent ev = new AssEvent();
     // View
     private final AssStyleGridPanel assStyleGridPanel = new AssStyleGridPanel(null);
     // Managing styles collections
     private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("All styles");
     private final DefaultTreeModel dtmMoviesStyles = new DefaultTreeModel(root);
-    private StylesCollectionTableModel styRelModel = null;
-    private StylesCollectionTableRenderer styRelRenderer = null;
+    private AssStylesCollectionTableModel styRelModel = null;
+    private AssStylesCollectionTableRenderer styRelRenderer = null;
 
     /**
      * Creates new form StylesDialog
@@ -225,10 +225,10 @@ public class StylesDialog extends javax.swing.JDialog {
         });
         
         // Styles collection
-        styRelModel = new StylesCollectionTableModel(in, get);
-        styRelRenderer = new StylesCollectionTableRenderer();
+        styRelModel = new AssStylesCollectionTableModel(in, get);
+        styRelRenderer = new AssStylesCollectionTableRenderer();
         tableCollections.setModel(styRelModel);
-        tableCollections.setDefaultRenderer(Style.class, styRelRenderer);
+        tableCollections.setDefaultRenderer(AssStyle.class, styRelRenderer);
         popmAddStyleToCollection.setText(in.getTranslated("StyleColAdd", get, "Add this collection's name"));
         popmRemoveStyleFromCollection.setText(in.getTranslated("StyleColRem", get, "Remove this collection"));
         treeCollections.setModel(dtmMoviesStyles);
@@ -243,13 +243,13 @@ public class StylesDialog extends javax.swing.JDialog {
                 
                 if(node.getUserObject() instanceof String && node.getParent() == node.getRoot()){
                     String movieName = (String)node.getUserObject();
-                    Map<String, Style> styles = StylesCollectionConf.read(movieName);
+                    Map<String, AssStyle> styles = AssStylesCollectionConf.read(movieName);
                     boolean printIndexZero = false;
-                    for(Map.Entry<String, Style> entry : styles.entrySet()){
+                    for(Map.Entry<String, AssStyle> entry : styles.entrySet()){
                         DefaultMutableTreeNode sty = new DefaultMutableTreeNode(entry.getKey());
                         node.add(sty);
                         if(printIndexZero == false){
-                            StylesCollection sc = StylesCollection.create(movieName, styles);
+                            AssStylesCollection sc = AssStylesCollection.create(movieName, styles);
                             styRelModel.setStylesCollection(sc);
                             styRelRenderer.setStylesCollection(sc);
                             treeCollections.updateUI();
@@ -257,12 +257,12 @@ public class StylesDialog extends javax.swing.JDialog {
                         }
                     }
                     tfVideoMediaName.setText(movieName);
-                }else if(node.getUserObject() instanceof Style){
-                    Style movieStyle = (Style)node.getUserObject();
+                }else if(node.getUserObject() instanceof AssStyle){
+                    AssStyle movieStyle = (AssStyle)node.getUserObject();
                     String movieName = (String)((DefaultMutableTreeNode)node.getParent()).getUserObject();
-                    Map<String, Style> map = new HashMap<>();
+                    Map<String, AssStyle> map = new HashMap<>();
                     map.put(movieName, movieStyle);
-                    StylesCollection sc = StylesCollection.create(movieName, map);
+                    AssStylesCollection sc = AssStylesCollection.create(movieName, map);
                     styRelModel.setStylesCollection(sc);
                     styRelRenderer.setStylesCollection(sc);
                 }
@@ -280,7 +280,7 @@ public class StylesDialog extends javax.swing.JDialog {
         
         // Verify and correct
         if(comboStyleName.getItemCount() == 0){
-            dcbmStyles.addElement(Style.getDefault());
+            dcbmStyles.addElement(AssStyle.getDefault());
         }
         
         // Choose a style (first)
@@ -295,7 +295,7 @@ public class StylesDialog extends javax.swing.JDialog {
         }
         
         // Select fontname or name it if error
-        String fName = ((Style)comboStyleName.getSelectedItem()).getFontname();
+        String fName = ((AssStyle)comboStyleName.getSelectedItem()).getFontname();
         boolean fontNotInSystem = true;
         for(Font font : fonts){
             if(font.getFontName().equals(fName) == true){
@@ -309,8 +309,8 @@ public class StylesDialog extends javax.swing.JDialog {
         comboFonts.setSelectedItem(fName);
         
         // Get selected style
-        Style sty = styles.get(comboStyleName.getSelectedItem().toString());
-        if(sty == null) sty = Style.getDefault();
+        AssStyle sty = styles.get(comboStyleName.getSelectedItem().toString());
+        if(sty == null) sty = AssStyle.getDefault();
         
         // BIUS
         checkBold.setSelected(sty.isBold());
@@ -341,7 +341,7 @@ public class StylesDialog extends javax.swing.JDialog {
         try{
             ass.setResX(Integer.toString(554));
             ass.setResY(Integer.toString(132));
-            ev.setLineType(Event.LineType.Dialogue);            
+            ev.setLineType(AssEvent.LineType.Dialogue);            
             ev.setStartTime(Time.create(0L));
             ev.setEndTime(Time.create(10L));
             ev.setMarginL(snmMarginL.getNumber().intValue());
@@ -360,7 +360,7 @@ public class StylesDialog extends javax.swing.JDialog {
             if(folder.exists() == false) folder.mkdirs();
             String path = new File(folder, "test.ass").getPath();
             ASS.Save(path, ass);
-            BufferedImage img = YggyApply.getSubsImage(path, Time.create(5L));
+            BufferedImage img = AssYggyApply.getSubsImage(path, Time.create(5L));
             assStyleGridPanel.setBufferedImage(img);
             assStyleGridPanel.repaint();
         }catch(Exception exc){
@@ -373,7 +373,7 @@ public class StylesDialog extends javax.swing.JDialog {
         return dialogResult;
     }
     
-    public void showDialog(Map<String, Style> styles){
+    public void showDialog(Map<String, AssStyle> styles){
         this.styles = styles;
         resetStyle();
         
@@ -441,7 +441,7 @@ public class StylesDialog extends javax.swing.JDialog {
     
     private boolean isStyleTreeNode(TreePath path){
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-        return node.getUserObject() instanceof Style & node.getParent() != node.getRoot();
+        return node.getUserObject() instanceof AssStyle & node.getParent() != node.getRoot();
     }
     
     private void deleteStyle(){
@@ -482,8 +482,8 @@ public class StylesDialog extends javax.swing.JDialog {
         }
     }
     
-    private Style copy(Style old, String name){
-        Style sty = new Style();
+    private AssStyle copy(AssStyle old, String name){
+        AssStyle sty = new AssStyle();
         
         sty.setName(name);
         sty.setAlignment(old.getAlignment());
@@ -1443,8 +1443,8 @@ public class StylesDialog extends javax.swing.JDialog {
                 boolean exists = false;
                 for(int i=0; i<node.getChildCount(); i++){
                     DefaultMutableTreeNode tn = (DefaultMutableTreeNode)node.getChildAt(i);
-                    if(tn.getUserObject() instanceof Style){
-                        Style sty = (Style)tn.getUserObject();
+                    if(tn.getUserObject() instanceof AssStyle){
+                        AssStyle sty = (AssStyle)tn.getUserObject();
                         if(sty.getName().equalsIgnoreCase(style.getName())){
                             exists = true;
                             break;
@@ -1464,12 +1464,12 @@ public class StylesDialog extends javax.swing.JDialog {
                     if(tryAgain > 5){
                         return;
                     }
-                    Style sty = copy(style, newName);
+                    AssStyle sty = copy(style, newName);
                     styleNode = new DefaultMutableTreeNode(sty);
                 }
                 
                 // Exclut un nom vide
-                if(((Style)styleNode.getUserObject()).getName().isEmpty()){
+                if(((AssStyle)styleNode.getUserObject()).getName().isEmpty()){
                     return;
                 }
                 
@@ -1477,7 +1477,7 @@ public class StylesDialog extends javax.swing.JDialog {
                 node.add(styleNode);
                 
                 // Ajout aux styles
-                dcbmStyles.addElement((Style)styleNode.getUserObject());
+                dcbmStyles.addElement((AssStyle)styleNode.getUserObject());
                 
                 treeCollections.updateUI();                
             }
@@ -1500,7 +1500,7 @@ public class StylesDialog extends javax.swing.JDialog {
                     (DefaultMutableTreeNode)treeCollections.getLastSelectedPathComponent();
             if(node.getUserObject() instanceof String && node.getParent() == root | node.isLeaf()){
                 String name = node.isLeaf() ? node.getParent().toString() : node.getUserObject().toString();
-                StylesCollectionConf.save(name, styles);
+                AssStylesCollectionConf.save(name, styles);
             }
         }
     }//GEN-LAST:event_btnSaveCollectionActionPerformed

@@ -75,7 +75,11 @@ public class FFStuffs {
         // Vérification de la présence de vidéo :
         try{
             String ffprobe = Loader.load(org.bytedeco.ffmpeg.ffprobe.class);
-            pb = new ProcessBuilder(ffprobe, "-i", file, "-show_streams", "-select_streams", "v", "-loglevel", "error");
+            pb = new ProcessBuilder(ffprobe,
+                    "-i", file, 
+                    "-show_streams", 
+                    "-select_streams", "v", 
+                    "-loglevel", "error");
             pb.redirectErrorStream(true);
             p = pb.start();
         }catch(IOException ex){

@@ -14,39 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.util;
+package org.wingate.ygg.translate;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.wingate.timelibrary.Time;
-import org.wingate.ygg.subs.AssYggyApply;
 
 /**
  *
  * @author util2
  */
-public class SubtitlesChoice {
+public interface IVideoTranslate {
     
-    private File subs = null;
-
-    public SubtitlesChoice() {
-    }
+    public void getImage(BufferedImage image);
     
-    public void setSubtitlesFile(File subs){
-        this.subs = subs;
-    }
-    
-    public BufferedImage getAtTime(Time t){
-        BufferedImage img = null;
-        
-        if(subs != null && subs.exists() == true){
-            if(subs.getName().toLowerCase().endsWith(".ass") == true){
-                try { img = AssYggyApply.getSubsImage(subs.getPath(), t); } catch (Exception ex) { }
-            }
-        }        
-        
-        return img;
-    }
 }
