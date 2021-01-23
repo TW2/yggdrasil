@@ -18,12 +18,14 @@ package org.wingate.ygg.audiovideo;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import org.wingate.timelibrary.Time;
+import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.subs.AssEvent;
 import org.wingate.ygg.ui.IfrWave;
 import org.wingate.ygg.util.DrawColor;
 import org.wingate.ygg.util.SignalData;
@@ -38,18 +40,20 @@ public class AudioPanel extends JPanel {
     private AudioLink audioLink = null;
     
     private IfrWave wave = null;
+    private boolean msEventInitialized = false;
+    private long currentMilliseconds = -1L;
     
     private long offset = 0L;
-    private long msPerImage = 8000L;
-    private float msPerPixel = 0.25f;
+    private long msPerImage = 10000L;
     
     private boolean showSpectrum = false;
     
     private Time start = Time.create(0L);
     private Time end = Time.create(0L);
     
-    private long startCursor = -1;
-    private long stopCursor = -1;
+    private long startCursor = -1L;
+    private long stopCursor = -1L;
+    private int currentCursor = -1;
 
     public AudioPanel() {
         init();
@@ -65,10 +69,32 @@ public class AudioPanel extends JPanel {
                     case MouseEvent.BUTTON1 -> {
                         //LEFT
                         startCursor = e.getX() + Math.abs(offset);
+                        // 2000ms <> 920
+                        // xms <> startCursor
+                        start = Time.create(startCursor * msPerImage / 920);
+                        if(MainFrame.getTableLinkFrame() != null){
+                            AssEvent ev = MainFrame.getTableLinkFrame().getFromAssSubCommands();
+                            ev.setStartTime(start);
+                            MainFrame.getTableLinkFrame().alter(ev);
+                        }
+                        if(MainFrame.getVideoFrame() != null & info != null){
+                            MainFrame.getVideoFrame().setStartTime(start, info.getFps());
+                        }
                     }
                     case MouseEvent.BUTTON3 -> {
                         //RIGHT
                         stopCursor = e.getX() + Math.abs(offset);
+                        // 2000ms <> 920
+                        // xms <> stopCursor
+                        end = Time.create(stopCursor * msPerImage / 920);
+                        if(MainFrame.getTableLinkFrame() != null){
+                            AssEvent ev = MainFrame.getTableLinkFrame().getFromAssSubCommands();
+                            ev.setEndTime(end);
+                            MainFrame.getTableLinkFrame().alter(ev);
+                        }
+                        if(MainFrame.getVideoFrame() != null & info != null){
+                            MainFrame.getVideoFrame().setEndTime(end, info.getFps());
+                        }
                     }
                     case MouseEvent.BUTTON2 -> {
                         //CENTER
@@ -77,6 +103,15 @@ public class AudioPanel extends JPanel {
                 repaint();
             }
         });
+        
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                currentCursor = e.getX();
+                repaint();
+            }
+        });
+        
     }
 
     public void setInfo(AVInfo info, int scrollBarTotal, int imageSize) {
@@ -86,6 +121,18 @@ public class AudioPanel extends JPanel {
 
     public void setWave(IfrWave wave) {
         this.wave = wave;
+        if(msEventInitialized == false){
+            wave.getPlayAudio().addAudioListener(new AudioListener() {
+                @Override
+                public void getMillisecondsTime(long ms) {
+                    if(currentMilliseconds != ms){
+                        currentMilliseconds = ms;
+                        repaint();
+                    }
+                }
+            });
+            msEventInitialized = true;
+        }        
     }
     
     public BufferedImage getImage(long ms, boolean spectrum){
@@ -95,7 +142,7 @@ public class AudioPanel extends JPanel {
     public void setCurrentScrolledMilliseconds(int value){
         if(audioLink != null){
             // Cherche le décalage la forme d'onde
-            offset = audioLink.getOffset(value, msPerImage, msPerPixel);
+            offset = audioLink.getOffset(value, msPerImage);
             repaint();
         }
     }
@@ -125,12 +172,12 @@ public class AudioPanel extends JPanel {
         this.end = end;
     }
 
-    public float getMsPerPixel() {
-        return msPerPixel;
+    public long getMsPerImage() {
+        return msPerImage;
     }
 
-    public void setMsPerPixel(float msPerPixel) {
-        this.msPerPixel = msPerPixel;
+    public void setMsPerImage(long msPerImage) {
+        this.msPerImage = msPerImage;
     }
     
     @Override
@@ -142,8 +189,8 @@ public class AudioPanel extends JPanel {
             // On dessine la forme d'onde
             //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             double r = Math.abs(offset) / getWidth();
-            long floor = Math.round(Math.floor(r) * msPerImage * msPerPixel);
-            long ceil = Math.round(Math.ceil(r + 0.5) * msPerImage * msPerPixel);
+            long floor = Math.round(Math.floor(r) * msPerImage);
+            long ceil = Math.round(Math.ceil(r + 0.5) * msPerImage);
             
             // a = combien de fois on a getWidth() dans offset
             int a = (int)Math.round(Math.floor(r));
@@ -172,7 +219,7 @@ public class AudioPanel extends JPanel {
             // On dessine le repère
             //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             g.setColor(Color.red);
-            for(int xa = (int)offset; xa<getWidth(); xa+=getWidth()/2){
+            for(int xa = (int)offset; xa<getWidth(); xa+=getWidth()/(msPerImage/1000)){
                 g.drawLine(xa, 0, xa, getHeight());
             }
             //------------------------------------------------------------------
@@ -205,6 +252,28 @@ public class AudioPanel extends JPanel {
             g.setColor(DrawColor.chocolate.getColor(0.5f));
             g.drawLine(xb+1, 0, xb+1, getHeight());            
             //------------------------------------------------------------------
+            
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // On dessine le curseur
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            g.setColor(Color.pink);
+            g.drawLine(currentCursor, 0, currentCursor, getHeight());
+            //------------------------------------------------------------------
+            
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // On dessine l'indicateur de lecture
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            long b = offset + currentMilliseconds * getWidth() / msPerImage;
+            if(b > 0 && b < getWidth()){
+                int xc = (int)(b);
+                g.setColor(DrawColor.magenta.getColor(0.5f));
+                g.drawLine(xc-1, 0, xc-1, getHeight());
+                g.setColor(DrawColor.magenta.getColor());
+                g.drawLine(xc, 0, xc, getHeight());
+                g.setColor(DrawColor.magenta.getColor(0.5f));
+                g.drawLine(xc+1, 0, xc+1, getHeight());
+            }
+            //------------------------------------------------------------------
         }
         
         if(showSpectrum == true & info != null & audioLink != null){
@@ -212,8 +281,8 @@ public class AudioPanel extends JPanel {
             // On dessine la forme d'onde
             //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             double r = Math.abs(offset) / getWidth();
-            long floor = Math.round(Math.floor(r) * msPerImage * msPerPixel);
-            long ceil = Math.round(Math.ceil(r + 0.5) * msPerImage * msPerPixel);
+            long floor = Math.round(Math.floor(r) * msPerImage);
+            long ceil = Math.round(Math.ceil(r + 0.5) * msPerImage);
             
             // a = combien de fois on a getWidth() dans offset
             int a = (int)Math.round(Math.floor(r));
@@ -233,7 +302,7 @@ public class AudioPanel extends JPanel {
             // On dessine le repère
             //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             g.setColor(Color.red);
-            for(int xa = (int)offset; xa<getWidth(); xa+=getWidth()/2){
+            for(int xa = (int)offset; xa<getWidth(); xa+=getWidth()/(msPerImage/1000)){
                 g.drawLine(xa, 0, xa, getHeight());
             }
             //------------------------------------------------------------------
@@ -265,6 +334,28 @@ public class AudioPanel extends JPanel {
             g.drawLine(xb, 0, xb, getHeight());
             g.setColor(DrawColor.yellow.getColor(0.5f));
             g.drawLine(xb+1, 0, xb+1, getHeight());            
+            //------------------------------------------------------------------
+            
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // On dessine le curseur
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            g.setColor(Color.pink);
+            g.drawLine(currentCursor, 0, currentCursor, getHeight());
+            //------------------------------------------------------------------
+            
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // On dessine l'indicateur de lecture
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            long b = offset + currentMilliseconds * getWidth() / msPerImage;
+            if(b > 0 && b < getWidth()){
+                int xc = (int)(b);
+                g.setColor(DrawColor.magenta.getColor(0.5f));
+                g.drawLine(xc-1, 0, xc-1, getHeight());
+                g.setColor(DrawColor.magenta.getColor());
+                g.drawLine(xc, 0, xc, getHeight());
+                g.setColor(DrawColor.magenta.getColor(0.5f));
+                g.drawLine(xc+1, 0, xc+1, getHeight());
+            }
             //------------------------------------------------------------------
         }
         

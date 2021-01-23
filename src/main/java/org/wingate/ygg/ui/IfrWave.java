@@ -25,6 +25,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.swing.filechooser.FileFilter;
 import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.audiovideo.AVInfo;
 import org.wingate.ygg.audiovideo.AudioPanel;
 import org.wingate.ygg.audiovideo.AudioRender;
@@ -47,7 +48,7 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
     private final AudioPanel audioPanel = new AudioPanel();
     
     // Echelle
-    private float msPerPixel = 0.25f;
+    private final long msPerImage = 10000L;
     
     // Conserve le fichier audio
     private File media = null;
@@ -91,6 +92,8 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
                     scGraph.getValue() - 100);
         });
         
+        audioPanel.setWave(this);
+        
         updateUI();
         
         th = new Thread(this);
@@ -122,16 +125,18 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
     }
     
     private void playAudioAndStop(Time from, Time to){
-        playAudio.setMsAreaStart(Time.toMillisecondsTime(from));
-        playAudio.setMsAreaStop(Time.toMillisecondsTime(to));
-        playAudio.setAction(PlayAudio.Action.Ready);
-        playAudio.playStopAudio();
+        if(playAudio.getGrabber() != null){
+            playAudio.setMsAreaStart(Time.toMillisecondsTime(from));
+            playAudio.setMsAreaStop(Time.toMillisecondsTime(to));
+            playAudio.setAction(PlayAudio.Action.Ready);
+            playAudio.playStopAudio();
+        }
     }
     
     private boolean createImages(int counter){
         if(info != null){
-            long frMs = Math.round(8000 * msPerPixel * counter);
-            long toMs = Math.round(8000 * msPerPixel * (counter + 1));
+            long frMs = Math.round(msPerImage * counter);
+            long toMs = Math.round(msPerImage * (counter + 1));
             long drMs = info.getDuration() / 1000L;
             Time from = Time.create(frMs);
             Time to = Time.create(toMs);
@@ -139,7 +144,7 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
             int h = 135;
             if(toMs > drMs){
                 long diff = drMs - frMs;
-                long total = Math.round(8000 * msPerPixel);
+                long total = msPerImage;
                 w = (int)Math.round(920 * diff / total);
                 to = Time.create(drMs);
             }
@@ -150,13 +155,9 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
         }
         return false;
     }
-
-    public float getMsPerPixel() {
-        return msPerPixel;
-    }
-
-    public void setMsPerPixel(float msPerPixel) {
-        this.msPerPixel = msPerPixel;
+    
+    public PlayAudio getPlayAudio(){
+        return playAudio;
     }
 
     /**
@@ -419,33 +420,33 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeActionPerformed
-//        Time real_start = a.getTimeOfStartArea(false);
-//        Time start = Time.substract(real_start, Time.create(500L));
-//        playAudioAndStop(start, real_start);
+        Time real_start = audioPanel.getStart();
+        Time start = Time.substract(real_start, Time.create(500L));
+        playAudioAndStop(start, real_start);
     }//GEN-LAST:event_btnPlayBeforeActionPerformed
 
     private void btnPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeginActionPerformed
-//        Time real_start = a.getTimeOfStartArea(false);
-//        Time end = Time.addition(real_start, Time.create(500L));
-//        playAudioAndStop(real_start, end);
+        Time real_start = audioPanel.getStart();
+        Time end = Time.addition(real_start, Time.create(500L));
+        playAudioAndStop(real_start, end);
     }//GEN-LAST:event_btnPlayBeginActionPerformed
 
     private void btnPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaActionPerformed
-//        Time real_start = a.getTimeOfStartArea(false);
-//        Time real_end = a.getTimeOfStopArea(false);
-//        playAudioAndStop(real_start, real_end);
+        Time real_start = audioPanel.getStart();
+        Time real_end = audioPanel.getEnd();
+        playAudioAndStop(real_start, real_end);
     }//GEN-LAST:event_btnPlayAreaActionPerformed
 
     private void btnPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayEndActionPerformed
-//        Time real_end = a.getTimeOfStopArea(false);
-//        Time start = Time.substract(real_end, Time.create(500L));            
-//        playAudioAndStop(start, real_end);
+        Time real_end = audioPanel.getEnd();
+        Time start = Time.substract(real_end, Time.create(500L));            
+        playAudioAndStop(start, real_end);
     }//GEN-LAST:event_btnPlayEndActionPerformed
 
     private void btnPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterActionPerformed
-//        Time real_end = a.getTimeOfStopArea(false);
-//        Time end = Time.addition(real_end, Time.create(500L));            
-//        playAudioAndStop(real_end, end);
+        Time real_end = audioPanel.getEnd();
+        Time end = Time.addition(real_end, Time.create(500L));            
+        playAudioAndStop(real_end, end);
     }//GEN-LAST:event_btnPlayAfterActionPerformed
 
     private void cbSpectrumActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbSpectrumActionPerformed

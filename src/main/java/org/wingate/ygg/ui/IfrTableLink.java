@@ -246,7 +246,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         });
     }
     
-    private AssEvent getFromAssSubCommands(){
+    public AssEvent getFromAssSubCommands(){
         AssEvent nv = new AssEvent();
         
         // Type

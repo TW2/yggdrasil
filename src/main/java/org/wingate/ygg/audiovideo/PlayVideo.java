@@ -70,7 +70,7 @@ public class PlayVideo implements Runnable {
 
     private boolean area = false;
     
-    private long msAreaStart = 0L, msAreaStop = 5000L;
+    private long msAreaStart = 0L, msAreaStop = 0L;
 
     private final Java2DFrameConverter converter = new Java2DFrameConverter();
 
@@ -138,6 +138,8 @@ public class PlayVideo implements Runnable {
 
                     if(frame.image != null){
                         fireVideo(converter.convert(frame));
+                        fireTime(frame.timestamp / 1000L);
+                        fireFrameNumber(grabber.getFrameNumber());
 
                         try {
                             TimeUnit.NANOSECONDS.sleep(
@@ -181,11 +183,15 @@ public class PlayVideo implements Runnable {
         videoPanel.updateImage(image);
     }
     
+    public VideoPanel getVideoPanel(){
+        return videoPanel;
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Composant vidéo">
     
-    class VideoPanel extends javax.swing.JPanel {
+    public class VideoPanel extends javax.swing.JPanel {
 
         private BufferedImage img = null;
         private BufferedImage sub = null; // For subtitles
@@ -280,11 +286,11 @@ public class PlayVideo implements Runnable {
     
     private final EventListenerList listeners = new EventListenerList();
     
-    public void addVideoTranslateListener(IVideo listener) {
+    public void addVideoListener(IVideo listener) {
         listeners.add(VideoListener.class, (VideoListener)listener);
     }
 
-    public void removeVideoTranslateListener(IVideo listener) {
+    public void removeVideoListener(IVideo listener) {
         listeners.remove(VideoListener.class, (VideoListener)listener);
     }
 
@@ -297,6 +303,26 @@ public class PlayVideo implements Runnable {
             if(o instanceof VideoListener){
                 VideoListener listen = (VideoListener)o;
                 listen.getImage(image);
+                break;
+            }
+        }
+    }
+    
+    protected void fireTime(long ms) {
+        for(Object o : getListeners()){
+            if(o instanceof VideoListener){
+                VideoListener listen = (VideoListener)o;
+                listen.getTime(ms);
+                break;
+            }
+        }
+    }
+    
+    protected void fireFrameNumber(int frame) {
+        for(Object o : getListeners()){
+            if(o instanceof VideoListener){
+                VideoListener listen = (VideoListener)o;
+                listen.getFrameNumber(frame);
                 break;
             }
         }

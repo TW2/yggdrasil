@@ -17,19 +17,17 @@
 package org.wingate.ygg.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.LineUnavailableException;
 import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
-import org.wingate.ygg.io.video.VideoEvent;
-import org.wingate.ygg.io.video.VideoListener;
-import org.wingate.ygg.io.video.VideoPlayer;
-import org.wingate.ygg.util.DrawColor;
-import org.wingate.ygg.util.FFStuffs;
+import org.wingate.ygg.audiovideo.PlayVideo;
+import org.wingate.ygg.audiovideo.VideoListener;
 import org.wingate.ygg.util.FramesPanel;
 import org.wingate.ygg.util.SubtitlesChoice;
 
@@ -39,12 +37,9 @@ import org.wingate.ygg.util.SubtitlesChoice;
  */
 public class IfrVideo extends javax.swing.JInternalFrame {
     
-    private final VideoPlayer player = new VideoPlayer();
-    private final VideoPanel vPane = new VideoPanel();
     private FramesPanel fp;
     
-    private FFStuffs ffss = null;
-    private IfrWave wave = null;
+    private final PlayVideo playVideo = new PlayVideo();
     
     private boolean media = false;
     
@@ -59,23 +54,28 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     }
     
     private void init(){
-        wave = MainFrame.getAudioFrame();
+        // Vidéo
+        panVideo.setLayout(new BorderLayout());
+        panVideo.add(playVideo.getVideoPanel(), BorderLayout.CENTER);
         
-        player.addVideoListener(new VideoListener() {
+        playVideo.addVideoListener(new VideoListener() {
             @Override
-            public void getImage(VideoEvent event) {
-                Time ms = Time.fromMillisecondsTime(Math.round(event.getMilliseconds()));
-                String frameNumber = Integer.toString(event.getFrameNumber());
-                
-                vPane.updateImage(event.getImage(), sChoice.getAtTime(ms));
-                
-                tfCurrentTime.setText(ms.toProgramExtendedTime());
+            public void getImage(BufferedImage image) {
+                playVideo.getVideoPanel().updateImage(image);
+            }
+
+            @Override
+            public void getTime(long ms) {
+                Time t = Time.fromMillisecondsTime(ms);
+                tfCurrentTime.setText(t.toProgramExtendedTime());
+            }
+
+            @Override
+            public void getFrameNumber(int frame) {
+                String frameNumber = Integer.toString(frame);
                 tfCurrentFrame.setText(frameNumber);
             }
         });
-        
-        panVideo.setLayout(new BorderLayout());
-        panVideo.add(vPane, BorderLayout.CENTER);
     }
 
     public void setVideoPath(String videopath){
@@ -84,41 +84,49 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         File video = new File(videopath);
         
         try {
-            player.setVideo(video);
+            playVideo.setVideo(video);
             media = video.exists();
-            
-            wave.openAudio(video);
-        } catch (FrameGrabber.Exception ex) {
-            
+            MainFrame.getAudioFrame().openAudio(video);
+        } catch (FrameGrabber.Exception | LineUnavailableException ex) {
+            Logger.getLogger(IfrVideo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     public void setSubtitlesFile(File subspath){
         sChoice.setSubtitlesFile(subspath);
-    } 
+    }
+    
+    public void setStartTime(Time start, double fps){
+        tfStartTime.setText(start.toProgramExtendedTime());
+        tfStartFrame.setText(Integer.toString(Time.getFrame(start, fps)));
+    }
+    
+    public void setEndTime(Time end, double fps){
+        tfEndTime.setText(end.toProgramExtendedTime());
+        tfEndFrame.setText(Integer.toString(Time.getFrame(end, fps)));
+    }
+    
+    public void setDurationTime(Time duration, double fps){
+        tfDurationTime.setText(duration.toProgramExtendedTime());
+        tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, fps)));
+    }
     
     public void play(){
-        if(player != null){
-            player.playMedia();
-        }
+        playVideo.setAction(PlayVideo.Action.Play);
     }
     
     public void pause(){
-        if(player != null){
-            player.pauseMedia();
-        }
+        playVideo.setAction(PlayVideo.Action.Pause);
     }
     
     public void stop(){
-        if(player != null){
-            player.stopMedia();
-        }
+        playVideo.setAction(PlayVideo.Action.Stop);
     }
     
-    public void playArea(Time start, Time stop){
-        if(player != null){
-            player.playMedia(start, stop);
-        }
+    public void playArea(Time start, Time stop){        
+        playVideo.setMsAreaStart(Time.toMillisecondsTime(start));
+        playVideo.setMsAreaStop(Time.toMillisecondsTime(stop));
+        playVideo.playStopVideo();
     }
 
     public boolean hasMedia() {
@@ -468,93 +476,5 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private javax.swing.JTextField tfStartFrame;
     private javax.swing.JTextField tfStartTime;
     // End of variables declaration//GEN-END:variables
-
-    class VideoPanel extends javax.swing.JPanel {
-
-        private BufferedImage img = null;
-        private BufferedImage sub = null; // For subtitles
-        private boolean darkMode = false;
-        
-        public VideoPanel() {            
-            init();
-        }
-        
-        private void init(){
-            setDoubleBuffered(true);
-        }
-
-        public void setDarkMode(boolean darkMode) {
-            this.darkMode = darkMode;
-        }
-        
-        public void updateImage(BufferedImage img, BufferedImage sub){
-            this.img = img;
-            this.sub = sub;
-            repaint();
-        }
-        
-        public void updateImage(BufferedImage img){
-            this.img = img;
-            repaint();
-        }
-
-        @Override
-        public void paint(Graphics g) {
-            super.paint(g);
-            
-            if(img != null){
-                g.setColor(darkMode == true ? Color.gray : DrawColor.alice_blue.getColor());
-                g.fillRect(0, 0, getWidth(), getHeight());
-
-                Dimension dim = getScaledDimension(
-                        new Dimension(img.getWidth(), img.getHeight()), 
-                        new Dimension(getWidth(), getHeight())
-                );
-
-                int x = (getWidth() - dim.width) / 2;
-                int y = (getHeight() - dim.height) / 2;
-                g.drawImage(img, x, y, dim.width, dim.height, null);
-            }
-            
-            if(sub != null){
-                Dimension dim = getScaledDimension(
-                        new Dimension(sub.getWidth(), sub.getHeight()), 
-                        new Dimension(getWidth(), getHeight())
-                );
-
-                int x = (getWidth() - dim.width) / 2;
-                int y = (getHeight() - dim.height) / 2;
-                g.drawImage(sub, x, y, dim.width, dim.height, null);
-            }
-        }
-        
-        private Dimension getScaledDimension(Dimension imgSize, Dimension boundary) {
-
-            int original_width = imgSize.width;
-            int original_height = imgSize.height;
-            int bound_width = boundary.width;
-            int bound_height = boundary.height;
-            int new_width = original_width;
-            int new_height = original_height;
-
-            // first check if we need to scale width
-            if (original_width > bound_width) {
-                //scale width to fit
-                new_width = bound_width;
-                //scale height to maintain aspect ratio
-                new_height = (new_width * original_height) / original_width;
-            }
-
-            // then check if we need to scale even with the new height
-            if (new_height > bound_height) {
-                //scale height to fit instead
-                new_height = bound_height;
-                //scale width to maintain aspect ratio
-                new_width = (new_height * original_width) / original_height;
-            }
-
-            return new Dimension(new_width, new_height);
-        }
-        
-    }
+    
 }

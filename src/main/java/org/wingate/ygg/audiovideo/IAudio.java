@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 util2
+ * Copyright (C) 2021 util2
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,36 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.io.video;
-
-import java.awt.image.BufferedImage;
+package org.wingate.ygg.audiovideo;
 
 /**
  *
  * @author util2
  */
-public class VideoEvent {
+public interface IAudio {
     
-    private final BufferedImage image;
-    private final double milliseconds;
-    private final int frameNumber;
-
-    public VideoEvent(BufferedImage image, double milliseconds, int frameNumber) {
-        this.image = image;
-        this.milliseconds = milliseconds;
-        this.frameNumber = frameNumber;
-    }
-
-    public BufferedImage getImage() {
-        return image;
-    }
-
-    public double getMilliseconds() {
-        return milliseconds;
-    }
-
-    public int getFrameNumber() {
-        return frameNumber;
-    }
+    public void getMillisecondsTime(long ms);
     
 }

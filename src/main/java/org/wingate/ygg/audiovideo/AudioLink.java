@@ -50,10 +50,9 @@ public class AudioLink {
      * Get the offset for the current ScrollBar value with scale
      * @param scrollBarCurrent Current ScrollBar value
      * @param msPerImage Milliseconds for one image
-     * @param msPerPixel Milliseconds per pixel
      * @return Offset with scale (caution: this number is negative by default)
      */
-    public long getOffset(int scrollBarCurrent, long msPerImage, float msPerPixel){
+    public long getOffset(int scrollBarCurrent, long msPerImage){
         // On calcule le nombre de pixels de l'offset
         // sbTotal <> msDur
         // sbCur <> msCur
@@ -64,7 +63,7 @@ public class AudioLink {
         // a <> msCur
         //--
         // a = msCur * imgSize / 2000ms où 2000 = 8000 * 0.25
-        long a = msCur * imageSize / Math.round(msPerImage  * msPerPixel);
+        long a = msCur * imageSize / msPerImage;
         
         return -a;
     }

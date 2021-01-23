@@ -26,4 +26,8 @@ public interface IVideo {
     
     public void getImage(BufferedImage image);
     
+    public void getTime(long ms);
+    
+    public void getFrameNumber(int frame);
+    
 }

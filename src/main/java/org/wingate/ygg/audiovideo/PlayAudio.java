@@ -30,6 +30,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
+import javax.swing.event.EventListenerList;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 
@@ -71,7 +72,7 @@ public class PlayAudio implements Runnable {
 
     private boolean area = false;
     
-    private long msAreaStart = 0L, msAreaStop = 5000L;
+    private long msAreaStart = 0L, msAreaStop = 0L;
 
     public PlayAudio() {
         init();
@@ -171,6 +172,8 @@ public class PlayAudio implements Runnable {
                         continue;
                     }
                     
+                    
+                    
                     // Si le média a dépassé la limite spécifiée
                     if(msAreaStop != 0L && frame.timestamp / 1000L >= msAreaStop){
                         action = Action.Ready;
@@ -190,6 +193,8 @@ public class PlayAudio implements Runnable {
                             short val = channelSamplesShortBuffer.get(i);
                             outBuffer.putShort(val);
                         }
+                        
+                        fireCurrentMilliseconds(frame.timestamp / 1000L);
 
                         /**
                          * We need this because soundLine.write ignores
@@ -231,6 +236,38 @@ public class PlayAudio implements Runnable {
 
     public void setAction(Action action) {
         this.action = action;
+    }
+    
+    // </editor-fold>
+
+    public FFmpegFrameGrabber getGrabber() {
+        return grabber;
+    }
+    
+    // <editor-fold defaultstate="collapsed" desc="Evénements">
+    
+    private final EventListenerList listeners = new EventListenerList();
+    
+    public void addAudioListener(IAudio listener) {
+        listeners.add(AudioListener.class, (AudioListener)listener);
+    }
+
+    public void removeAudioListener(IAudio listener) {
+        listeners.remove(AudioListener.class, (AudioListener)listener);
+    }
+
+    public Object[] getListeners() {
+        return listeners.getListenerList();
+    }
+    
+    protected void fireCurrentMilliseconds(long ms) {
+        for(Object o : getListeners()){
+            if(o instanceof AudioListener){
+                AudioListener listen = (AudioListener)o;
+                listen.getMillisecondsTime(ms);
+                break;
+            }
+        }
     }
     
     // </editor-fold>

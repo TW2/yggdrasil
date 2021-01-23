@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 util2
+ * Copyright (C) 2021 util2
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,14 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.io.video;
+package org.wingate.ygg.audiovideo;
 
-import java.util.EventListener;
+import java.awt.image.BufferedImage;
 
 /**
  *
  * @author util2
  */
-public abstract class VideoListener implements EventListener, IVideo {
+public class VideoAdapter extends VideoListener {
+
+    @Override
+    public void getImage(BufferedImage image) { }
+
+    @Override
+    public void getTime(long ms) { }
+
+    @Override
+    public void getFrameNumber(int frame) { }
     
 }
