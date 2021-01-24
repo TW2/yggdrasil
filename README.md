@@ -29,7 +29,7 @@ Timing area :
 - [x] Can open audio (FFMpeg)
 - [ ] Can display full ASS
 - [x] Can open/save ASS
-- [ ] Can synchronize an ASS event
+- [x] Can synchronize an ASS event
 - [x] Can edit style of an event
 - [x] Can use table
 - [ ] Can compare two scripts
