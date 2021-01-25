@@ -3,16 +3,17 @@ Subtitles synchronization software in Java 15 compatible with dark mode
 
 Run with Light Theme
 ```
-java -jar ygg-1.2.1.jar
+java -jar ygg-1.2.2.jar
 ```
 Run with Dark Theme
 ```
-java -jar ygg-1.2.1.jar dark
+java -jar ygg-1.2.2.jar dark
 ```
 ## Evolution
 - Status: v1.1 alpha phase - (as model for 1.2 reworking)
 - Status: v1.2 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
-- Status: v1.2.1 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
+- Status: v1.2.1 alpha phase - (Yggdrasil 2020-12 - "Happy go Ducky")
+- Status: v1.2.2 alpha phase - (Yggdrasil 2021-01 - "Happy go Ducky")
 
 ## Abilities
 
@@ -60,9 +61,8 @@ Drawing area :
 - [ ] Can use fonts outline
 
 ## Screenshots
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20LightTheme%20-%20yggdrasil%201.2%20main%20frame.PNG" />
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20LightTheme%20-%20Styles.PNG" />
-<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-12-26%20-%20DarkTheme%20-%20Properties.PNG" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-01-25%20-%20LightTheme%20-%20yggdrasil%201.2.2%20alpha%20(1).PNG" />
+<img src="https://github.com/TW2/yggdrasil/blob/master/about/2020-01-25%20-%20DarkTheme%20-%20yggdrasil%201.2.2%20alpha%20(1).PNG" />
 
 ## About
 This program is a tool around subtitles stuffs (ASS and more in the future).
