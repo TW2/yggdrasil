@@ -27,7 +27,7 @@ Files area :
 Timing area :
 - [x] Can open videos (FFMpeg)
 - [x] Can open audio (FFMpeg)
-- [ ] Can display full ASS
+- [ ] Can display full ASS (libass)
 - [x] Can open/save ASS
 - [x] Can synchronize an ASS event
 - [x] Can edit style of an event
