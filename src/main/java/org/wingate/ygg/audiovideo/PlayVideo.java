@@ -118,6 +118,9 @@ public class PlayVideo implements Runnable {
             thAct = null;
         }
     }
+    
+    long microsBefore = 0L;
+    long nanosBefore = 0L;
 
     @Override
     public void run() {
@@ -126,6 +129,8 @@ public class PlayVideo implements Runnable {
                 try {
                     if(msAreaStart != 0L && area == true){
                         grabber.setVideoTimestamp(msAreaStart * 1000L);
+                        microsBefore = msAreaStart * 1000L;
+                        nanosBefore = msAreaStart * 1000000L;
                         area = false;
                     }
 
@@ -140,16 +145,28 @@ public class PlayVideo implements Runnable {
                         fireVideo(converter.convert(frame));
                         fireTime(frame.timestamp / 1000L);
                         fireFrameNumber(grabber.getFrameNumber());
-
-                        try {
-                            TimeUnit.NANOSECONDS.sleep(
-                                    Math.round(1L / grabber.getVideoFrameRate() * Math.pow(10, 9)));
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(PlayVideo.class.getName()).log(Level.SEVERE, null, ex);
+                        
+                        long wanted = frame.timestamp;
+                        long missed = System.nanoTime() - nanosBefore + 1350000L;
+                        long delta = microsBefore + missed / 1000L;                        
+                        if(microsBefore != 0L){
+                            while(delta < wanted){
+                                long rep = System.nanoTime();
+                                try {
+                                    // Wait
+                                    TimeUnit.MICROSECONDS.sleep(1L);
+                                } catch (InterruptedException ex) {
+                                    Logger.getLogger(PlayVideo.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                delta += (System.nanoTime() - rep) / 1000L ;
+                            }
                         }
+                        
+                        microsBefore = wanted;
+                        nanosBefore = System.nanoTime();
                     }
 
-                    if(frame.timestamp / 1000L >= msAreaStop){
+                    if(msAreaStop != 0L && frame.timestamp / 1000L >= msAreaStop){
                         action = Action.Ready;
                         msAreaStart = 0L;
                         msAreaStop = 0L;
@@ -168,7 +185,7 @@ public class PlayVideo implements Runnable {
             case Play -> action = Action.Pause;
             case Pause -> action = Action.Play;
             case Stop -> action = Action.Play;
-        }            
+        }
     }
 
     public Action getAction() {
@@ -182,6 +199,10 @@ public class PlayVideo implements Runnable {
     public void updateImage(BufferedImage image){
         videoPanel.updateImage(image);
     }
+
+    public void updateSubtitlesImage(BufferedImage subs){
+        videoPanel.updateImage(subs);
+    }
     
     public VideoPanel getVideoPanel(){
         return videoPanel;
@@ -194,7 +215,7 @@ public class PlayVideo implements Runnable {
     public class VideoPanel extends javax.swing.JPanel {
 
         private BufferedImage img = null;
-        private BufferedImage sub = null; // For subtitles
+        private BufferedImage subs = null;
         private boolean darkMode = false;
         
         public VideoPanel() {            
@@ -209,14 +230,13 @@ public class PlayVideo implements Runnable {
             this.darkMode = darkMode;
         }
         
-        public void updateImage(BufferedImage img, BufferedImage sub){
+        public void updateImage(BufferedImage img){
             this.img = img;
-            this.sub = sub;
             repaint();
         }
         
-        public void updateImage(BufferedImage img){
-            this.img = img;
+        public void updateSubtitlesImage(BufferedImage subs){
+            this.subs = subs;
             repaint();
         }
 
@@ -227,7 +247,7 @@ public class PlayVideo implements Runnable {
             if(img != null){
                 g.setColor(darkMode == true ? Color.gray : DrawColor.alice_blue.getColor());
                 g.fillRect(0, 0, getWidth(), getHeight());
-
+                
                 Dimension dim = getScaledDimension(
                         new Dimension(img.getWidth(), img.getHeight()), 
                         new Dimension(getWidth(), getHeight())
@@ -238,15 +258,15 @@ public class PlayVideo implements Runnable {
                 g.drawImage(img, x, y, dim.width, dim.height, null);
             }
             
-            if(sub != null){
-                Dimension dim = getScaledDimension(
-                        new Dimension(sub.getWidth(), sub.getHeight()), 
-                        new Dimension(getWidth(), getHeight())
-                );
-
-                int x = (getWidth() - dim.width) / 2;
-                int y = (getHeight() - dim.height) / 2;
-                g.drawImage(sub, x, y, dim.width, dim.height, null);
+            if(subs != null){
+//                Dimension dim = getScaledDimension(
+//                        new Dimension(subs.getWidth(), subs.getHeight()), 
+//                        new Dimension(getWidth(), getHeight())
+//                );
+//
+//                int x = (getWidth() - dim.width) / 2;
+//                int y = (getHeight() - dim.height) / 2;
+//                g.drawImage(subs, x, y, dim.width, dim.height, null);
             }
         }
         

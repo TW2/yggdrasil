@@ -65,6 +65,8 @@ public class MainFrame extends javax.swing.JFrame {
     private static IfrVideo video;
     private static IfrWave wave;
     private static IfrTableLink tableLink;
+    
+    // Translation components
     private static IfrTranslation translation;
     
     public MainFrame(boolean dark) {        
@@ -86,7 +88,7 @@ public class MainFrame extends javax.swing.JFrame {
         // Init des objets
         chat = new IfrChat();
         wave = new IfrWave(); // Wave must be init before video cause video needs for it in its init
-        video = new IfrVideo();
+        video = new IfrVideo(wave);
         tableLink = new IfrTableLink(); // tl must be init before table cause table needs for it in its init
         table = new IfrTable(tableLink);
         tableLink.externallyInitAfterRealInit(wave, video);
@@ -509,6 +511,7 @@ public class MainFrame extends javax.swing.JFrame {
                 case Time -> {
                     // Si synchronisation est activée (Time)
                     try{
+                        wave.openAudio(videoFile);
                         video.setVideoPath(videoFile.getPath());
                     }catch(Exception exc){
                         
@@ -531,6 +534,7 @@ public class MainFrame extends javax.swing.JFrame {
                     // Si synchronisation est activée (Time)
                     try{
                         table.loadASSTable(fcASS.getSelectedFile());
+                        video.setSubtitlesFile(fcASS.getSelectedFile());
                     }catch(Exception exc){
                         
                     }

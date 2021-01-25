@@ -26,6 +26,8 @@ import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.ImageIcon;
 import org.wingate.timelibrary.Time;
 
@@ -54,13 +56,34 @@ public class AssYggyApply {
         // On crée l'outil libass
         AssYGGY yggy = AssYGGY.create();
         
+        // On récupère les évén ements les plus proches de t
+        List<AssEvent> events = new ArrayList<>();
+        for(AssEvent ev : ass.getEvents()){
+            long msStart = Time.toMillisecondsTime(ev.getStartTime());
+            long msStop = Time.toMillisecondsTime(ev.getEndTime());
+            long time = Time.toMillisecondsTime(t);
+            if(time >= msStart & time < msStop){
+                events.add(ev);
+            }
+        }
+        
+        // On réécrit un ass allégé
+        ASS newAss = ASS.NoFileToLoad();
+        newAss.setResX(ass.getResX());
+        newAss.setResY(ass.getResY());
+        newAss.setWrapStyle(ass.getWrapStyle());
+        newAss.setStyles(ass.getStyles());
+        newAss.setEvents(events);
+        String newPath = (new File("configuration", "light.ass")).getPath();
+        ASS.Save(newPath, newAss);
+        
         // On demande un résultat
         File folder = new File("configuration");
         File imgFile = new File(folder, "image.png");
         if(imgFile.exists()) imgFile.delete();
         int result = yggy.getYggy().executor(
                 imgFile.getPath(),
-                asspath,
+                newPath,
                 Double.toString(Time.getLengthInSeconds(t)),
                 w,
                 h

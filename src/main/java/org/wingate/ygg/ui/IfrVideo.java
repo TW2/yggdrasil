@@ -17,16 +17,19 @@
 package org.wingate.ygg.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.LineUnavailableException;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.audiovideo.PlayAudio;
+import org.wingate.ygg.audiovideo.PlaySubtitles;
 import org.wingate.ygg.audiovideo.PlayVideo;
+import org.wingate.ygg.audiovideo.PlayVideo.VideoPanel;
 import org.wingate.ygg.audiovideo.VideoListener;
 import org.wingate.ygg.util.FramesPanel;
 import org.wingate.ygg.util.SubtitlesChoice;
@@ -37,9 +40,14 @@ import org.wingate.ygg.util.SubtitlesChoice;
  */
 public class IfrVideo extends javax.swing.JInternalFrame {
     
+    private IfrWave wave = null;
+    private PlayAudio playAudio = null;
+    private VideoPanel videoPanel = null;
+    
     private FramesPanel fp;
     
     private final PlayVideo playVideo = new PlayVideo();
+    private final PlaySubtitles playSubs = new PlaySubtitles();
     
     private boolean media = false;
     
@@ -47,27 +55,31 @@ public class IfrVideo extends javax.swing.JInternalFrame {
 
     /**
      * Creates new form IfrVideo
+     * @param wave
      */
-    public IfrVideo() {
+    public IfrVideo(IfrWave wave) {        
         initComponents();
+        this.wave = wave;
         init();
     }
     
     private void init(){
         // Vidéo
+        videoPanel = playVideo.getVideoPanel();
         panVideo.setLayout(new BorderLayout());
-        panVideo.add(playVideo.getVideoPanel(), BorderLayout.CENTER);
+        panVideo.add(videoPanel, BorderLayout.CENTER);
         
         playVideo.addVideoListener(new VideoListener() {
             @Override
             public void getImage(BufferedImage image) {
-                playVideo.getVideoPanel().updateImage(image);
+                videoPanel.updateImage(image);
             }
 
             @Override
             public void getTime(long ms) {
                 Time t = Time.fromMillisecondsTime(ms);
                 tfCurrentTime.setText(t.toProgramExtendedTime());
+                playSubs.changeMilliseconds(ms);
             }
 
             @Override
@@ -76,6 +88,13 @@ public class IfrVideo extends javax.swing.JInternalFrame {
                 tfCurrentFrame.setText(frameNumber);
             }
         });
+        
+        // Audio
+        playAudio = wave.getPlayAudio();
+        
+        // Subtitles
+        lblSubs.setHorizontalAlignment(JLabel.CENTER);
+        lblSubs.setVerticalAlignment(JLabel.CENTER);
     }
 
     public void setVideoPath(String videopath){
@@ -86,7 +105,6 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         try {
             playVideo.setVideo(video);
             media = video.exists();
-            MainFrame.getAudioFrame().openAudio(video);
         } catch (FrameGrabber.Exception | LineUnavailableException ex) {
             Logger.getLogger(IfrVideo.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -94,6 +112,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     
     public void setSubtitlesFile(File subspath){
         sChoice.setSubtitlesFile(subspath);
+        playSubs.setSubsFile(subspath);
     }
     
     public void setStartTime(Time start, double fps){
@@ -113,24 +132,36 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     
     public void play(){
         playVideo.setAction(PlayVideo.Action.Play);
+        playAudio.setAction(PlayAudio.Action.Play);
     }
     
     public void pause(){
         playVideo.setAction(PlayVideo.Action.Pause);
+        playAudio.setAction(PlayAudio.Action.Pause);
     }
     
     public void stop(){
         playVideo.setAction(PlayVideo.Action.Stop);
+        playAudio.setAction(PlayAudio.Action.Stop);
     }
     
     public void playArea(Time start, Time stop){        
         playVideo.setMsAreaStart(Time.toMillisecondsTime(start));
+        playAudio.setMsAreaStart(Time.toMillisecondsTime(start));
+        
         playVideo.setMsAreaStop(Time.toMillisecondsTime(stop));
+        playAudio.setMsAreaStop(Time.toMillisecondsTime(stop));        
+        
         playVideo.playStopVideo();
+        playAudio.playStopAudio();
     }
 
     public boolean hasMedia() {
         return media;
+    }
+    
+    public void updateSubtitlesImage(BufferedImage image){
+        lblSubs.setIcon(new ImageIcon(image));
     }
     
     /**
@@ -143,6 +174,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         panVideo = new javax.swing.JPanel();
+        lblSubs = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         panControls = new javax.swing.JPanel();
         tfStartFrame = new javax.swing.JTextField();
@@ -176,11 +208,11 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         panVideo.setLayout(panVideoLayout);
         panVideoLayout.setHorizontalGroup(
             panVideoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addComponent(lblSubs, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         panVideoLayout.setVerticalGroup(
             panVideoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 410, Short.MAX_VALUE)
+            .addComponent(lblSubs, javax.swing.GroupLayout.DEFAULT_SIZE, 410, Short.MAX_VALUE)
         );
 
         tfStartFrame.setHorizontalAlignment(javax.swing.JTextField.CENTER);
@@ -358,7 +390,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
                 .addContainerGap(9, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("tab1", panControls);
+        jTabbedPane1.addTab("Play", panControls);
 
         javax.swing.GroupLayout panKeyFramesLayout = new javax.swing.GroupLayout(panKeyFrames);
         panKeyFrames.setLayout(panKeyFramesLayout);
@@ -463,6 +495,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JLabel lblSubs;
     private javax.swing.JPanel panControls;
     private javax.swing.JPanel panKeyFrames;
     private javax.swing.JPanel panVideo;
