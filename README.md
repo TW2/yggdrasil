@@ -27,9 +27,9 @@ Files area :
 Timing area :
 - [x] Can open videos (FFMpeg)
 - [x] Can open audio (FFMpeg)
-- [ ] Can display full ASS
+- [ ] Can display full ASS (libass)
 - [x] Can open/save ASS
-- [ ] Can synchronize an ASS event
+- [x] Can synchronize an ASS event
 - [x] Can edit style of an event
 - [x] Can use table
 - [ ] Can compare two scripts
@@ -37,6 +37,8 @@ Timing area :
 - [ ] Can received request
 - [ ] Can send proposal
 - [ ] Can received proposal
+- [x] Can display a waveform (FFMpeg)
+- [x] Can display a spectrum (FFMpeg)
 
 Translate area :
 - [x] Can open videos (FFMpeg)
