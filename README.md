@@ -37,6 +37,8 @@ Timing area :
 - [ ] Can received request
 - [ ] Can send proposal
 - [ ] Can received proposal
+- [x] Can display a waveform (FFMpeg)
+- [x] Can display a spectrum (FFMpeg)
 
 Translate area :
 - [x] Can open videos (FFMpeg)
