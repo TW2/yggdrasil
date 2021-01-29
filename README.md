@@ -30,6 +30,8 @@ Timing area :
 - [x] Can open audio (FFMpeg)
 - [ ] Can display full ASS (libass)
 - [x] Can open/save ASS
+- [x] Can open SSA
+- [x] Can import styles from SSA or ASS scripts
 - [x] Can synchronize an ASS event
 - [x] Can edit style of an event
 - [x] Can use table
