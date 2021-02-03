@@ -22,9 +22,7 @@ import javax.swing.table.AbstractTableModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
-import org.wingate.ygg.subs.AssEvent;
 import org.wingate.ygg.subs.AssEvent.LineType;
-import org.wingate.ygg.subs.AssStyle;
 
 /**
  *

@@ -84,13 +84,13 @@ public class AssStyle {
         // 06 - BackColour
         style.BackColour = array[6].substring(2);
         // 07 - Bold
-        style.setBold(array[7].contains("1"));
+        style.setBold(array[7].contains("1") | array[7].contains("-1"));
         // 08 - Italic
-        style.setItalic(array[8].contains("1"));
+        style.setItalic(array[8].contains("1") | array[8].contains("-1"));
         // 09 - Underline
-        style.setUnderline(array[9].contains("1"));
+        style.setUnderline(array[9].contains("1") | array[9].contains("-1"));
         // 10 - StrikeOut
-        style.setStrikeout(array[10].contains("1"));
+        style.setStrikeout(array[10].contains("1") | array[10].contains("-1"));
         // 11 - ScaleX
         style.setScaleX(Integer.parseInt(array[11]));
         // 12 - ScaleY
@@ -829,6 +829,66 @@ public class AssStyle {
                 + Integer.toString(style.getMarginR()) + ","
                 + Integer.toString(style.getMarginV()) + ","
                 + Integer.toString(style.getEncoding());
-    } 
+    }
+    
+    public static AssStyle createFromSSA(String SSA){
+        AssStyle style = new AssStyle();
+        String[] array = SSA.split(",");
+        // 00 - Name
+        style.setName(array[0].substring("Style: ".length()));
+        // 01 - Fontname
+        style.setFontname(array[1]);
+        // 02 - Fontsize
+        style.setFontsize(Integer.parseInt(array[2]));
+        // 03 - PrimaryColour (in integer >> translated to BBGGRR)
+        style.PrimaryColour = Integer.toString(Integer.parseInt(array[3]), 16);
+        // 04 - SecondaryColour (in integer >> translated to BBGGRR)
+        style.SecondaryColour = Integer.toString(Integer.parseInt(array[4]), 16);
+        // 05 - TertiaryColour (dropped)
+        // 06 - BackColour (in integer >> translated to BBGGRR)
+        style.BackColour = Integer.toString(Integer.parseInt(array[6]), 16);
+        // 07 - Bold
+        style.setBold(array[7].contains("1") | array[7].contains("-1"));
+        // 08 - Italic
+        style.setItalic(array[8].contains("1") | array[8].contains("-1"));
+        // XX - Underline (dropped)
+        // XX - StrikeOut (dropped)
+        // XX - ScaleX (dropped)
+        // XX - ScaleY (dropped)
+        // XX - Spacing (dropped)
+        // XX - Angle (dropped)
+        // 09 - BorderStyle
+        style.setBorderStyle(Integer.parseInt(array[9]));
+        // 10 - Outline
+        style.setOutline(Float.parseFloat(array[10]));
+        // 11 - Shadow
+        style.setShadow(Float.parseFloat(array[11]));
+        // 12 - Alignment Legacy
+        // (bottom: 1-2-3, top: 5-6-7, middle: 9-10-11)
+        // (Left: 1-5-9 Center: 2-6-10 Right: 3-7-11)
+        int legacy = Integer.parseInt(array[12]), numpad = 2;
+        switch(legacy){
+            case 1 -> {numpad = 1;}
+            case 2 -> {numpad = 2;}
+            case 3 -> {numpad = 3;}
+            case 5 -> {numpad = 7;}
+            case 6 -> {numpad = 8;}
+            case 7 -> {numpad = 9;}
+            case 9 -> {numpad = 4;}
+            case 10 -> {numpad = 5;}
+            case 11 -> {numpad = 6;}
+        }
+        style.setAlignment(numpad);
+        // 13 - MarginL
+        style.setMarginL(Integer.parseInt(array[13]));
+        // 14 - MarginR
+        style.setMarginR(Integer.parseInt(array[14]));
+        // 15 - MarginV
+        style.setMarginV(Integer.parseInt(array[15]));
+        // 16 - AlphaLevel (dropped)
+        // 17 - Encoding
+        style.setEncoding(Integer.parseInt(array[17]));
+        return style;
+    }
     
 }

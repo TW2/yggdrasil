@@ -20,6 +20,7 @@ import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
@@ -32,7 +33,6 @@ import org.wingate.ygg.subs.ASS;
 import org.wingate.ygg.subs.AssEvent;
 import org.wingate.ygg.subs.AssStyle;
 import org.wingate.ygg.util.FFStuffs;
-import org.wingate.ygg.util.FramesPanel;
 
 /**
  *
@@ -44,7 +44,6 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     private AssEvent currentEvent = new AssEvent();
     private final IfrTable table = MainFrame.getTableFrame();
     
-    private final FramesPanel fp = null;
     private final FFStuffs ffss = null;
     
     // ifrAssSubCommands components and variables
@@ -194,10 +193,6 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     public void updateAreaFrames(AssEvent ev){
         currentEvent = ev;
         
-        if(fp != null){
-            fp.updateArea(ev.getStartTime(), ev.getEndTime());
-        }        
-        
         Time dur = Time.substract(ev.getStartTime(), ev.getEndTime());
         
         tfStartTime.setText(ev.getStartTime().toProgramExtendedTime());
@@ -334,6 +329,10 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         saving.setEvents(events);
         ASS.Save(f.getPath(), saving);
     }
+    
+    public Map<String, AssStyle> getStyles(){
+        return ass.getStyles();
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -346,43 +345,55 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
 
         bgEventType = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
+        panASSA = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
         toggleDialogue = new javax.swing.JToggleButton();
         toggleComment = new javax.swing.JToggleButton();
         toggleProposal = new javax.swing.JToggleButton();
         toggleRequest = new javax.swing.JToggleButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
-        spinLayer = new javax.swing.JSpinner();
-        jSeparator2 = new javax.swing.JToolBar.Separator();
-        comboStyle = new javax.swing.JComboBox<>();
-        jPanel2 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
-        tfStartTime = new javax.swing.JTextField();
-        tfStartFrame = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        spinLayer = new javax.swing.JSpinner();
+        jPanel6 = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        comboStyle = new javax.swing.JComboBox<>();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel9 = new javax.swing.JLabel();
+        comboName = new javax.swing.JComboBox<>();
+        jPanel8 = new javax.swing.JPanel();
+        jLabel10 = new javax.swing.JLabel();
+        tfEffects = new javax.swing.JTextField();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel9 = new javax.swing.JPanel();
+        jLabel11 = new javax.swing.JLabel();
+        spinL = new javax.swing.JSpinner();
+        jPanel10 = new javax.swing.JPanel();
+        jLabel12 = new javax.swing.JLabel();
+        spinR = new javax.swing.JSpinner();
+        jPanel11 = new javax.swing.JPanel();
+        jLabel13 = new javax.swing.JLabel();
+        spinV = new javax.swing.JSpinner();
+        jPanel1 = new javax.swing.JPanel();
+        btnAssProperties = new javax.swing.JButton();
+        btnAssStyles = new javax.swing.JButton();
+        panSSB = new javax.swing.JPanel();
+        panSynchro = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        tfStartTime = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
         tfEndTime = new javax.swing.JTextField();
         tfEndFrame = new javax.swing.JTextField();
-        jPanel6 = new javax.swing.JPanel();
+        tfStartFrame = new javax.swing.JTextField();
         tfDurationFrame = new javax.swing.JTextField();
         tfDurationTime = new javax.swing.JTextField();
-        jPanel7 = new javax.swing.JPanel();
-        spinL = new javax.swing.JSpinner();
-        jPanel8 = new javax.swing.JPanel();
-        spinR = new javax.swing.JSpinner();
-        jPanel9 = new javax.swing.JPanel();
-        spinV = new javax.swing.JSpinner();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel10 = new javax.swing.JPanel();
-        comboName = new javax.swing.JComboBox<>();
-        jPanel11 = new javax.swing.JPanel();
-        tfEffects = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
         btnAddSubAtEnd = new javax.swing.JButton();
         btnAddSubAfter = new javax.swing.JButton();
         btnbAddSubBefore = new javax.swing.JButton();
         btnChangeSub = new javax.swing.JButton();
-        btnProperties = new javax.swing.JButton();
-        btnStyles = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tpText = new javax.swing.JTextPane();
 
@@ -426,28 +437,162 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         toggleRequest.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(toggleRequest);
         jToolBar1.add(jSeparator1);
-        jToolBar1.add(spinLayer);
-        jToolBar1.add(jSeparator2);
+
+        jPanel4.setPreferredSize(new java.awt.Dimension(228, 60));
+        jPanel4.setLayout(new java.awt.GridLayout(2, 2));
+
+        jPanel5.setLayout(new java.awt.BorderLayout());
+
+        jLabel7.setText("Layer : ");
+        jLabel7.setPreferredSize(new java.awt.Dimension(50, 16));
+        jPanel5.add(jLabel7, java.awt.BorderLayout.WEST);
+        jPanel5.add(spinLayer, java.awt.BorderLayout.CENTER);
+
+        jPanel4.add(jPanel5);
+
+        jPanel6.setLayout(new java.awt.BorderLayout());
+
+        jLabel8.setText(" Style : ");
+        jLabel8.setPreferredSize(new java.awt.Dimension(50, 16));
+        jPanel6.add(jLabel8, java.awt.BorderLayout.WEST);
 
         comboStyle.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jToolBar1.add(comboStyle);
+        jPanel6.add(comboStyle, java.awt.BorderLayout.CENTER);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 867, Short.MAX_VALUE)
+        jPanel4.add(jPanel6);
+
+        jPanel7.setLayout(new java.awt.BorderLayout());
+
+        jLabel9.setText("Name : ");
+        jLabel9.setPreferredSize(new java.awt.Dimension(50, 16));
+        jPanel7.add(jLabel9, java.awt.BorderLayout.WEST);
+
+        comboName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboNameActionPerformed(evt);
+            }
+        });
+        jPanel7.add(comboName, java.awt.BorderLayout.CENTER);
+
+        jPanel4.add(jPanel7);
+
+        jPanel8.setLayout(new java.awt.BorderLayout());
+
+        jLabel10.setText(" Effects : ");
+        jLabel10.setPreferredSize(new java.awt.Dimension(50, 16));
+        jPanel8.add(jLabel10, java.awt.BorderLayout.WEST);
+
+        tfEffects.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tfEffectsActionPerformed(evt);
+            }
+        });
+        jPanel8.add(tfEffects, java.awt.BorderLayout.CENTER);
+
+        jPanel4.add(jPanel8);
+
+        jToolBar1.add(jPanel4);
+        jToolBar1.add(jSeparator2);
+
+        jPanel3.setPreferredSize(new java.awt.Dimension(60, 60));
+        jPanel3.setLayout(new java.awt.GridLayout(2, 2));
+
+        jPanel9.setLayout(new java.awt.BorderLayout());
+
+        jLabel11.setText("L : ");
+        jPanel9.add(jLabel11, java.awt.BorderLayout.WEST);
+
+        spinL.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinLStateChanged(evt);
+            }
+        });
+        jPanel9.add(spinL, java.awt.BorderLayout.CENTER);
+
+        jPanel3.add(jPanel9);
+
+        jPanel10.setLayout(new java.awt.BorderLayout());
+
+        jLabel12.setText(" R : ");
+        jPanel10.add(jLabel12, java.awt.BorderLayout.WEST);
+
+        spinR.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinRStateChanged(evt);
+            }
+        });
+        jPanel10.add(spinR, java.awt.BorderLayout.CENTER);
+
+        jPanel3.add(jPanel10);
+
+        jPanel11.setLayout(new java.awt.BorderLayout());
+
+        jLabel13.setText("V : ");
+        jPanel11.add(jLabel13, java.awt.BorderLayout.WEST);
+
+        spinV.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinVStateChanged(evt);
+            }
+        });
+        jPanel11.add(spinV, java.awt.BorderLayout.CENTER);
+
+        jPanel3.add(jPanel11);
+
+        jPanel1.setLayout(new java.awt.GridLayout(1, 2));
+
+        btnAssProperties.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32 losange carré.png"))); // NOI18N
+        btnAssProperties.setToolTipText("Properties");
+        btnAssProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAssPropertiesActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btnAssProperties);
+
+        btnAssStyles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32 rond.png"))); // NOI18N
+        btnAssStyles.setToolTipText("Styles");
+        btnAssStyles.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAssStylesActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btnAssStyles);
+
+        jPanel3.add(jPanel1);
+
+        jToolBar1.add(jPanel3);
+
+        javax.swing.GroupLayout panASSALayout = new javax.swing.GroupLayout(panASSA);
+        panASSA.setLayout(panASSALayout);
+        panASSALayout.setHorizontalGroup(
+            panASSALayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        panASSALayout.setVerticalGroup(
+            panASSALayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panASSALayout.createSequentialGroup()
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 6, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("Type, Layer, Style", jPanel1);
+        jTabbedPane1.addTab("ASS", panASSA);
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Start time"));
+        javax.swing.GroupLayout panSSBLayout = new javax.swing.GroupLayout(panSSB);
+        panSSB.setLayout(panSSBLayout);
+        panSSBLayout.setHorizontalGroup(
+            panSSBLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 867, Short.MAX_VALUE)
+        );
+        panSSBLayout.setVerticalGroup(
+            panSSBLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 78, Short.MAX_VALUE)
+        );
+
+        jTabbedPane1.addTab("SSB", panSSB);
+
+        jLabel1.setText("Start : ");
 
         tfStartTime.setText("00.00.00.000");
         tfStartTime.addActionListener(new java.awt.event.ActionListener() {
@@ -456,30 +601,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
             }
         });
 
-        tfStartFrame.setText("00000000");
-        tfStartFrame.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tfStartFrameActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("End time"));
+        jLabel2.setText("End : ");
 
         tfEndTime.setText("00.00.00.000");
         tfEndTime.addActionListener(new java.awt.event.ActionListener() {
@@ -495,23 +617,12 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
             }
         });
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Duration"));
+        tfStartFrame.setText("00000000");
+        tfStartFrame.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tfStartFrameActionPerformed(evt);
+            }
+        });
 
         tfDurationFrame.setText("00000000");
         tfDurationFrame.addActionListener(new java.awt.event.ActionListener() {
@@ -527,173 +638,55 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
             }
         });
 
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addComponent(tfDurationTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        jLabel3.setText("Duration : ");
+
+        javax.swing.GroupLayout panSynchroLayout = new javax.swing.GroupLayout(panSynchro);
+        panSynchro.setLayout(panSynchroLayout);
+        panSynchroLayout.setHorizontalGroup(
+            panSynchroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panSynchroLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panSynchroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tfDurationFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(panSynchroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panSynchroLayout.createSequentialGroup()
+                        .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panSynchroLayout.createSequentialGroup()
+                        .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfDurationTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfDurationFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 422, Short.MAX_VALUE))
         );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(tfDurationTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(tfDurationFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder("L"));
-
-        spinL.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinLStateChanged(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spinL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-        jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spinL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-
-        jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("R"));
-
-        spinR.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinRStateChanged(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
-        jPanel8.setLayout(jPanel8Layout);
-        jPanel8Layout.setHorizontalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spinR, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-        jPanel8Layout.setVerticalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spinR, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-
-        jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("V"));
-
-        spinV.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinVStateChanged(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
-        jPanel9.setLayout(jPanel9Layout);
-        jPanel9Layout.setHorizontalGroup(
-            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spinV, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-        jPanel9Layout.setVerticalGroup(
-            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spinV, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        panSynchroLayout.setVerticalGroup(
+            panSynchroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panSynchroLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panSynchroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(tfStartTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfStartFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3)
+                    .addComponent(tfDurationTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfDurationFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 141, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(33, Short.MAX_VALUE))
+                .addGroup(panSynchroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(tfEndTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tfEndFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(35, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("Sync and Margins", jPanel2);
-
-        jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Name"));
-
-        comboName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboNameActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
-        jPanel10.setLayout(jPanel10Layout);
-        jPanel10Layout.setHorizontalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(comboName, 0, 350, Short.MAX_VALUE)
-        );
-        jPanel10Layout.setVerticalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel10Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(comboName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        jPanel11.setBorder(javax.swing.BorderFactory.createTitledBorder("Effects"));
-
-        tfEffects.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tfEffectsActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
-        jPanel11.setLayout(jPanel11Layout);
-        jPanel11Layout.setHorizontalGroup(
-            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tfEffects, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
-        );
-        jPanel11Layout.setVerticalGroup(
-            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tfEffects, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(141, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(33, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("Name and Effect", jPanel3);
+        jTabbedPane1.addTab("Synchronization", panSynchro);
 
         btnAddSubAtEnd.setForeground(new java.awt.Color(0, 204, 0));
         btnAddSubAtEnd.setText("Add at end");
@@ -727,20 +720,6 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
             }
         });
 
-        btnProperties.setText("Properties");
-        btnProperties.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnPropertiesActionPerformed(evt);
-            }
-        });
-
-        btnStyles.setText("Styles");
-        btnStyles.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStylesActionPerformed(evt);
-            }
-        });
-
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(tpText);
@@ -755,10 +734,7 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnProperties)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnStyles)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btnChangeSub)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnbAddSubBefore)
@@ -776,12 +752,10 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAddSubAtEnd)
-                    .addComponent(btnAddSubAfter)
                     .addComponent(btnbAddSubBefore)
                     .addComponent(btnChangeSub)
-                    .addComponent(btnProperties)
-                    .addComponent(btnStyles))
+                    .addComponent(btnAddSubAtEnd, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnAddSubAfter))
                 .addContainerGap())
         );
 
@@ -831,23 +805,6 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     private void tfEffectsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfEffectsActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_tfEffectsActionPerformed
-
-    private void btnPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPropertiesActionPerformed
-        PropsDialog pd = new PropsDialog(new JFrame(), true);
-        pd.setAssInfos(ass);
-        pd.showDialog(new JFrame());
-        if(pd.getDialogResult() == PropsDialog.DialogResult.OK){
-            pd.getAssInfos(ass);
-        }
-    }//GEN-LAST:event_btnPropertiesActionPerformed
-
-    private void btnStylesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStylesActionPerformed
-        StylesDialog sd = new StylesDialog(new JFrame(), true);
-        sd.showDialog(ass.getStyles());
-        if(sd.getDialogResult() == StylesDialog.DialogResult.Ok){
-            
-        }
-    }//GEN-LAST:event_btnStylesActionPerformed
     
     @SuppressWarnings("static-access")
     private void btnChangeSubActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeSubActionPerformed
@@ -914,21 +871,48 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
         refreshTempASS();
     }//GEN-LAST:event_btnAddSubAtEndActionPerformed
 
+    private void btnAssPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAssPropertiesActionPerformed
+        PropsDialog pd = new PropsDialog(new JFrame(), true);
+        pd.setAssInfos(ass);
+        pd.showDialog(new JFrame());
+        if(pd.getDialogResult() == PropsDialog.DialogResult.OK){
+            pd.getAssInfos(ass);
+        }
+    }//GEN-LAST:event_btnAssPropertiesActionPerformed
+
+    private void btnAssStylesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAssStylesActionPerformed
+        StylesDialog sd = new StylesDialog(new JFrame(), true);
+        sd.showDialog(ass.getStyles());
+        if(sd.getDialogResult() == StylesDialog.DialogResult.Ok){
+            ass.setStyles(sd.getStyles());
+            initAssComboStyle();
+        }
+    }//GEN-LAST:event_btnAssStylesActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup bgEventType;
     private javax.swing.JButton btnAddSubAfter;
     private javax.swing.JButton btnAddSubAtEnd;
+    private javax.swing.JButton btnAssProperties;
+    private javax.swing.JButton btnAssStyles;
     private javax.swing.JButton btnChangeSub;
-    private javax.swing.JButton btnProperties;
-    private javax.swing.JButton btnStyles;
     private javax.swing.JButton btnbAddSubBefore;
     private javax.swing.JComboBox<String> comboName;
     private javax.swing.JComboBox<String> comboStyle;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -941,6 +925,9 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JPanel panASSA;
+    private javax.swing.JPanel panSSB;
+    private javax.swing.JPanel panSynchro;
     private javax.swing.JSpinner spinL;
     private javax.swing.JSpinner spinLayer;
     private javax.swing.JSpinner spinR;

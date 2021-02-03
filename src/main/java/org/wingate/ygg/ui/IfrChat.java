@@ -27,10 +27,6 @@ import java.util.logging.Logger;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import org.wingate.timelibrary.Time;
-import org.wingate.replica.event.ChatTextEvent;
-import org.wingate.replica.event.ReceiverListener;
-import org.wingate.replica.ygg.PeerClient;
-import org.wingate.replica.ygg.PeerHandler;
 import org.wingate.ygg.io.YggConf;
 import org.wingate.ygg.io.YggSystem;
 
@@ -51,20 +47,20 @@ public class IfrChat extends javax.swing.JInternalFrame {
     }
     
     private void init(){
-        PeerHandler.addReceiverListener(new ReceiverListener() {
-            @Override
-            public void getChatText(ChatTextEvent event) {
-                Calendar cal = Calendar.getInstance();
-                Time t = Time.create(cal.getTimeInMillis());
-                String text = t.toProgramExtendedTime() + " " + event.getMessage() + "\n";
-                Document doc = tpChat.getDocument();
-                try {
-                    doc.insertString(doc.getEndPosition().getOffset(), text, null);
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(IfrChat.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+//        PeerHandler.addReceiverListener(new ReceiverListener() {
+//            @Override
+//            public void getChatText(ChatTextEvent event) {
+//                Calendar cal = Calendar.getInstance();
+//                Time t = Time.create(cal.getTimeInMillis());
+//                String text = t.toProgramExtendedTime() + " " + event.getMessage() + "\n";
+//                Document doc = tpChat.getDocument();
+//                try {
+//                    doc.insertString(doc.getEndPosition().getOffset(), text, null);
+//                } catch (BadLocationException ex) {
+//                    Logger.getLogger(IfrChat.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//        });
     }
 
     /**
@@ -159,15 +155,15 @@ public class IfrChat extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_btnAddSmileyActionPerformed
 
     private void btnSendMessageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageActionPerformed
-        String surname = tfSurname.getText().isEmpty() ? "Newbie" : tfSurname.getText();
-        String team = tfTeam.getText().isEmpty() ? "Battle Royale" : tfTeam.getText();
-        String ip = jCheckBox1.isSelected() ? YggSystem.resolveRemoteIPv4() : YggSystem.resolveLocalIPv4();
-        try {
-            PeerClient.replica(yggConf.getIpReplica(), team, "192.168.1.154", surname);
-            PeerClient.chatTextToReplica(yggConf.getIpReplica(), team, surname + " -> " + tfChatMessage.getText());
-        } catch (IOException ex) {
-            Logger.getLogger(IfrChat.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        String surname = tfSurname.getText().isEmpty() ? "Newbie" : tfSurname.getText();
+//        String team = tfTeam.getText().isEmpty() ? "Battle Royale" : tfTeam.getText();
+//        String ip = jCheckBox1.isSelected() ? YggSystem.resolveRemoteIPv4() : YggSystem.resolveLocalIPv4();
+//        try {
+//            PeerClient.replica(yggConf.getIpReplica(), team, "192.168.1.154", surname);
+//            PeerClient.chatTextToReplica(yggConf.getIpReplica(), team, surname + " -> " + tfChatMessage.getText());
+//        } catch (IOException ex) {
+//            Logger.getLogger(IfrChat.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }//GEN-LAST:event_btnSendMessageActionPerformed
 
 

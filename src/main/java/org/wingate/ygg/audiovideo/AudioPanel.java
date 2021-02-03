@@ -22,6 +22,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JPanel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
@@ -54,6 +56,8 @@ public class AudioPanel extends JPanel {
     private long startCursor = -1L;
     private long stopCursor = -1L;
     private int currentCursor = -1;
+    
+    private Map<Integer, Long> keyframes = new HashMap<>();
 
     public AudioPanel() {
         init();
@@ -111,7 +115,6 @@ public class AudioPanel extends JPanel {
                 repaint();
             }
         });
-        
     }
 
     public void setInfo(AVInfo info, int scrollBarTotal, int imageSize) {
@@ -132,7 +135,7 @@ public class AudioPanel extends JPanel {
                 }
             });
             msEventInitialized = true;
-        }        
+        }
     }
     
     public BufferedImage getImage(long ms, boolean spectrum){
@@ -179,6 +182,19 @@ public class AudioPanel extends JPanel {
     public void setMsPerImage(long msPerImage) {
         this.msPerImage = msPerImage;
     }
+
+    public void setKeyframes(Map<Integer, Long> keyframes) {
+        this.keyframes = keyframes;
+        repaint();
+    }
+    
+    public void setArea(Time start, Time end){
+        startCursor = Time.toMillisecondsTime(start) * getWidth() / msPerImage;
+        stopCursor = Time.toMillisecondsTime(end) * getWidth() / msPerImage;
+        this.start = start;
+        this.end = end;
+        repaint();
+    }
     
     @Override
     public void paint(Graphics g) {
@@ -221,6 +237,19 @@ public class AudioPanel extends JPanel {
             g.setColor(Color.red);
             for(int xa = (int)offset; xa<getWidth(); xa+=getWidth()/(msPerImage/1000)){
                 g.drawLine(xa, 0, xa, getHeight());
+            }
+            //------------------------------------------------------------------
+            
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // On dessine les keyframes
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            for(Map.Entry<Integer, Long> entry : keyframes.entrySet()){
+                long b = offset + entry.getValue() / 1000L * getWidth() / msPerImage;
+                if(b > 0 && b < getWidth()){
+                    int xc = (int)(b);
+                    g.setColor(MainFrame.isDark() ? Color.white : Color.black);
+                    g.drawLine(xc, 0, xc, getHeight());
+                }
             }
             //------------------------------------------------------------------
             
@@ -306,7 +335,20 @@ public class AudioPanel extends JPanel {
                 g.drawLine(xa, 0, xa, getHeight());
             }
             //------------------------------------------------------------------
-                        
+                 
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // On dessine les keyframes
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            for(Map.Entry<Integer, Long> entry : keyframes.entrySet()){
+                long b = offset + entry.getValue() / 1000L * getWidth() / msPerImage;
+                if(b > 0 && b < getWidth()){
+                    int xc = (int)(b);
+                    g.setColor(DrawColor.white.getColor());
+                    g.drawLine(xc, 0, xc, getHeight());
+                }
+            }
+            //------------------------------------------------------------------
+            
             //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             // On dessine la zone sélectionnée
             //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

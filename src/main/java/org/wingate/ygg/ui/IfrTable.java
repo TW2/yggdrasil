@@ -58,7 +58,11 @@ public class IfrTable extends javax.swing.JInternalFrame {
     private void init(){
         assEventTableRenderer = new AssEventTableRenderer(MainFrame.isDark());
         initializeTableOne(MainFrame.getLanguage(), MainFrame.getISO());
+        
+        
     }
+    
+    
     
     // <editor-fold defaultstate="collapsed" desc="TableOne">
     
@@ -120,11 +124,12 @@ public class IfrTable extends javax.swing.JInternalFrame {
             public void mouseClicked(MouseEvent e) {
                 if(e.getButton() == MouseEvent.BUTTON1){
                     AssEvent ev = dtmASS.getEventAt(tableV1.getSelectedRow());
-                    MainFrame.getTableLinkFrame().alter(ev);
+                    MainFrame.getTableLinkFrame().alter(ev);                    
                     try{
                         MainFrame.getTableLinkFrame().displayEventTime(ev);
                         MainFrame.getTableLinkFrame().updateAreaFrames(ev);
                     }catch(Exception ex){}
+                    MainFrame.getAudioFrame().setArea(ev.getStartTime(), ev.getEndTime());
                 }
             }
         });
@@ -155,6 +160,7 @@ public class IfrTable extends javax.swing.JInternalFrame {
         ASS saving = new ASS();
         List<AssEvent> events = dtmASS.getAllEvents();
         saving.setEvents(events);
+        saving.setStyles(MainFrame.getTableLinkFrame().getStyles());
         ASS.Save(f.getPath(), saving);
     }
     
@@ -170,19 +176,19 @@ public class IfrTable extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
+        panAss1 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tableV1 = new javax.swing.JTable();
-        jPanel2 = new javax.swing.JPanel();
+        panAss2 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         tableV2 = new javax.swing.JTable();
-        jPanel3 = new javax.swing.JPanel();
+        panAssCompare = new javax.swing.JPanel();
 
         setMaximizable(true);
         setResizable(true);
         setTitle("Table");
 
-        jPanel1.setLayout(new java.awt.BorderLayout());
+        panAss1.setLayout(new java.awt.BorderLayout());
 
         jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -199,11 +205,11 @@ public class IfrTable extends javax.swing.JInternalFrame {
         ));
         jScrollPane2.setViewportView(tableV1);
 
-        jPanel1.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+        panAss1.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
-        jTabbedPane1.addTab("Version #1", jPanel1);
+        jTabbedPane1.addTab("ASS #1", panAss1);
 
-        jPanel2.setLayout(new java.awt.BorderLayout());
+        panAss2.setLayout(new java.awt.BorderLayout());
 
         jScrollPane3.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -220,22 +226,22 @@ public class IfrTable extends javax.swing.JInternalFrame {
         ));
         jScrollPane3.setViewportView(tableV2);
 
-        jPanel2.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+        panAss2.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
-        jTabbedPane1.addTab("Version #2", jPanel2);
+        jTabbedPane1.addTab("ASS #2", panAss2);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout panAssCompareLayout = new javax.swing.GroupLayout(panAssCompare);
+        panAssCompare.setLayout(panAssCompareLayout);
+        panAssCompareLayout.setHorizontalGroup(
+            panAssCompareLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 841, Short.MAX_VALUE)
         );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        panAssCompareLayout.setVerticalGroup(
+            panAssCompareLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 482, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("Compare", jPanel3);
+        jTabbedPane1.addTab("ASS Compare", panAssCompare);
 
         getContentPane().add(jTabbedPane1, java.awt.BorderLayout.CENTER);
 
@@ -244,12 +250,12 @@ public class IfrTable extends javax.swing.JInternalFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JPanel panAss1;
+    private javax.swing.JPanel panAss2;
+    private javax.swing.JPanel panAssCompare;
     private static javax.swing.JTable tableV1;
     private static javax.swing.JTable tableV2;
     // End of variables declaration//GEN-END:variables

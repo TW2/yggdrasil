@@ -26,7 +26,6 @@ import javax.swing.filechooser.FileFilter;
 import org.wingate.freectrl.VCheckBoxMenuItem;
 import org.wingate.freectrl.VMenu;
 import org.wingate.freectrl.VMenuItem;
-import org.wingate.replica.ygg.PeerServer;
 import org.wingate.ygg.io.SubtitlesFileFilter;
 import org.wingate.ygg.io.YggConf;
 import org.wingate.ygg.languages.ISO_3166;
@@ -156,8 +155,6 @@ public class MainFrame extends javax.swing.JFrame {
         
         // Affiche le mode de synchronisation par défaut
         displayTime();
-        
-        PeerServer.createServer();
     }
     
     // <editor-fold defaultstate="collapsed" desc="Traduction">
@@ -512,7 +509,7 @@ public class MainFrame extends javax.swing.JFrame {
                     // Si synchronisation est activée (Time)
                     try{
                         wave.openAudio(videoFile);
-                        video.setVideoPath(videoFile.getPath());
+                        video.setVideoPath(videoFile.getPath());                        
                     }catch(Exception exc){
                         
                     }
@@ -555,7 +552,9 @@ public class MainFrame extends javax.swing.JFrame {
                 case Time -> {
                     // Si synchronisation est activée (Time)
                     try{
-                        table.saveASSTable(fcASS.getSelectedFile());
+                        File save = fcASS.getSelectedFile();
+                        table.saveASSTable(save.getName().toLowerCase().endsWith(".ass") ? 
+                                save : new File(save.getPath() + ".ass"));
                     }catch(Exception exc){
                         
                     }

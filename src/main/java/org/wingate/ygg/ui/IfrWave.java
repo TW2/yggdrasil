@@ -19,13 +19,14 @@ package org.wingate.ygg.ui;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.MouseWheelEvent;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.filechooser.FileFilter;
 import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.audiovideo.AVInfo;
 import org.wingate.ygg.audiovideo.AudioPanel;
 import org.wingate.ygg.audiovideo.AudioRender;
@@ -55,6 +56,9 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
     
     // Conserve la base d'infos
     private AVInfo info = null;
+    
+    // Etat en transit des keyframes que l'on doit passer à la forme d'onde/spectrogramme
+    private Map<Integer, Long> keyframes = new HashMap<>();
     
     // Etat de la boucle de création d'images de forme d'onde et de spectrograme
     private volatile boolean ended = true;
@@ -158,6 +162,23 @@ public class IfrWave extends javax.swing.JInternalFrame implements Runnable {
     
     public PlayAudio getPlayAudio(){
         return playAudio;
+    }
+
+    public Map<Integer, Long> getKeyframes() {
+        return keyframes;
+    }
+
+    public void setKeyframes(Map<Integer, Long> keyframes) {
+        this.keyframes = keyframes;
+        audioPanel.setKeyframes(keyframes);
+    }
+    
+    public void setArea(Time start, Time end){
+        audioPanel.setArea(start, end);
+    }
+
+    public AVInfo getInfo() {
+        return info;
     }
 
     /**

@@ -174,6 +174,81 @@ public class AssEvent {
     }
     
     /**
+     * Get an Event object from an ASS event line
+     * Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+     * @param SSA
+     * @param styles
+     * @return An Event object
+     */
+    public static AssEvent createFromSSA(String SSA, Map<String, AssStyle> styles){
+        AssEvent ev = new AssEvent();
+        String[] array = SSA.split(",", 10);
+        if(array.length == 10){
+            // Line type (Format)
+            switch(array[0].substring(0, array[0].indexOf(":"))){
+                case "Dialogue" -> ev.setLineType(LineType.Dialogue);
+                case "Comment" -> ev.setLineType(LineType.Comment);
+                case "#Proposal" -> ev.setLineType(LineType.Proposal);
+                case "#Request" -> ev.setLineType(LineType.Request);
+                default -> ev.setLineType(LineType.Comment);             }
+            // Layer (dropped cause marked at this location)
+            // Start - End
+            ev.setStartTime(Time.create(array[1]));
+            ev.setEndTime(Time.create(array[2]));
+            // Style
+            ev.setStyle(styles.get(array[3]));
+            // Name
+            ev.setName(array[4]);
+            // Margins LRV
+            ev.setMarginL(Integer.parseInt(array[5]));
+            ev.setMarginR(Integer.parseInt(array[6]));
+            ev.setMarginV(Integer.parseInt(array[7]));
+            // Effect
+            ev.setEffect(array[8]);
+            // Text
+            ev.setText(array[9]);
+        }
+        return ev;
+    }
+    
+    /**
+     * Get an Event object from an ASS event line
+     * Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+     * @param SSA
+     * @return An Event object
+     */
+    public static AssEvent createFromSSA(String SSA){
+        AssEvent ev = new AssEvent();
+        String[] array = SSA.split(",", 10);
+        if(array.length == 10){
+            // Line type (Format)
+            switch(array[0].substring(0, array[0].indexOf(":"))){
+                case "Dialogue" -> ev.setLineType(LineType.Dialogue);
+                case "Comment" -> ev.setLineType(LineType.Comment);
+                case "#Proposal" -> ev.setLineType(LineType.Proposal);
+                case "#Request" -> ev.setLineType(LineType.Request);
+                default -> ev.setLineType(LineType.Comment);             }
+            // Layer (dropped cause marked at this location)
+            // Start - End
+            ev.setStartTime(Time.create(array[1]));
+            ev.setEndTime(Time.create(array[2]));
+            // Style
+            ev.setStyle(AssStyle.getDefault());
+            // Name
+            ev.setName(array[4]);
+            // Margins LRV
+            ev.setMarginL(Integer.parseInt(array[5]));
+            ev.setMarginR(Integer.parseInt(array[6]));
+            ev.setMarginV(Integer.parseInt(array[7]));
+            // Effect
+            ev.setEffect(array[8]);
+            // Text
+            ev.setText(array[9]);
+        }
+        return ev;
+    }
+    
+    /**
      * Get an ASS line for this event
      * Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
      * @param ev An event

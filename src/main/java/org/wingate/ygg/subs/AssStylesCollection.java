@@ -18,7 +18,6 @@ package org.wingate.ygg.subs;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.wingate.ygg.subs.AssStyle;
 
 /**
  *
@@ -69,6 +68,11 @@ public class AssStylesCollection {
 
     public void setEnableStyles(Map<AssStyle, Boolean> enableStyles) {
         this.enableStyles = enableStyles;
+    }
+
+    @Override
+    public String toString() {
+        return collectionName;
     }
     
 }

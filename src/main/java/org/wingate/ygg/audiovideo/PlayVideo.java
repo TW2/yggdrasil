@@ -29,6 +29,7 @@ import javax.swing.event.EventListenerList;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.util.DrawColor;
 
 /**
@@ -147,7 +148,7 @@ public class PlayVideo implements Runnable {
                         fireFrameNumber(grabber.getFrameNumber());
                         
                         long wanted = frame.timestamp;
-                        long missed = System.nanoTime() - nanosBefore + 1350000L;
+                        long missed = System.nanoTime() - nanosBefore + 1300000L;
                         long delta = microsBefore + missed / 1000L;                        
                         if(microsBefore != 0L){
                             while(delta < wanted){
@@ -216,7 +217,6 @@ public class PlayVideo implements Runnable {
 
         private BufferedImage img = null;
         private BufferedImage subs = null;
-        private boolean darkMode = false;
         
         public VideoPanel() {            
             init();
@@ -224,10 +224,6 @@ public class PlayVideo implements Runnable {
         
         private void init(){
             setDoubleBuffered(true);
-        }
-
-        public void setDarkMode(boolean darkMode) {
-            this.darkMode = darkMode;
         }
         
         public void updateImage(BufferedImage img){
@@ -245,7 +241,7 @@ public class PlayVideo implements Runnable {
             super.paint(g);
             
             if(img != null){
-                g.setColor(darkMode == true ? Color.gray : DrawColor.alice_blue.getColor());
+                g.setColor(MainFrame.isDark() ? Color.gray : DrawColor.alice_blue.getColor());
                 g.fillRect(0, 0, getWidth(), getHeight());
                 
                 Dimension dim = getScaledDimension(
@@ -259,14 +255,14 @@ public class PlayVideo implements Runnable {
             }
             
             if(subs != null){
-//                Dimension dim = getScaledDimension(
-//                        new Dimension(subs.getWidth(), subs.getHeight()), 
-//                        new Dimension(getWidth(), getHeight())
-//                );
-//
-//                int x = (getWidth() - dim.width) / 2;
-//                int y = (getHeight() - dim.height) / 2;
-//                g.drawImage(subs, x, y, dim.width, dim.height, null);
+                Dimension dim = getScaledDimension(
+                        new Dimension(subs.getWidth(), subs.getHeight()), 
+                        new Dimension(getWidth(), getHeight())
+                );
+
+                int x = (getWidth() - dim.width) / 2;
+                int y = (getHeight() - dim.height) / 2;
+                g.drawImage(subs, x, y, dim.width, dim.height, null);
             }
         }
         

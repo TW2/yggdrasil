@@ -17,21 +17,38 @@
 package org.wingate.ygg.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.Checksum;
+import javax.imageio.ImageIO;
 import javax.sound.sampled.LineUnavailableException;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
 import org.bytedeco.javacv.FrameGrabber;
 import org.wingate.timelibrary.Time;
+import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.audiovideo.KeyFrameListener;
 import org.wingate.ygg.audiovideo.PlayAudio;
 import org.wingate.ygg.audiovideo.PlaySubtitles;
 import org.wingate.ygg.audiovideo.PlayVideo;
 import org.wingate.ygg.audiovideo.PlayVideo.VideoPanel;
+import org.wingate.ygg.audiovideo.VideoKeyFrames;
 import org.wingate.ygg.audiovideo.VideoListener;
-import org.wingate.ygg.util.FramesPanel;
+import org.wingate.ygg.util.DrawColor;
 import org.wingate.ygg.util.SubtitlesChoice;
 
 /**
@@ -43,8 +60,9 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private IfrWave wave = null;
     private PlayAudio playAudio = null;
     private VideoPanel videoPanel = null;
+    private final VideoKeyFrames videoKeyFrames = new VideoKeyFrames();
     
-    private FramesPanel fp;
+    private final KeyFramesPanel keyFramesPanel = new KeyFramesPanel();
     
     private final PlayVideo playVideo = new PlayVideo();
     private final PlaySubtitles playSubs = new PlaySubtitles();
@@ -52,6 +70,9 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private boolean media = false;
     
     private final SubtitlesChoice sChoice = new SubtitlesChoice();
+    
+    // On garde en mémoire l'image de subs pécédente
+    private BufferedImage oldSubs = null;
 
     /**
      * Creates new form IfrVideo
@@ -89,12 +110,34 @@ public class IfrVideo extends javax.swing.JInternalFrame {
             }
         });
         
+        videoKeyFrames.addKeyFrameListener(new KeyFrameListener() {
+            @Override
+            public void getKeyFrames(Map<Integer, Long> keyframes) {
+                wave.setKeyframes(keyframes);
+                keyFramesPanel.updateKeyFrames(keyframes, wave.getInfo().getDuration());
+            }
+        });
+        
+        slideTime.addChangeListener((ChangeEvent e) -> {
+            org.wingate.ygg.audiovideo.AVInfo info = wave.getInfo();
+            if(info != null){
+                // Position du direct (slide vidéo)
+                // duration (sec) = frame / fps
+                long msDuration = Math.round(slideTime.getValue() / info.getFps() * 1000L);
+                playVideo.setMsAreaStart(msDuration - 2);
+                playVideo.setMsAreaStop(msDuration);
+                playVideo.playStopVideo();
+            }
+        });
+        
         // Audio
         playAudio = wave.getPlayAudio();
         
-        // Subtitles
-        lblSubs.setHorizontalAlignment(JLabel.CENTER);
-        lblSubs.setVerticalAlignment(JLabel.CENTER);
+        // Keyframes
+        panKeyFrames.add(keyFramesPanel, BorderLayout.CENTER);
+        
+        // Position du direct (slide vidéo)
+        slideTime.setMinimum(0);
     }
 
     public void setVideoPath(String videopath){
@@ -102,9 +145,15 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         // Préparation de variables
         File video = new File(videopath);
         
-        try {
+        try {            
             playVideo.setVideo(video);
+            videoKeyFrames.startSearch(video);
             media = video.exists();
+            // Position du direct (slide vidéo)
+            // frame = duration (sec) / fps
+            org.wingate.ygg.audiovideo.AVInfo info = wave.getInfo();
+            int frame = (int)(info.getDuration() / 1000L / info.getFps());
+            slideTime.setMaximum(frame);
         } catch (FrameGrabber.Exception | LineUnavailableException ex) {
             Logger.getLogger(IfrVideo.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -160,9 +209,34 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         return media;
     }
     
-    public void updateSubtitlesImage(BufferedImage image){
-        lblSubs.setIcon(new ImageIcon(image));
+    public void updateSubtitlesImage(BufferedImage subs){
+        if((oldSubs != null && isSameImage(oldSubs, subs) == false) | oldSubs == null){
+//            playVideo.updateSubtitlesImage(subs);
+//            oldSubs = subs;
+        }        
     }
+    
+    private boolean isSameImage(BufferedImage a, BufferedImage b){
+        return getMD5(a).equalsIgnoreCase(getMD5(b));        
+    }
+    
+    private String getMD5(BufferedImage bi){
+        try(ByteArrayOutputStream baos = new ByteArrayOutputStream();){
+            ImageIO.write(bi, "jpg", baos);
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(baos.toByteArray());
+            byte[] digest = md.digest();
+            BigInteger no = new BigInteger(1, digest); 
+            String hashtext = no.toString(16); 
+            while (hashtext.length() < 32) { 
+                hashtext = "0" + hashtext; 
+            } 
+            return hashtext; 
+        } catch (IOException | NoSuchAlgorithmException ex) {
+            Logger.getLogger(IfrVideo.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "0";
+     }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -174,7 +248,6 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         panVideo = new javax.swing.JPanel();
-        lblSubs = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         panControls = new javax.swing.JPanel();
         tfStartFrame = new javax.swing.JTextField();
@@ -208,11 +281,11 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         panVideo.setLayout(panVideoLayout);
         panVideoLayout.setHorizontalGroup(
             panVideoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblSubs, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         panVideoLayout.setVerticalGroup(
             panVideoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblSubs, javax.swing.GroupLayout.DEFAULT_SIZE, 410, Short.MAX_VALUE)
+            .addGap(0, 408, Short.MAX_VALUE)
         );
 
         tfStartFrame.setHorizontalAlignment(javax.swing.JTextField.CENTER);
@@ -392,16 +465,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
 
         jTabbedPane1.addTab("Play", panControls);
 
-        javax.swing.GroupLayout panKeyFramesLayout = new javax.swing.GroupLayout(panKeyFrames);
-        panKeyFrames.setLayout(panKeyFramesLayout);
-        panKeyFramesLayout.setHorizontalGroup(
-            panKeyFramesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        panKeyFramesLayout.setVerticalGroup(
-            panKeyFramesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 8, Short.MAX_VALUE)
-        );
+        panKeyFrames.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -421,7 +485,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
                 .addContainerGap()
                 .addComponent(panVideo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panKeyFrames, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panKeyFrames, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -443,43 +507,35 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnBeforeStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeforeStartActionPerformed
-        if(fp != null){
-            Time end = fp.getAreaStartTime();
-            Time start = Time.substract(end, Time.create(500L));
-            playArea(start, end);
-        }        
+        Time end = keyFramesPanel.getStartTime();
+        Time start = Time.substract(end, Time.create(500L));
+        if(Time.toMillisecondsTime(start) < 0L) return;
+        playArea(start, end);
     }//GEN-LAST:event_btnBeforeStartActionPerformed
 
     private void btnBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeginActionPerformed
-        if(fp != null){
-            Time start = fp.getAreaStartTime();
-            Time end = Time.addition(start, Time.create(500L));
-            playArea(start, end);
-        }
+        Time start = keyFramesPanel.getStartTime();
+        Time end = Time.addition(start, Time.create(500L));
+        playArea(start, end);
     }//GEN-LAST:event_btnBeginActionPerformed
 
     private void btnInsideActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsideActionPerformed
-        if(fp != null){
-            Time start = fp.getAreaStartTime();
-            Time end = fp.getAreaEndTime();
-            playArea(start, end);
-        }        
+        Time start = keyFramesPanel.getStartTime();
+        Time end = keyFramesPanel.getEndTime();
+        playArea(start, end);
     }//GEN-LAST:event_btnInsideActionPerformed
 
     private void btnEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEndActionPerformed
-        if(fp != null){
-            Time end = fp.getAreaEndTime();
-            Time start = Time.substract(end, Time.create(500L));
-            playArea(start, end);
-        }        
+        Time end = keyFramesPanel.getEndTime();
+        Time start = Time.substract(end, Time.create(500L));
+        if(Time.toMillisecondsTime(start) < 0L) return;
+        playArea(start, end);
     }//GEN-LAST:event_btnEndActionPerformed
 
     private void btnAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAfterActionPerformed
-        if(fp != null){
-            Time start = fp.getAreaEndTime();
-            Time end = Time.addition(start, Time.create(500L));
-            playArea(start, end);
-        }        
+        Time start = keyFramesPanel.getEndTime();
+        Time end = Time.addition(start, Time.create(500L));
+        playArea(start, end);
     }//GEN-LAST:event_btnAfterActionPerformed
 
 
@@ -495,7 +551,6 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JToolBar jToolBar1;
-    private javax.swing.JLabel lblSubs;
     private javax.swing.JPanel panControls;
     private javax.swing.JPanel panKeyFrames;
     private javax.swing.JPanel panVideo;
@@ -509,5 +564,132 @@ public class IfrVideo extends javax.swing.JInternalFrame {
     private javax.swing.JTextField tfStartFrame;
     private javax.swing.JTextField tfStartTime;
     // End of variables declaration//GEN-END:variables
+    
+    public class KeyFramesPanel extends JPanel {
+        
+        private Map<Integer, Long> keyframes = new HashMap<>();
+        private long microsecondsLength = -1L;
+        
+        private int start = 0;
+        private int end = 0;
+        private int current = 0;
+        private int cursor = 0;
+        
+        private Time startTime = Time.create(0L);
+        private Time endTime = Time.create(0L);
+
+        public KeyFramesPanel() {
+            init();
+        }
+        
+        private void init(){
+            setDoubleBuffered(true);
+            
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if(e.getButton() == MouseEvent.BUTTON1){                        
+                        // getWidth <> microsecondsLength
+                        // x        <> value microseconds from map
+                        start = e.getX();
+                        startTime = Time.create(start * microsecondsLength / 1000L / getWidth());
+                        repaint();
+                    }else if(e.getButton() == MouseEvent.BUTTON3){                        
+                        // getWidth <> microsecondsLength
+                        // x        <> value microseconds from map
+                        end = e.getX();
+                        endTime = Time.create(end * microsecondsLength / 1000L / getWidth());
+                        repaint();
+                    }
+                }
+            });
+            
+            addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    cursor = e.getX();
+                    repaint();
+                }
+                
+            });
+        }
+        
+        public void updateCurrentMicrosenconds(long currentMicros){
+            if(microsecondsLength != -1L){
+                current = (int)(getWidth() * currentMicros / microsecondsLength);
+                repaint();
+            }
+        }
+        
+        public void updateKeyFrames(Map<Integer, Long> keyframes, long microsecondsLength){
+            this.keyframes = keyframes;
+            this.microsecondsLength = microsecondsLength;
+            repaint();
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            super.paint(g);
+            
+            g.setColor(MainFrame.isDark() ? Color.gray : DrawColor.alice_blue.getColor());
+            g.fillRect(0, 0, getWidth(), getHeight());
+            
+            if(microsecondsLength != -1L){                
+                // On affiche les images clés
+                Color keyframeColor = MainFrame.isDark() ? Color.white : Color.black;
+                g.setColor(keyframeColor);
+                for(Map.Entry<Integer, Long> entry : keyframes.entrySet()){
+                    // getWidth <> microsecondsLength
+                    // x        <> value microseconds from map
+                    int xa = (int)(getWidth() * entry.getValue() / microsecondsLength);
+                    g.drawLine(xa, 0, xa, getHeight());
+                }
+                
+                // On affiche la zone
+                g.setColor(DrawColor.lime.getColor(0.3f));
+                g.fillRect(start, 0, end - start, getHeight());
+                
+                // On affiche le début de la zone
+                g.setColor(DrawColor.dark_khaki.getColor());
+                g.drawLine(start, 0, start, getHeight());
+                
+                // On affiche la fin de la zone
+                g.setColor(DrawColor.chocolate.getColor());
+                g.drawLine(end, 0, end, getHeight());
+                
+                // On affiche le curseur
+                g.setColor(Color.pink);
+                g.drawLine(cursor, 0, cursor, getHeight());
+                
+                // On affiche le curseur
+                g.setColor(DrawColor.magenta.getColor(0.5f));
+                g.drawLine(current-1, 0, current-1, getHeight());
+                g.setColor(DrawColor.magenta.getColor());
+                g.drawLine(current, 0, current, getHeight());
+                g.setColor(DrawColor.magenta.getColor(0.5f));
+                g.drawLine(current+1, 0, current+1, getHeight());
+            }            
+        }
+
+        public Time getStartTime() {
+            return startTime;
+        }
+
+        public void setStartTime(Time startTime) {
+            this.startTime = startTime;
+            repaint();
+        }
+
+        public Time getEndTime() {
+            return endTime;
+        }
+
+        public void setEndTime(Time endTime) {
+            this.endTime = endTime;
+            repaint();
+        }
+        
+        
+    } 
     
 }

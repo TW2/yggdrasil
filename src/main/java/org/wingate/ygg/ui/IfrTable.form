@@ -33,11 +33,11 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
       <SubComponents>
-        <Container class="javax.swing.JPanel" name="jPanel1">
+        <Container class="javax.swing.JPanel" name="panAss1">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Version #1">
-                <Property name="tabTitle" type="java.lang.String" value="Version #1"/>
+              <JTabbedPaneConstraints tabName="ASS #1">
+                <Property name="tabTitle" type="java.lang.String" value="ASS #1"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -78,11 +78,11 @@
             </Container>
           </SubComponents>
         </Container>
-        <Container class="javax.swing.JPanel" name="jPanel2">
+        <Container class="javax.swing.JPanel" name="panAss2">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Version #2">
-                <Property name="tabTitle" type="java.lang.String" value="Version #2"/>
+              <JTabbedPaneConstraints tabName="ASS #2">
+                <Property name="tabTitle" type="java.lang.String" value="ASS #2"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -123,11 +123,11 @@
             </Container>
           </SubComponents>
         </Container>
-        <Container class="javax.swing.JPanel" name="jPanel3">
+        <Container class="javax.swing.JPanel" name="panAssCompare">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Compare">
-                <Property name="tabTitle" type="java.lang.String" value="Compare"/>
+              <JTabbedPaneConstraints tabName="ASS Compare">
+                <Property name="tabTitle" type="java.lang.String" value="ASS Compare"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
