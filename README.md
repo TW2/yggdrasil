@@ -28,7 +28,7 @@ Files area :
 Timing area :
 - [x] Can open videos (FFMpeg)
 - [x] Can open audio (FFMpeg)
-- [ ] Can display full ASS (libass)
+- [ ] Can display full ASS
 - [x] Can open/save ASS
 - [x] Can open SSA
 - [x] Can import styles from SSA or ASS scripts
