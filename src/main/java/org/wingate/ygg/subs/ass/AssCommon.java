@@ -198,6 +198,71 @@ public class AssCommon {
         return output;
     }
     
+    /**
+     * <p>Aegisub/libaegisub/ass/uuencode.cpp</p>
+     * <p>Despite being called uuencoding by ass_specs.doc,
+     * the format is actually somewhat different from real uuencoding.<br />
+     * Each 3-byte chunk is split into 4 6-bit pieces, then 33 is added to each piece.<br />
+     * Lines are wrapped after 80 characters, and files with non-multiple-of-three 
+     * lengths are padded with zero.</p>
+     * @param input 4 bytes when encoding otherwise 3 bytes if decoding
+     * @param dir choice of method Encoding or Decoding
+     * @return (encoding) 4 bytes / (decoding) 3 bytes
+     * @throws IOException Problems with an algorithm
+     * @link https://github.com/Aegisub/Aegisub/blob/master/libaegisub/ass/uuencode.cpp
+     */
+//    private static byte[] AegiUUCodec(byte[] input, UUDirection dir) throws IOException{
+//        
+//        byte[] output = null;
+//        
+//        switch(dir){
+//            case Encode -> {
+//                byte    a, b = 0, c = 0;
+//                int     c1, c2, c3, c4;
+//                
+//                a = input[0];
+//                if (input.length > 1) {
+//                    b = input[1];
+//                }
+//                if (input.length > 2) {
+//                    c = input[2];
+//                }
+//                
+//                c1 = a >> 2;
+//                c2 = ((a & 0x3) << 4) | ((b & 0xf0) >> 4);
+//                c3 = ((b & 0xf) << 2) | ((c & 0xc0) >> 6);
+//                c4 = c & 0x3f;
+//                
+//                output = new byte[4];
+//                
+//                output[0] = (byte)(c1 + 33);
+//                output[1] = (byte)(c2 + 33);
+//                output[2] = (byte)(c3 + 33);
+//                output[3] = (byte)(c4 + 33);
+//            }
+//            case Decode -> {
+//                byte[] src = new byte[]{0, 0, 0, 0};
+//                int counter = 0;
+//                
+//                for (int i=0; i<input.length; i++) {
+//                    char c = (char)input[i];
+//                    if (c != '\n' && c != '\r') {
+//                        src[i] = (byte)(c - 33);
+//                        counter++;
+//                    }
+//		}
+//                
+//                output = new byte[]{0, 0, 0};
+//
+//		if (counter > 1){ output[0] = (byte)(src[0] << 2 | src[1] >> 4); }
+//		if (counter > 2){ output[1] = (byte)((src[1] & 0xf) << 4 | src[2] >> 2); }
+//		if (counter > 3){ output[2] = (byte)((src[2] & 0x3) << 6 | src[3]); }
+//            }
+//        }
+//        
+//        return output;
+//    }
+    
     public static File getFile(File folder, String name, String content){
         File file = new File(folder, name);
         content = content.replace("\n", "");
