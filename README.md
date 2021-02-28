@@ -69,3 +69,6 @@ Drawing area :
 ## About
 This program is a tool around subtitles stuffs (ASS and more in the future).
 Enjoy it!
+
+## Discussion
+Here in english or french : https://discord.gg/ssU9SKg
