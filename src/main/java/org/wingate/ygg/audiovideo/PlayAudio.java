@@ -195,7 +195,7 @@ public class PlayAudio implements Runnable {
                         }
                         
                         fireCurrentMilliseconds(frame.timestamp / 1000L);
-
+                        
                         /**
                          * We need this because soundLine.write ignores
                          * interruptions during writing.

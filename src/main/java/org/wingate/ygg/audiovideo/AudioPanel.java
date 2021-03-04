@@ -120,7 +120,7 @@ public class AudioPanel extends JPanel {
     public void setWave(IfrWave wave) {
         this.wave = wave;
         if(msEventInitialized == false){
-            wave.getPlayAudio().addAudioListener(new AudioListener() {
+            wave.getPlayAudio().addAudioListener(new AudioListener(){
                 @Override
                 public void getMillisecondsTime(long ms) {
                     if(currentMilliseconds != ms){

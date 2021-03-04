@@ -21,11 +21,13 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.event.EventListenerList;
+import org.bytedeco.ffmpeg.avcodec.AVPacket;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -73,7 +75,9 @@ public class PlayVideo implements Runnable {
 
     private boolean area = false;
     
-    private long msAreaStart = 0L, msAreaStop = 0L, msCurrent = 0L;
+    private volatile long msAreaStart = 0L, msAreaStop = 0L, msCurrent = 0L;
+    private volatile long msFromAudio = 0L;
+    private volatile boolean msFromAudioUsed = false;
 
     private final Java2DFrameConverter converter = new Java2DFrameConverter();
     
@@ -110,6 +114,19 @@ public class PlayVideo implements Runnable {
         
         System.out.println("Video ready for playback!");
     }
+    
+    public void setupAudioSync(PlayAudio pa){
+        pa.addAudioListener(new AudioListener() {
+            @Override
+            public void getMillisecondsTime(long ms) {
+                System.out.println("OKKO");
+                action = Action.Ready;
+                msFromAudio = ms;
+                msFromAudioUsed = true;
+                action = Action.Play;
+            }
+        });
+    }
 
     public void startThread(){
         stopThread();
@@ -126,8 +143,9 @@ public class PlayVideo implements Runnable {
         }
     }
     
-    long microsBefore = 0L;
-    long nanosBefore = 0L;
+    long timeMicrosCounter = 0L;
+    long timeMicros_before = 0L;
+    long timeMicros_after = 0L;
 
     @Override
     public void run() {
@@ -136,11 +154,10 @@ public class PlayVideo implements Runnable {
                 try {
                     if(msAreaStart != 0L && area == true){
                         grabber.setVideoTimestamp(msAreaStart * 1000L);
-                        microsBefore = msAreaStart * 1000L;
-                        nanosBefore = msAreaStart * 1000000L;
+                        timeMicrosCounter = msAreaStart * 1000L;
                         area = false;
                     }
-
+                    
                     org.bytedeco.javacv.Frame frame = grabber.grab();
 
                     if (frame == null) {
@@ -149,29 +166,42 @@ public class PlayVideo implements Runnable {
                     }
 
                     if(frame.image != null){
-                        fireVideo(converter.convert(frame));
-                        fireTime(frame.timestamp / 1000L);
-                        fireFrameNumber(grabber.getFrameNumber());
-                        msCurrent = frame.timestamp / 1000L;
-                        
-                        long wanted = frame.timestamp;
-                        long missed = System.nanoTime() - nanosBefore + 1300000L;
-                        long delta = microsBefore + missed / 1000L;                        
-                        if(microsBefore != 0L){
-                            while(delta < wanted){
-                                long rep = System.nanoTime();
-                                try {
-                                    // Wait
-                                    TimeUnit.MICROSECONDS.sleep(1L);
-                                } catch (InterruptedException ex) {
-                                    Logger.getLogger(PlayVideo.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                                delta += (System.nanoTime() - rep) / 1000L ;
-                            }
+                        // We have a timestamp with pts.
+                        // That timestamp is in microseconds.
+                        // We must do available a picture at pts
+                        // but we can't access it directly.
+                        // ---
+                        // Here is the timestamp in microseconds :
+                        long timestamp = frame.timestamp;
+                        // We have a counter of last timestamp :
+                        // long timeMicrosCounter = 0L;
+                        // ---
+                        // Now calculate a target :
+                        long target = timestamp - timeMicrosCounter;
+                        // We have to reach the target
+                        // ---
+                        // Here is a thing to reach it :
+                        // We waiting for a good time
+                        try{
+                            if(target != 0L){
+                                timeMicros_after = System.nanoTime() / 1000L;
+                                TimeUnit.MICROSECONDS.sleep(
+                                        target - (timeMicros_after - timeMicros_before));
+                            }                                
+                        }catch(InterruptedException exc){
+                            // Quit the loop if error
+                            break;
                         }
+                        timeMicros_before = System.nanoTime() / 1000L;
+                        // Now we can display and wait for another image next
+                        // Fire to BufferedImage (converter.convert(frame))
+                        fireVideo(converter.convert(frame));
                         
-                        microsBefore = wanted;
-                        nanosBefore = System.nanoTime();
+                        msCurrent = frame.timestamp / 1000L;
+                        fireTime(msCurrent);
+                        fireFrameNumber(grabber.getFrameNumber());
+                        
+                        timeMicrosCounter = timestamp;
                     }
 
                     if(msAreaStop != 0L && frame.timestamp / 1000L >= msAreaStop){

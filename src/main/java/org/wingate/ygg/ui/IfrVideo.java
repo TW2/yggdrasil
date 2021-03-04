@@ -126,6 +126,7 @@ public class IfrVideo extends javax.swing.JInternalFrame {
         
         // Audio
         playAudio = wave.getPlayAudio();
+        playVideo.setupAudioSync(playAudio);
         
         // Keyframes
         panKeyFrames.add(keyFramesPanel, BorderLayout.CENTER);
