@@ -49,7 +49,7 @@ public enum DrawColor {
     dark_olive_green("556B2F",85,107,47),
     olive_drab("6B8E23",107,142,35),
     lawn_green("7CFC00",124,252,0),
-    chart_reuse("7FFF00",127,255,0),
+    chartreuse("7FFF00",127,255,0),
     green_yellow("ADFF2F",173,255,47),
     dark_green("006400",0,100,0),
     green("008000",0,128,0),
