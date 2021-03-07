@@ -1,4 +1,4 @@
-How to compile yggdrasil (since version 1.2.3) :
+How to compile yggdrasil (since version 1.2.3)
 -
 First, you must have Maven installed in your system.<br />
 Then you have to open a terminal (cmd on Windows) and type the following commands.
