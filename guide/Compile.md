@@ -28,7 +28,7 @@ mvn compile
 mvn install
 ```
 
-Go out of this first dependency folder (go out TimeLibrary) :
+Go out of this second dependency folder (go out TimeLibrary) :
 ```
 cd ..
 ```
