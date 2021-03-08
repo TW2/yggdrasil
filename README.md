@@ -9,6 +9,7 @@ Run with Dark Theme
 ```
 java -jar ygg-1.2.2.jar dark
 ```
+See <a href="https://github.com/TW2/yggdrasil/blob/master/guide/Compile.md">compile</a> section to build it from source.
 ## Evolution
 - Status: v1.1 alpha phase - (as model for 1.2 reworking)
 - Status: v1.2 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
