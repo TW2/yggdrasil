@@ -4,7 +4,6 @@ pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 release.properties
-dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
@@ -15,3 +14,6 @@ configuration/
 *.srt
 *.vtt
 *.ves
+dependency-reduced-pom.xml
+nb-configuration.xml
+nbactions.xml
