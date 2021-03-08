@@ -26,8 +26,8 @@ import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygg.subs.ass.AssStyle;
-import org.wingate.ygg.subs.ass.AssEventTableModel;
-import org.wingate.ygg.subs.ass.AssEventTableRenderer;
+import org.wingate.ygg.subs.ass.tool.AssEventTableModel;
+import org.wingate.ygg.subs.ass.tool.AssEventTableRenderer;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
 

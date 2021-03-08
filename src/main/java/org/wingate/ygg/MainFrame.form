@@ -14,39 +14,6 @@
             <Property name="variableName" type="java.lang.String" value="vmnFile"/>
           </Properties>
           <SubComponents>
-            <Menu class="org.wingate.freectrl.VMenu" name="vmnFileTranslate">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Translation"/>
-              </Properties>
-              <SubComponents>
-                <Menu class="org.wingate.freectrl.VMenuItem" name="vmnFileTranslateOpenSubs">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Open subtitles..."/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTranslateOpenSubsActionPerformed"/>
-                  </Events>
-                </Menu>
-                <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator1">
-                </MenuItem>
-                <Menu class="org.wingate.freectrl.VMenuItem" name="vmnFileTranslateOpenVideo">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Open a video..."/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTranslateOpenVideoActionPerformed"/>
-                  </Events>
-                </Menu>
-                <Menu class="org.wingate.freectrl.VMenuItem" name="vmnFileTranslateOpenAudio">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Open an audio file..."/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTranslateOpenAudioActionPerformed"/>
-                  </Events>
-                </Menu>
-              </SubComponents>
-            </Menu>
             <Menu class="org.wingate.freectrl.VMenu" name="vmnFileTime">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Timing"/>
@@ -94,6 +61,39 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTimeOpenAudioActionPerformed"/>
+                  </Events>
+                </Menu>
+              </SubComponents>
+            </Menu>
+            <Menu class="org.wingate.freectrl.VMenu" name="vmnFileTranslate">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Translation"/>
+              </Properties>
+              <SubComponents>
+                <Menu class="org.wingate.freectrl.VMenuItem" name="vmnFileTranslateOpenSubs">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Open subtitles..."/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTranslateOpenSubsActionPerformed"/>
+                  </Events>
+                </Menu>
+                <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator1">
+                </MenuItem>
+                <Menu class="org.wingate.freectrl.VMenuItem" name="vmnFileTranslateOpenVideo">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Open a video..."/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTranslateOpenVideoActionPerformed"/>
+                  </Events>
+                </Menu>
+                <Menu class="org.wingate.freectrl.VMenuItem" name="vmnFileTranslateOpenAudio">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Open an audio file..."/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="vmnFileTranslateOpenAudioActionPerformed"/>
                   </Events>
                 </Menu>
               </SubComponents>

@@ -28,17 +28,16 @@ import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
 import org.wingate.ygg.subs.ass.ASS;
 import org.wingate.ygg.subs.ass.AssEvent;
-import org.wingate.ygg.subs.ass.AssEventTableModel;
-import org.wingate.ygg.subs.ass.AssEventTableRenderer;
+import org.wingate.ygg.subs.ass.tool.AssEventTableModel;
+import org.wingate.ygg.subs.ass.tool.AssEventTableRenderer;
 import org.wingate.ygg.subs.ass.AssStyle;
+import org.wingate.ygg.ui.IfrTableLink;
 
 /**
  *
  * @author util2
  */
 public class AssSynchroTable extends javax.swing.JPanel {
-    
-    AssLinkPanel tableLink = new AssLinkPanel();
     
     // ifrTableOne components and variables
     private static AssEventTableModel dtmASS;    
@@ -113,12 +112,18 @@ public class AssSynchroTable extends javax.swing.JPanel {
         assTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(e.getButton() == MouseEvent.BUTTON1){
+                if(e.getButton() == MouseEvent.BUTTON1 && MainFrame.getTableLinkFrame() != null){
+                    // Récupération du composant maître
+                    IfrTableLink link = MainFrame.getTableLinkFrame();
+                    
+                    // Evénement
                     AssEvent ev = dtmASS.getEventAt(assTable.getSelectedRow());
-                    tableLink.alter(ev);                    
+                    
+                    // Altération
+                    link.getAssLink().alter(ev);                    
                     try{
-                        tableLink.displayEventTime(ev);
-                        tableLink.updateAreaFrames(ev);
+                        link.getAssLink().displayEventTime(ev);
+                        link.getAssLink().updateAreaFrames(ev);
                     }catch(Exception ex){}
                     MainFrame.getAudioFrame().setArea(ev.getStartTime(), ev.getEndTime());
                 }
@@ -134,25 +139,31 @@ public class AssSynchroTable extends javax.swing.JPanel {
         return dtmASS;
     }
     
-    public AssLinkPanel getAssTableLink(){
-        return tableLink;
-    }
-    
-    public void loadASSTable(File f){        
-        ASS loading = ASS.Read(f.getPath());
-        assTable.removeAll();
-        dtmASS.insertAll(loading.getEvents());
-        assTable.updateUI();
-        tableLink.initAssComboStyle();
-        tableLink.initAssComboName();
+    public void loadASSTable(File f){
+        if(MainFrame.getTableLinkFrame() != null){
+            // Récupération du composant maître
+            IfrTableLink link = MainFrame.getTableLinkFrame();
+            
+            ASS loading = ASS.Read(f.getPath());
+            assTable.removeAll();
+            dtmASS.insertAll(loading.getEvents());
+            assTable.updateUI();
+            link.getAssLink().initAssComboStyle();
+            link.getAssLink().initAssComboName();
+        }        
     }
     
     public void saveASSTable(File f){
-        ASS saving = new ASS();
-        List<AssEvent> events = dtmASS.getAllEvents();
-        saving.setEvents(events);
-        saving.setStyles(tableLink.getStyles());
-        ASS.Save(f.getPath(), saving);
+        if(MainFrame.getTableLinkFrame() != null){
+            // Récupération du composant maître
+            IfrTableLink link = MainFrame.getTableLinkFrame();
+            
+            ASS saving = new ASS();
+            List<AssEvent> events = dtmASS.getAllEvents();
+            saving.setEvents(events);
+            saving.setStyles(link.getAssLink().getStyles());
+            ASS.Save(f.getPath(), saving);
+        }
     }
     
     // </editor-fold>

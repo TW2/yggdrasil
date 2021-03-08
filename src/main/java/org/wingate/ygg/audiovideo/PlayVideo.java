@@ -21,19 +21,17 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.event.EventListenerList;
-import org.bytedeco.ffmpeg.avcodec.AVPacket;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.subs.ass.ASS;
-import org.wingate.ygg.subs.ass.AssRender;
+import org.wingate.ygg.subs.ass.tool.AssRender;
 import org.wingate.ygg.util.DrawColor;
 
 /**

@@ -59,11 +59,6 @@
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.wingate</groupId>
-            <artifactId>PlaceholderTextField</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>javacv-platform</artifactId>
             <version>1.5.4</version>

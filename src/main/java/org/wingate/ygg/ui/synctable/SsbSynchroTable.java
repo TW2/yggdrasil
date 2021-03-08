@@ -16,18 +16,132 @@
  */
 package org.wingate.ygg.ui.synctable;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.List;
+import javax.swing.JTable;
+import javax.swing.table.TableColumn;
+import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.languages.ISO_3166;
+import org.wingate.ygg.languages.Language;
+import org.wingate.ygg.subs.ssb.SSB;
+import org.wingate.ygg.subs.ssb.SsbEvent;
+import org.wingate.ygg.subs.ssb.SsbEventType;
+import org.wingate.ygg.subs.ssb.SsbMacro;
+import org.wingate.ygg.subs.ssb.tool.SsbEventTableModel;
+import org.wingate.ygg.subs.ssb.tool.SsbEventTableRenderer;
+
 /**
  *
  * @author util2
  */
 public class SsbSynchroTable extends javax.swing.JPanel {
 
-    /**
-     * Creates new form SsbSynchroTable
-     */
+    SsbLinkPanel tableLink = new SsbLinkPanel();
+    
+    // ifrTableOne components and variables
+    private static SsbEventTableModel dtmSSB;    
+    private SsbEventTableRenderer ssbEventTableRenderer;
+    // ifrTableOne stop
+    
     public SsbSynchroTable() {
         initComponents();
+        init();
     }
+    
+    private void init(){
+        ssbEventTableRenderer = new SsbEventTableRenderer(MainFrame.isDark());
+        initializeTableOne(MainFrame.getLanguage(), MainFrame.getISO());   
+    }
+    
+    // <editor-fold defaultstate="collapsed" desc="TableOne">
+    
+    public void initializeTableOne(Language in, ISO_3166 get){        
+        // Check if there is a requested language (forced)
+        // and choose between posibilities
+        if(in.isForced() == true){
+            get = in.getIso();
+        }
+        
+        // Fill in the table
+        dtmSSB = new SsbEventTableModel(in, get);
+        
+        ssbTable.setModel(dtmSSB);
+        
+        TableColumn column;
+        for (int i = 0; i < 8; i++) {
+            column = ssbTable.getColumnModel().getColumn(i);
+            switch(i){
+                case 0 -> column.setPreferredWidth(40);
+                //# (line number)
+                case 1 -> column.setPreferredWidth(150);
+                //Type
+                case 2 -> column.setPreferredWidth(300);
+                //Event ID or Time (Start, End)
+                case 3 -> column.setPreferredWidth(100);
+                //Macro
+                case 4 -> column.setPreferredWidth(300);
+                //Note
+                case 5 -> column.setPreferredWidth(40);
+                //CPL
+                case 6 -> column.setPreferredWidth(40);
+                //CPS
+                case 7 -> column.setPreferredWidth(1000);
+                //Text
+            }
+        }
+        
+        ssbTable.setDefaultRenderer(String.class, ssbEventTableRenderer);
+        ssbTable.setDefaultRenderer(SsbEventType.class, ssbEventTableRenderer);
+        ssbTable.setDefaultRenderer(SsbMacro.class, ssbEventTableRenderer);
+        ssbTable.setDefaultRenderer(Integer.class, ssbEventTableRenderer);
+        
+        ssbTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(e.getButton() == MouseEvent.BUTTON1){
+                    SsbEvent ev = dtmSSB.getEventAt(ssbTable.getSelectedRow());
+                    tableLink.alter(ev);                    
+                    try{
+                        tableLink.displayEventTime(ev);
+                        tableLink.updateAreaFrames(ev);
+                    }catch(Exception ex){}
+                    MainFrame.getAudioFrame().setArea(ev.getStart(), ev.getEnd());
+                }
+            }
+        });
+    }
+    
+    public JTable getTable(){
+        return ssbTable;
+    }
+    
+    public SsbEventTableModel getSsbTableModel(){
+        return dtmSSB;
+    }
+    
+    public SsbLinkPanel getSsbTableLink(){
+        return tableLink;
+    }
+    
+    public void loadSSBTable(File f){        
+        SSB loading = SSB.Read(f.getPath());
+        ssbTable.removeAll();
+        dtmSSB.insertAll(loading.getEvents());
+        ssbTable.updateUI();
+        tableLink.initSsbComboMacro();
+    }
+    
+    public void saveSSBTable(File f){
+        SSB saving = new SSB();
+        List<SsbEvent> events = dtmSSB.getAllEvents();
+        saving.setEvents(events);
+        saving.setMacros(tableLink.getMacros());
+        SSB.Save(f.getPath(), saving);
+    }
+    
+    // </editor-fold>
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -39,12 +153,9 @@ public class SsbSynchroTable extends javax.swing.JPanel {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jToolBar1 = new javax.swing.JToolBar();
-        btnSortAZ = new javax.swing.JButton();
-        btnSortZA = new javax.swing.JButton();
+        ssbTable = new javax.swing.JTable();
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        ssbTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -55,47 +166,23 @@ public class SsbSynchroTable extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
-
-        jToolBar1.setFloatable(false);
-        jToolBar1.setRollover(true);
-
-        btnSortAZ.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32-UpDown-AZ.png"))); // NOI18N
-        btnSortAZ.setText("A-Z");
-        btnSortAZ.setFocusable(false);
-        btnSortAZ.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnSortAZ.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(btnSortAZ);
-
-        btnSortZA.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/32-UpDown-ZA.png"))); // NOI18N
-        btnSortZA.setText("Z-A");
-        btnSortZA.setFocusable(false);
-        btnSortZA.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnSortZA.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(btnSortZA);
+        jScrollPane1.setViewportView(ssbTable);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 891, Short.MAX_VALUE)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 302, Short.MAX_VALUE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnSortAZ;
-    private javax.swing.JButton btnSortZA;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JTable ssbTable;
     // End of variables declaration//GEN-END:variables
 }

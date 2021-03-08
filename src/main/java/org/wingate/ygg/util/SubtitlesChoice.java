@@ -19,7 +19,7 @@ package org.wingate.ygg.util;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.subs.ass.AssYggyApply;
+import org.wingate.ygg.subs.ass.tool.AssYggyApply;
 
 /**
  *

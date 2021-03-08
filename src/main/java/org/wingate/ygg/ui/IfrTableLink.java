@@ -19,7 +19,6 @@ package org.wingate.ygg.ui;
 import java.awt.BorderLayout;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.subs.ass.AssEvent;
-import org.wingate.ygg.subs.srt.SrtEvent;
 import org.wingate.ygg.ui.synctable.AssLinkPanel;
 import org.wingate.ygg.ui.synctable.SelectedFormat;
 import org.wingate.ygg.ui.synctable.SrtLinkPanel;
@@ -73,6 +72,26 @@ public class IfrTableLink extends javax.swing.JInternalFrame {
             case VES -> { panLink.add(vesLink, BorderLayout.CENTER); }
             case WebVTT -> { panLink.add(vttLink, BorderLayout.CENTER); }
         }
+    }
+
+    public AssLinkPanel getAssLink() {
+        return assLink;
+    }
+
+    public SrtLinkPanel getSrtLink() {
+        return srtLink;
+    }
+
+    public SsbLinkPanel getSsbLink() {
+        return ssbLink;
+    }
+
+    public VesLinkPanel getVesLink() {
+        return vesLink;
+    }
+
+    public WebVTTLinkPanel getVttLink() {
+        return vttLink;
     }
     
     public void setStartTime(Time start){

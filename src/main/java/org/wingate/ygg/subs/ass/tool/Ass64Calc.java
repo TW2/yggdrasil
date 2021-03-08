@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.subs.ass;
+package org.wingate.ygg.subs.ass.tool;
 
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -22,6 +22,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import org.wingate.ygg.subs.ass.AssEvent;
 
 /**
  * https://github.com/Aegisub/Aegisub/blob/6f546951b4f004da16ce19ba638bf3eedefb9f31/src/auto4_lua.cpp

@@ -90,7 +90,7 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="tfTitle" alignment="0" max="32767" attributes="0"/>
+                      <Component id="tfTitle" max="32767" attributes="0"/>
                       <Component id="tfOriginalScript" alignment="0" max="32767" attributes="0"/>
                       <Component id="tfTranslation" alignment="0" max="32767" attributes="0"/>
                       <Component id="tfEditing" alignment="0" max="32767" attributes="0"/>
@@ -232,44 +232,44 @@
         </Component>
         <Component class="javax.swing.JSpinner" name="spinHeight">
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfTitle">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfTitle">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField1"/>
+            <Property name="placeholder" type="java.lang.String" value="Set a title"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfOriginalScript">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfOriginalScript">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField2"/>
+            <Property name="placeholder" type="java.lang.String" value="Set a name"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfTranslation">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfTranslation">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField3"/>
+            <Property name="placeholder" type="java.lang.String" value="Set an author"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfEditing">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfEditing">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField4"/>
+            <Property name="placeholder" type="java.lang.String" value="Set an author"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfTiming">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfTiming">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField5"/>
+            <Property name="placeholder" type="java.lang.String" value="Set an author"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfSynchPoint">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfSynchPoint">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField6"/>
+            <Property name="placeholder" type="java.lang.String" value="Set an author"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfUpdatedBy">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfUpdatedBy">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField7"/>
+            <Property name="placeholder" type="java.lang.String" value="Set an author"/>
           </Properties>
         </Component>
-        <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfUpdateDetails">
+        <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfUpdateDetails">
           <Properties>
-            <Property name="text" type="java.lang.String" value="placeholderTextField8"/>
+            <Property name="placeholder" type="java.lang.String" value="Explain details"/>
           </Properties>
         </Component>
       </SubComponents>

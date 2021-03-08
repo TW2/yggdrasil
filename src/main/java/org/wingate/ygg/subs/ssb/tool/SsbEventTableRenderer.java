@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 util2
+ * Copyright (C) 2021 util2
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,21 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.subs.ass;
+package org.wingate.ygg.subs.ssb.tool;
 
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import org.wingate.timelibrary.Time;
+import org.wingate.ygg.subs.ssb.SsbEvent;
+import org.wingate.ygg.subs.ssb.SsbEventType;
 import org.wingate.ygg.util.DrawColor;
 
 /**
  *
  * @author util2
  */
-public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
+public class SsbEventTableRenderer extends JPanel implements TableCellRenderer {
+    
+    private JLabel content_1 = new JLabel();
+    private JLabel content_2 = new JLabel();
 
     private boolean dark = false;
     
@@ -72,7 +78,7 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
     
     TextType texttype = TextType.Normal;
     
-    public AssEventTableRenderer(boolean dark) {
+    public SsbEventTableRenderer(boolean dark) {
         this.dark = dark;
         init();
     }
@@ -82,78 +88,79 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
     }
     
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
         
         setForeground(Colors.Foreground.getColor(dark));
         
         // Get linetype (index 1)
-        if(table.getModel() instanceof AssEventTableModel){
-            AssEventTableModel model = (AssEventTableModel)table.getModel();
-            AssEvent.LineType linetype = model.getLineType(row);
+        if(table.getModel() instanceof SsbEventTableModel){
+            SsbEventTableModel model = (SsbEventTableModel)table.getModel();
+            SsbEventType type = model.getLineType(row);
             
-            switch(linetype){
+            switch(type){
                 case Dialogue -> setBackground(Colors.Dialogue.getColor(dark));
                 case Comment -> setBackground(Colors.Comment.getColor(dark));
-                case Proposal -> setBackground(Colors.Proposal.getColor(dark));
-                case Request -> setBackground(Colors.Request.getColor(dark));
+//                case Proposal -> setBackground(Colors.Proposal.getColor(dark));
+//                case Request -> setBackground(Colors.Request.getColor(dark));
                 default -> setBackground(Colors.Dialogue.getColor(dark));             }
         }
         
-        if(value instanceof AssEvent.LineType){
-            setText(((AssEvent.LineType)value).toString());
+        if(value instanceof SsbEventType){
+            content_1.setText(((SsbEventType)value).toString());
         }
         
         if(value instanceof Integer && column == 0){
             // Fill the number color and display the number
             setBackground(Colors.Line.getColor(dark));
-            setText(Integer.toString(row + 1));
+            content_1.setText(Integer.toString(row + 1));
         }
         
         if(value instanceof String){
-            setText(value.toString());
+            content_1.setText(value.toString());
         }
         
         if(value instanceof Integer){
-            setText(Integer.toString((Integer)value));
+            content_1.setText(Integer.toString((Integer)value));
         }
         
-        if(value instanceof Time){
-            setText(((Time)value).toASSTime());
-        }
+//        if(value instanceof Time){
+//            setText(((Time)value).toASSTime());
+//        }
         
-        if(value instanceof AssStyle){
-            setText(((AssStyle)value).getName());
-        }
+//        if(value instanceof AssStyle){
+//            setText(((AssStyle)value).getName());
+//        }
         
-        if(value instanceof String && column == 13){
+        if(value instanceof String && column == 7){
             String content = (String)value;
             switch(texttype){
                 case StripAll -> {
                     // Strip text if the text contains edit marks.
                     if(content.contains("{\\")){
                         try{
-                            setText(content.replaceAll("\\{[^\\}]+\\}", ""));
+                            content_1.setText(content.replaceAll("\\{[^\\}]+\\}", ""));
                         }catch(Exception e){
-                            setText(content);
+                            content_1.setText(content);
                         }
                     }else{
-                        setText(content);
+                        content_1.setText(content);
                     }
                 }
                 case WithItems -> {
                     // Replace tags by items if the text contains edit marks.
                     if(content.contains("{\\")){
                         try{
-                            setText(content.replaceAll("\\{[^\\}]+\\}", "◆"));
+                            content_1.setText(content.replaceAll("\\{[^\\}]+\\}", "◆"));
                         }catch(Exception e){
-                            setText(content);
+                            content_1.setText(content);
                         }
                     }else{
-                        setText(content);
+                        content_1.setText(content);
                     }
                 }
                 case Normal -> // Do nothing.
-                    setText(content);
+                    content_1.setText(content);
             }
         }
         
@@ -163,13 +170,13 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
         }
         
         // CPL
-        if(value instanceof Integer && column == 11){
+        if(value instanceof Integer && column == 5){
             int v = (Integer)value;
             setBackground(DrawColor.red.getColor(Math.min(50f, (float)v)/100f));
         }
         
         // CPS
-        if(value instanceof Integer && column == 12){
+        if(value instanceof Integer && column == 6){
             int v = (Integer)value;
             setBackground(DrawColor.red.getColor(Math.min(25f, (float)v)/100f));
         }
@@ -184,5 +191,4 @@ public class AssEventTableRenderer extends JLabel implements TableCellRenderer {
     public void setTexttype(TextType texttype) {
         this.texttype = texttype;
     }
-    
 }

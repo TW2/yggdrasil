@@ -252,14 +252,14 @@ public class PropsDialog extends javax.swing.JDialog {
         spinWidth = new javax.swing.JSpinner();
         jLabel10 = new javax.swing.JLabel();
         spinHeight = new javax.swing.JSpinner();
-        tfTitle = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfOriginalScript = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfTranslation = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfEditing = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfTiming = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfSynchPoint = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfUpdatedBy = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfUpdateDetails = new org.wingate.placeholdertextfield.PlaceholderTextField();
+        tfTitle = new org.wingate.freectrl.PlaceholderTextField();
+        tfOriginalScript = new org.wingate.freectrl.PlaceholderTextField();
+        tfTranslation = new org.wingate.freectrl.PlaceholderTextField();
+        tfEditing = new org.wingate.freectrl.PlaceholderTextField();
+        tfTiming = new org.wingate.freectrl.PlaceholderTextField();
+        tfSynchPoint = new org.wingate.freectrl.PlaceholderTextField();
+        tfUpdatedBy = new org.wingate.freectrl.PlaceholderTextField();
+        tfUpdateDetails = new org.wingate.freectrl.PlaceholderTextField();
         jPanel2 = new javax.swing.JPanel();
         jLabel11 = new javax.swing.JLabel();
         comboYCbCr = new javax.swing.JComboBox<>();
@@ -301,21 +301,21 @@ public class PropsDialog extends javax.swing.JDialog {
 
         jLabel10.setText("x");
 
-        tfTitle.setText("placeholderTextField1");
+        tfTitle.setPlaceholder("Set a title");
 
-        tfOriginalScript.setText("placeholderTextField2");
+        tfOriginalScript.setPlaceholder("Set a name");
 
-        tfTranslation.setText("placeholderTextField3");
+        tfTranslation.setPlaceholder("Set an author");
 
-        tfEditing.setText("placeholderTextField4");
+        tfEditing.setPlaceholder("Set an author");
 
-        tfTiming.setText("placeholderTextField5");
+        tfTiming.setPlaceholder("Set an author");
 
-        tfSynchPoint.setText("placeholderTextField6");
+        tfSynchPoint.setPlaceholder("Set an author");
 
-        tfUpdatedBy.setText("placeholderTextField7");
+        tfUpdatedBy.setPlaceholder("Set an author");
 
-        tfUpdateDetails.setText("placeholderTextField8");
+        tfUpdateDetails.setPlaceholder("Explain details");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -616,13 +616,13 @@ public class PropsDialog extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JSpinner spinHeight;
     private javax.swing.JSpinner spinWidth;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfEditing;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfOriginalScript;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfSynchPoint;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfTiming;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfTitle;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfTranslation;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfUpdateDetails;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfUpdatedBy;
+    private org.wingate.freectrl.PlaceholderTextField tfEditing;
+    private org.wingate.freectrl.PlaceholderTextField tfOriginalScript;
+    private org.wingate.freectrl.PlaceholderTextField tfSynchPoint;
+    private org.wingate.freectrl.PlaceholderTextField tfTiming;
+    private org.wingate.freectrl.PlaceholderTextField tfTitle;
+    private org.wingate.freectrl.PlaceholderTextField tfTranslation;
+    private org.wingate.freectrl.PlaceholderTextField tfUpdateDetails;
+    private org.wingate.freectrl.PlaceholderTextField tfUpdatedBy;
     // End of variables declaration//GEN-END:variables
 }

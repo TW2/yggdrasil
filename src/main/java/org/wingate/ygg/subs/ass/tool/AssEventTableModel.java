@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.subs.ass;
+package org.wingate.ygg.subs.ass.tool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,9 @@ import javax.swing.table.AbstractTableModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
+import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygg.subs.ass.AssEvent.LineType;
+import org.wingate.ygg.subs.ass.AssStyle;
 
 /**
  *

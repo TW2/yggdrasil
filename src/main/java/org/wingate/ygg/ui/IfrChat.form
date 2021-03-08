@@ -30,9 +30,9 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="tfChatMessage" pref="362" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="tfTeam" min="-2" pref="100" max="-2" attributes="0"/>
+                      <Component id="tfTeam" min="-2" pref="97" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="tfSurname" min="-2" pref="97" max="-2" attributes="0"/>
+                      <Component id="tfSurname" min="-2" pref="100" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jCheckBox1" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -51,9 +51,9 @@
                   <Component id="tfChatMessage" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnAddSmiley" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnSendMessage" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="tfSurname" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="tfTeam" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jCheckBox1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="tfTeam" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="tfSurname" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -97,20 +97,20 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfSurname">
-      <Properties>
-        <Property name="placeholder" type="java.lang.String" value="Surname"/>
-      </Properties>
-    </Component>
-    <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfTeam">
-      <Properties>
-        <Property name="placeholder" type="java.lang.String" value="Team name"/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JCheckBox" name="jCheckBox1">
       <Properties>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Online"/>
+      </Properties>
+    </Component>
+    <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfTeam">
+      <Properties>
+        <Property name="placeholder" type="java.lang.String" value="Team"/>
+      </Properties>
+    </Component>
+    <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfSurname">
+      <Properties>
+        <Property name="placeholder" type="java.lang.String" value="Surname"/>
       </Properties>
     </Component>
   </SubComponents>

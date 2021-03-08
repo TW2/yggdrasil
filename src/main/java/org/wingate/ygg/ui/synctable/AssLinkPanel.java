@@ -31,11 +31,8 @@ import org.wingate.ygg.subs.ass.ASS;
 import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygg.subs.ass.AssStyle;
 import org.wingate.ygg.ui.IfrTable;
-import org.wingate.ygg.ui.IfrVideo;
-import org.wingate.ygg.ui.IfrWave;
 import org.wingate.ygg.ui.PropsDialog;
 import org.wingate.ygg.ui.StylesDialog;
-import org.wingate.ygg.util.FFStuffs;
 
 /**
  *
@@ -44,10 +41,6 @@ import org.wingate.ygg.util.FFStuffs;
 public class AssLinkPanel extends javax.swing.JPanel {
 
     private final ASS ass = ASS.NoFileToLoad();
-    private AssEvent currentEvent = new AssEvent();
-    private final IfrTable table = MainFrame.getTableFrame();
-    
-    private final FFStuffs ffss = null;
     
     // ifrAssSubCommands components and variables
     private final SpinnerNumberModel snmLayer = new SpinnerNumberModel(0, 0, 100000, 1);
@@ -62,11 +55,6 @@ public class AssLinkPanel extends javax.swing.JPanel {
     private final float tpTextScaleMax = 5f;
     private float tpTextScaleCur = 1f;
     // ifrAssSubCommands stop
-    
-    // ifr after init
-    private IfrWave wave = null;
-    private IfrVideo video = null;
-    //=============== ifr after init stop
     
     public AssLinkPanel() {
         initComponents();
@@ -105,43 +93,7 @@ public class AssLinkPanel extends javax.swing.JPanel {
         initAssComboName();
     }
     
-    public void externallyInitAfterRealInit(IfrWave wave, IfrVideo video){
-        this.wave = wave;
-        this.video = video;
-        
-//        wave.a.addVideoListener(new AudioAdapter(){
-//            @Override
-//            public void startTimeChanged(Time start) {
-//                tfStartTime.setText(start.toProgramExtendedTime());
-//                Time duration = Time.substract(start, wave.a.getTimeOfStopArea());
-//                tfDurationTime.setText(duration.toProgramExtendedTime());
-//                if(ffss != null){
-//                    int t = Time.getFrame(start, ffss.getFps());
-//                    tfStartFrame.setText(Integer.toString(t));
-//                    int d = Time.getFrame(duration, ffss.getFps());
-//                    tfDurationFrame.setText(Integer.toString(d));
-//                }
-//            }
-//
-//            @Override
-//            public void endTimeChanged(Time end) {
-//                tfEndTime.setText(end.toProgramExtendedTime());
-//                Time duration = Time.substract(wave.a.getTimeOfStartArea(), end);
-//                tfDurationTime.setText(duration.toProgramExtendedTime());
-//                if(ffss != null){
-//                    int t = Time.getFrame(end, ffss.getFps());
-//                    tfEndFrame.setText(Integer.toString(t));
-//                    int d = Time.getFrame(duration, ffss.getFps());
-//                    tfDurationFrame.setText(Integer.toString(d));
-//                }
-//            }
-//            
-//        });
-    }
-    
     public void alter(AssEvent ev){
-        currentEvent = ev;
-        
         // Type de ligne
         switch(ev.getLineType()){
             case Dialogue -> toggleDialogue.setSelected(true);
@@ -160,13 +112,13 @@ public class AssLinkPanel extends javax.swing.JPanel {
         tfStartTime.setText(startTime.toProgramExtendedTime());
         tfEndTime.setText(endTime.toProgramExtendedTime());
         tfDurationTime.setText(duration.toProgramExtendedTime());
-        try{
-            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, ffss.getFps())));
-            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, ffss.getFps())));
-            tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, ffss.getFps())));
-        }catch(Exception ex){
-            
-        }        
+//        try{
+//            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, ffss.getFps())));
+//            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, ffss.getFps())));
+//            tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, ffss.getFps())));
+//        }catch(Exception ex){
+//            
+//        }        
         
         // ML
         snmLeft.setValue(ev.getMarginL());
@@ -190,17 +142,15 @@ public class AssLinkPanel extends javax.swing.JPanel {
         tpText.setText(ev.getText());
     }
     
-    public void updateAreaFrames(AssEvent ev){
-        currentEvent = ev;
-        
+    public void updateAreaFrames(AssEvent ev){        
         Time dur = Time.substract(ev.getStartTime(), ev.getEndTime());
         
         tfStartTime.setText(ev.getStartTime().toProgramExtendedTime());
-        tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStartTime(), ffss.getFps())));
+//        tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStartTime(), ffss.getFps())));
         tfEndTime.setText(ev.getEndTime().toProgramExtendedTime());
-        tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEndTime(), ffss.getFps())));
+//        tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEndTime(), ffss.getFps())));
         tfDurationTime.setText(dur.toProgramExtendedTime());
-        tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
+//        tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
     }
     
     public void displayEventTime(AssEvent ev){
@@ -305,11 +255,14 @@ public class AssLinkPanel extends javax.swing.JPanel {
     
     // Refresh ASS rendering by updating ass temporary file
     private void refreshTempASS(){
-        File folder = new File("configuration");
-        if(folder.exists() == false) folder.mkdirs();
-        File filepath = new File(folder, "temp.ass");
-        table.save(filepath, ".ass");
-        MainFrame.getVideoFrame().setSubtitlesFile(filepath);
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.ASS){
+            File folder = new File("configuration");
+            if(folder.exists() == false) folder.mkdirs();
+            File filepath = new File(folder, "temp.ass");        
+            MainFrame.getTableFrame().save(filepath, ".ass");
+            MainFrame.getVideoFrame().setSubtitlesFile(filepath);
+        }        
     }
     
 //    @SuppressWarnings("static-access")
@@ -343,6 +296,7 @@ public class AssLinkPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        bgType = new javax.swing.ButtonGroup();
         jToolBar1 = new javax.swing.JToolBar();
         toggleDialogue = new javax.swing.JToggleButton();
         toggleComment = new javax.swing.JToggleButton();
@@ -396,6 +350,7 @@ public class AssLinkPanel extends javax.swing.JPanel {
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
+        bgType.add(toggleDialogue);
         toggleDialogue.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub dialogue.png"))); // NOI18N
         toggleDialogue.setSelected(true);
         toggleDialogue.setText("Dialogue");
@@ -404,6 +359,7 @@ public class AssLinkPanel extends javax.swing.JPanel {
         toggleDialogue.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(toggleDialogue);
 
+        bgType.add(toggleComment);
         toggleComment.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub comment.png"))); // NOI18N
         toggleComment.setText("Comment");
         toggleComment.setFocusable(false);
@@ -411,6 +367,7 @@ public class AssLinkPanel extends javax.swing.JPanel {
         toggleComment.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(toggleComment);
 
+        bgType.add(toggleProposal);
         toggleProposal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub comment yellow.png"))); // NOI18N
         toggleProposal.setText("Proposal");
         toggleProposal.setFocusable(false);
@@ -418,6 +375,7 @@ public class AssLinkPanel extends javax.swing.JPanel {
         toggleProposal.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(toggleProposal);
 
+        bgType.add(toggleRequest);
         toggleRequest.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/40 funsub comment blue.png"))); // NOI18N
         toggleRequest.setText("Request");
         toggleRequest.setFocusable(false);
@@ -696,57 +654,72 @@ public class AssLinkPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAssStylesActionPerformed
 
     private void btnAddSubAtEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSubAtEndActionPerformed
-        if(table == null) return;
-        AssEvent nv = getFromAssSubCommands();
-        SelectedFormat format = table.getFormat();
-        if(format == SelectedFormat.ASS){
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.ASS){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            AssEvent nv = getFromAssSubCommands();
             table.getLastAssSynchroTable().getAssTableModel().insertOne(nv);
             table.getLastAssSynchroTable().getTable().updateUI();
             refreshTempASS();
-        }
+        }        
     }//GEN-LAST:event_btnAddSubAtEndActionPerformed
 
     private void btnAddSubAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSubAfterActionPerformed
-        if(table == null) return;
-        AssEvent nv = getFromAssSubCommands();
-        SelectedFormat format = table.getFormat();
-        if(format == SelectedFormat.ASS && table.getTable().getSelectedRow() != -1){
-            if(table.getTable().getRowCount() - 1 == table.getTable().getSelectedRow()){
-                // We are at last event
-                table.getLastAssSynchroTable().getAssTableModel().insertOne(nv);
-            }else{
-                // We are inside the events cosmos
-                table.getLastAssSynchroTable().getAssTableModel().insertOneAt(nv, table.getTable().getSelectedRow() + 1);
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.ASS){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            AssEvent nv = getFromAssSubCommands();
+            if(table.getTable().getSelectedRow() != -1){
+                if(table.getTable().getRowCount() - 1 == table.getTable().getSelectedRow()){
+                    // We are at last event
+                    table.getLastAssSynchroTable().getAssTableModel().insertOne(nv);
+                }else{
+                    // We are inside the events cosmos
+                    table.getLastAssSynchroTable().getAssTableModel().insertOneAt(nv, table.getTable().getSelectedRow() + 1);
+                }
+                table.getLastAssSynchroTable().getTable().updateUI();
+                refreshTempASS();
             }
-            table.getLastAssSynchroTable().getTable().updateUI();
-            refreshTempASS();
         }
     }//GEN-LAST:event_btnAddSubAfterActionPerformed
 
     private void btnbAddSubBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnbAddSubBeforeActionPerformed
-        if(table == null) return;
-        AssEvent nv = getFromAssSubCommands();
-        SelectedFormat format = table.getFormat();
-        if(format == SelectedFormat.ASS && table.getTable().getSelectedRow() != -1){
-            table.getLastAssSynchroTable().getAssTableModel().insertOneAt(nv, table.getTable().getSelectedRow());
-            table.getLastAssSynchroTable().getTable().updateUI();
-            refreshTempASS();
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.ASS){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            AssEvent nv = getFromAssSubCommands();
+            if(table.getTable().getSelectedRow() != -1){
+                table.getLastAssSynchroTable().getAssTableModel().insertOneAt(nv, table.getTable().getSelectedRow());
+                table.getLastAssSynchroTable().getTable().updateUI();
+                refreshTempASS();
+            }
         }
     }//GEN-LAST:event_btnbAddSubBeforeActionPerformed
 
     private void btnChangeSubActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeSubActionPerformed
-        if(table == null) return;
-        AssEvent nv = getFromAssSubCommands();
-        SelectedFormat format = table.getFormat();
-        if(format == SelectedFormat.ASS && table.getTable().getSelectedRow() != -1){
-            table.getLastAssSynchroTable().getAssTableModel().changeEventAt(nv, table.getTable().getSelectedRow());
-            table.getLastAssSynchroTable().getTable().updateUI();
-            refreshTempASS();
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.ASS){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            AssEvent nv = getFromAssSubCommands();
+            if(table.getTable().getSelectedRow() != -1){
+                table.getLastAssSynchroTable().getAssTableModel().changeEventAt(nv, table.getTable().getSelectedRow());
+                table.getLastAssSynchroTable().getTable().updateUI();
+                refreshTempASS();
+            }
         }
     }//GEN-LAST:event_btnChangeSubActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup bgType;
     private javax.swing.JButton btnAddSubAfter;
     private javax.swing.JButton btnAddSubAtEnd;
     private javax.swing.JButton btnAssProperties;

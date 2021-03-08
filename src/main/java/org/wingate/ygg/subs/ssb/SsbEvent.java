@@ -184,6 +184,20 @@ public class SsbEvent {
         return event.toString();
     }
     
+    public static String toEvent(SsbEvent ev){
+        // start-end | macro | note | text
+        StringBuilder event = new StringBuilder();
+        event.append(ev.isUseId() == true ? "'" + ev.getId() + "'" : ev.getEventTime());
+        event.append("|");
+        event.append(ev.getMacro());
+        event.append("|");
+        event.append(ev.getNote());
+        event.append("|");
+        event.append(ev.getText());
+        
+        return event.toString();
+    }
+    
     private String getEventTime(){
         // [[[hours:]minutes:]seconds.]milliseconds
         

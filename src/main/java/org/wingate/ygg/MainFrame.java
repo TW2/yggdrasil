@@ -17,6 +17,7 @@
 package org.wingate.ygg;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,7 @@ import org.wingate.ygg.ui.IfrWave;
 import org.wingate.ygg.io.VideoFileChooserFileFilter;
 import org.wingate.ygg.io.WebVTTFileFilter;
 import org.wingate.ygg.ui.IfrTranslation;
+import org.wingate.ygg.ui.SubsChoiceDialog;
 
 /**
  *
@@ -296,11 +298,6 @@ public class MainFrame extends javax.swing.JFrame {
         progressTask = new javax.swing.JProgressBar();
         jMenuBar1 = new javax.swing.JMenuBar();
         vmnFile = new org.wingate.freectrl.VMenu();
-        vmnFileTranslate = new org.wingate.freectrl.VMenu();
-        vmnFileTranslateOpenSubs = new org.wingate.freectrl.VMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        vmnFileTranslateOpenVideo = new org.wingate.freectrl.VMenuItem();
-        vmnFileTranslateOpenAudio = new org.wingate.freectrl.VMenuItem();
         vmnFileTime = new org.wingate.freectrl.VMenu();
         vmnFileTimeNewSubs = new org.wingate.freectrl.VMenuItem();
         vmnFileTimeOpenSubs = new org.wingate.freectrl.VMenuItem();
@@ -308,6 +305,11 @@ public class MainFrame extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         vmnFileTimeOpenVideo = new org.wingate.freectrl.VMenuItem();
         vmnFileTimeOpenAudio = new org.wingate.freectrl.VMenuItem();
+        vmnFileTranslate = new org.wingate.freectrl.VMenu();
+        vmnFileTranslateOpenSubs = new org.wingate.freectrl.VMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        vmnFileTranslateOpenVideo = new org.wingate.freectrl.VMenuItem();
+        vmnFileTranslateOpenAudio = new org.wingate.freectrl.VMenuItem();
         vmnDisplay = new org.wingate.freectrl.VMenu();
         vmnDisplayHideAll = new org.wingate.freectrl.VMenuItem();
         vmnDisplayChat = new org.wingate.freectrl.VMenuItem();
@@ -345,35 +347,6 @@ public class MainFrame extends javax.swing.JFrame {
 
         vmnFile.setText("File");
         vmnFile.setVariableName("vmnFile");
-
-        vmnFileTranslate.setText("Translation");
-
-        vmnFileTranslateOpenSubs.setText("Open subtitles...");
-        vmnFileTranslateOpenSubs.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                vmnFileTranslateOpenSubsActionPerformed(evt);
-            }
-        });
-        vmnFileTranslate.add(vmnFileTranslateOpenSubs);
-        vmnFileTranslate.add(jSeparator1);
-
-        vmnFileTranslateOpenVideo.setText("Open a video...");
-        vmnFileTranslateOpenVideo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                vmnFileTranslateOpenVideoActionPerformed(evt);
-            }
-        });
-        vmnFileTranslate.add(vmnFileTranslateOpenVideo);
-
-        vmnFileTranslateOpenAudio.setText("Open an audio file...");
-        vmnFileTranslateOpenAudio.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                vmnFileTranslateOpenAudioActionPerformed(evt);
-            }
-        });
-        vmnFileTranslate.add(vmnFileTranslateOpenAudio);
-
-        vmnFile.add(vmnFileTranslate);
 
         vmnFileTime.setText("Timing");
 
@@ -421,6 +394,35 @@ public class MainFrame extends javax.swing.JFrame {
         vmnFileTime.add(vmnFileTimeOpenAudio);
 
         vmnFile.add(vmnFileTime);
+
+        vmnFileTranslate.setText("Translation");
+
+        vmnFileTranslateOpenSubs.setText("Open subtitles...");
+        vmnFileTranslateOpenSubs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                vmnFileTranslateOpenSubsActionPerformed(evt);
+            }
+        });
+        vmnFileTranslate.add(vmnFileTranslateOpenSubs);
+        vmnFileTranslate.add(jSeparator1);
+
+        vmnFileTranslateOpenVideo.setText("Open a video...");
+        vmnFileTranslateOpenVideo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                vmnFileTranslateOpenVideoActionPerformed(evt);
+            }
+        });
+        vmnFileTranslate.add(vmnFileTranslateOpenVideo);
+
+        vmnFileTranslateOpenAudio.setText("Open an audio file...");
+        vmnFileTranslateOpenAudio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                vmnFileTranslateOpenAudioActionPerformed(evt);
+            }
+        });
+        vmnFileTranslate.add(vmnFileTranslateOpenAudio);
+
+        vmnFile.add(vmnFileTranslate);
 
         jMenuBar1.add(vmnFile);
 
@@ -583,7 +585,48 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_vmnDisplayTranslateActionPerformed
 
     private void vmnFileTimeNewSubsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnFileTimeNewSubsActionPerformed
-        // TODO add your handling code here:
+        SubsChoiceDialog subsChoice = new SubsChoiceDialog(this, true);
+        subsChoice.showDialog();
+        if(subsChoice.getDialogResult() == SubsChoiceDialog.DialogResult.OK){
+            switch(subsChoice.getChoice()){
+                case ASS -> {                    
+                    try {
+                        File temp = new File("temporary.ass");
+                        temp.createNewFile();
+                        table.addASSTable(temp);
+                    } catch (IOException ex) { }
+                }
+                case SSB -> {
+                    try {
+                        File temp = new File("temporary.ssb");
+                        temp.createNewFile();
+                        table.addSSBTable(temp);
+                    } catch (IOException ex) { }
+                }
+                case SRT -> {
+                    try {
+                        File temp = new File("temporary.srt");
+                        temp.createNewFile();
+                        table.addSRTTable(temp);
+                    } catch (IOException ex) { }
+                }
+                case WebVTT -> {
+                    try {
+                        File temp = new File("temporary.vtt");
+                        temp.createNewFile();
+                        table.addVTTTable(temp);
+                    } catch (IOException ex) { }
+                }
+                case VES -> {
+                    try {
+                        File temp = new File("temporary.ves");
+                        temp.createNewFile();
+                        table.addVESTable(temp);
+                    } catch (IOException ex) { }
+                }
+            }
+            displayTime();
+        }
     }//GEN-LAST:event_vmnFileTimeNewSubsActionPerformed
 
     private void vmnFileTimeOpenSubsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnFileTimeOpenSubsActionPerformed

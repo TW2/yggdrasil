@@ -883,22 +883,27 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="tfWordsSample" alignment="1" pref="555" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="tfWordsSample" pref="543" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="tfWordsSample" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="0" pref="20" max="32767" attributes="0"/>
+                      <EmptySpace pref="10" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfWordsSample">
+            <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfWordsSample">
               <Properties>
-                <Property name="text" type="java.lang.String" value="placeholderTextField1"/>
+                <Property name="placeholder" type="java.lang.String" value="[ALPHABET];[alphabet];[numbers];"/>
               </Properties>
             </Component>
           </SubComponents>
@@ -951,14 +956,6 @@
         </Container>
       </SubComponents>
     </Container>
-    <Component class="org.wingate.placeholdertextfield.PlaceholderTextField" name="tfVideoMediaName">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="placeholderTextField2"/>
-        <Property name="componentPopupMenu" type="javax.swing.JPopupMenu" editor="org.netbeans.modules.form.ComponentChooserEditor">
-          <ComponentRef name="popStyleRW"/>
-        </Property>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JButton" name="btnSaveCollection">
       <Properties>
         <Property name="text" type="java.lang.String" value="Update collection"/>
@@ -966,6 +963,11 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSaveCollectionActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="org.wingate.freectrl.PlaceholderTextField" name="tfVideoMediaName">
+      <Properties>
+        <Property name="placeholder" type="java.lang.String" value="Title of the media"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

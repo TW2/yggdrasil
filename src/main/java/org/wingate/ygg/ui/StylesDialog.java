@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
@@ -51,8 +53,8 @@ import org.wingate.ygg.subs.ass.ASS;
 import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygg.subs.ass.AssStyle;
 import org.wingate.ygg.subs.ass.AssStylesCollection;
-import org.wingate.ygg.subs.ass.AssStylesCollectionConf;
-import org.wingate.ygg.subs.ass.AssYggyApply;
+import org.wingate.ygg.subs.ass.tool.AssStylesCollectionConf;
+import org.wingate.ygg.subs.ass.tool.AssYggyApply;
 
 /**
  *
@@ -454,12 +456,20 @@ public class StylesDialog extends javax.swing.JDialog {
         }
     }
     
-    private void addStyleCollection(String collection, Map<String, AssStyle> map){
+    private int addStyleCollection(String collection, Map<String, AssStyle> map){
         AssStylesCollection asc = AssStylesCollection.create(collection, map);
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(asc);
+        Iterator coll = root.children().asIterator();
+        while(coll.hasNext()){
+            DefaultMutableTreeNode tn = (DefaultMutableTreeNode)coll.next();
+            if(tn.getUserObject().toString().equals(collection) == true){  
+                return root.getIndex(tn);
+            }
+        }
         root.add(node);        
         expandAllNodes(treeCollections, 0, treeCollections.getRowCount());
         treeCollections.updateUI();
+        return root.getIndex(node);
     }
     
     private void deleteCollection(){
@@ -627,11 +637,11 @@ public class StylesDialog extends javax.swing.JDialog {
         jLabel18 = new javax.swing.JLabel();
         comboEncoding = new javax.swing.JComboBox<>();
         jPanel14 = new javax.swing.JPanel();
-        tfWordsSample = new org.wingate.placeholdertextfield.PlaceholderTextField();
+        tfWordsSample = new org.wingate.freectrl.PlaceholderTextField();
         jPanel15 = new javax.swing.JPanel();
         jPanel16 = new javax.swing.JPanel();
-        tfVideoMediaName = new org.wingate.placeholdertextfield.PlaceholderTextField();
         btnSaveCollection = new javax.swing.JButton();
+        tfVideoMediaName = new org.wingate.freectrl.PlaceholderTextField();
 
         popmAddStyleToCollection.setText("jMenuItem1");
         popmAddStyleToCollection.addActionListener(new java.awt.event.ActionListener() {
@@ -1171,19 +1181,23 @@ public class StylesDialog extends javax.swing.JDialog {
 
         jPanel14.setBorder(javax.swing.BorderFactory.createTitledBorder("Words sample"));
 
-        tfWordsSample.setText("placeholderTextField1");
+        tfWordsSample.setPlaceholder("[ALPHABET];[alphabet];[numbers];");
 
         javax.swing.GroupLayout jPanel14Layout = new javax.swing.GroupLayout(jPanel14);
         jPanel14.setLayout(jPanel14Layout);
         jPanel14Layout.setHorizontalGroup(
             jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tfWordsSample, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 555, Short.MAX_VALUE)
+            .addGroup(jPanel14Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(tfWordsSample, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel14Layout.setVerticalGroup(
             jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel14Layout.createSequentialGroup()
+                .addContainerGap()
                 .addComponent(tfWordsSample, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 20, Short.MAX_VALUE))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
         jPanel18.add(jPanel14);
@@ -1216,15 +1230,14 @@ public class StylesDialog extends javax.swing.JDialog {
 
         jPanel18.add(jPanel15);
 
-        tfVideoMediaName.setText("placeholderTextField2");
-        tfVideoMediaName.setComponentPopupMenu(popStyleRW);
-
         btnSaveCollection.setText("Update collection");
         btnSaveCollection.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSaveCollectionActionPerformed(evt);
             }
         });
+
+        tfVideoMediaName.setPlaceholder("Title of the media");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1292,6 +1305,10 @@ public class StylesDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_CANCEL_BUTTONActionPerformed
 
     private void comboStyleNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboStyleNameActionPerformed
+        if(comboStyleName.getSelectedItem() instanceof String){
+            return;
+        }
+        
         AssStyle sty = (AssStyle)comboStyleName.getSelectedItem();
         if(sty == null) sty = AssStyle.getDefault();
         
@@ -1538,49 +1555,105 @@ public class StylesDialog extends javax.swing.JDialog {
         if(treeCollections.getSelectionCount() > 0){            
             TreePath tp = treeCollections.getSelectionPath();
             DefaultMutableTreeNode node = (DefaultMutableTreeNode)tp.getLastPathComponent();
-            if(!node.isRoot() && node.getUserObject() instanceof String){
+            if(node.getUserObject() instanceof String){
+                String collectionName = node.getUserObject().toString();
+                
+                if(node.isRoot()){
+                    collectionName = JOptionPane.showInputDialog("Enter a collection name in "
+                            + "order to add your style to it");
+                    if(collectionName == null) return;
+                    if(collectionName.isEmpty()) collectionName = "Nameless project";
+                }
+                
                 // Création de Style
-                DefaultMutableTreeNode styleNode = new DefaultMutableTreeNode(style);
+                AssStyle sty = AssStyle.getDefault();
+                sty.setName(comboStyleName.getSelectedItem().toString());
+                
+                // BIUS
+                sty.setBold(checkBold.isSelected());
+                sty.setItalic(checkItalic.isSelected());
+                sty.setUnderline(checkUnderline.isSelected());
+                sty.setStrikeout(checkStrikeout.isSelected());
 
-                // Vérification de la présence d'un style ayant le même nom
-                boolean exists = false;
-                for(int i=0; i<node.getChildCount(); i++){
-                    DefaultMutableTreeNode tn = (DefaultMutableTreeNode)node.getChildAt(i);
-                    if(tn.getUserObject() instanceof AssStyle){
-                        AssStyle sty = (AssStyle)tn.getUserObject();
-                        if(sty.getName().equalsIgnoreCase(style.getName())){
-                            exists = true;
-                            break;
-                        }
-                    }
+                // Color and alpha
+                int textA = snmA1.getNumber().intValue();
+                int textR = lblTextColor.getBackground().getRed();
+                int textG = lblTextColor.getBackground().getGreen();
+                int textB = lblTextColor.getBackground().getBlue();
+                sty.setTextColor(new Color(textR, textG, textB, textA));
+                
+                int karaA = snmA2.getNumber().intValue();
+                int karaR = lblKaraokeColor.getBackground().getRed();
+                int karaG = lblKaraokeColor.getBackground().getGreen();
+                int karaB = lblKaraokeColor.getBackground().getBlue();
+                sty.setKaraokeColor(new Color(karaR, karaG, karaB, karaA));
+                
+                int bordA = snmA3.getNumber().intValue();
+                int bordR = lblBorderColor.getBackground().getRed();
+                int bordG = lblBorderColor.getBackground().getGreen();
+                int bordB = lblBorderColor.getBackground().getBlue();
+                sty.setBordColor(new Color(bordR, bordG, bordB, bordA));
+                
+                int shadA = snmA4.getNumber().intValue();
+                int shadR = lblShadowColor.getBackground().getRed();
+                int shadG = lblShadowColor.getBackground().getGreen();
+                int shadB = lblShadowColor.getBackground().getBlue();
+                sty.setShadColor(new Color(shadR, shadG, shadB, shadA));
+
+                // Font
+                sty.setFontname(comboFonts.getSelectedItem().toString());
+                sty.setFontsize(snmFontsize.getNumber().intValue());
+
+                // Border-Shadow-OpaqueBox
+                sty.setOutline(snmBorder.getNumber().floatValue());
+                sty.setShadow(snmShadow.getNumber().floatValue());
+                sty.setBorderStyle(checkOpaqueBox.isSelected());
+
+                // Alignment
+                if(radio1.isSelected()) sty.setAlignment(1);
+                if(radio2.isSelected()) sty.setAlignment(2);
+                if(radio3.isSelected()) sty.setAlignment(3);
+                if(radio4.isSelected()) sty.setAlignment(4);
+                if(radio5.isSelected()) sty.setAlignment(5);
+                if(radio6.isSelected()) sty.setAlignment(6);
+                if(radio7.isSelected()) sty.setAlignment(7);
+                if(radio8.isSelected()) sty.setAlignment(8);
+                if(radio9.isSelected()) sty.setAlignment(9);
+
+                // Margins
+                sty.setMarginL(snmMarginL.getNumber().intValue());
+                sty.setMarginR(snmMarginR.getNumber().intValue());
+                sty.setMarginV(snmMarginV.getNumber().intValue());
+
+                // Scale-Angle-Spacing
+                sty.setScaleX(snmScaleX.getNumber().intValue());
+                sty.setScaleY(snmScaleY.getNumber().intValue());
+                sty.setAngle(snmAngle.getNumber().floatValue());
+                sty.setSpacing(snmSpacing.getNumber().floatValue());
+
+                // Encoding
+                sty.setEncoding(((Encoding)dcbmEncoding.getSelectedItem()).getCode());
+                
+                Map<String, AssStyle> map = new HashMap<>();
+                map.put(sty.getName(), sty);
+                int row = addStyleCollection(collectionName, map);
+                
+                tp = treeCollections.getPathForRow(row);
+                node = (DefaultMutableTreeNode)tp.getLastPathComponent();                
+                if(node.getUserObject() instanceof AssStylesCollection){
+                    AssStylesCollection asc_old = (AssStylesCollection)node.getUserObject();
+                    map.putAll(asc_old.getStyles());
                 }
                 
-                // Si le style existe déjà, on demande un nouveau nom
-                if(exists == true){
-                    String name = style.getName();
-                    String newName = style.getName();
-                    int tryAgain = 0;
-                    while(tryAgain <= 5 && newName.equalsIgnoreCase(name)){
-                        newName = JOptionPane.showInputDialog("Please choose a new name:");
-                        tryAgain++;
-                    }
-                    if(tryAgain > 5){
-                        return;
-                    }
-                    AssStyle sty = copy(style, newName);
-                    styleNode = new DefaultMutableTreeNode(sty);
+                for(Map.Entry<String, AssStyle> entry : map.entrySet()){
+                    AssSelectedPacket packet = new AssSelectedPacket();
+                    packet.setAssCollectionName(collectionName);
+                    packet.setAssStyle(entry.getValue());
+                    packets.add(packet);
                 }
-                
-                // Exclut un nom vide
-                if(((AssStyle)styleNode.getUserObject()).getName().isEmpty()){
-                    return;
-                }
-                
-                // Ajout à l'arbre
-                node.add(styleNode);
                 
                 // Ajout aux styles
-                dcbmStyles.addElement((AssStyle)styleNode.getUserObject());
+                dcbmStyles.addElement(sty);
                 
                 treeCollections.updateUI();                
             }
@@ -1723,18 +1796,33 @@ public class StylesDialog extends javax.swing.JDialog {
     private javax.swing.JSpinner spinTextAlpha;
     private javax.swing.JSpinner spinV;
     private javax.swing.JTable tableCollections;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfVideoMediaName;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfWordsSample;
+    private org.wingate.freectrl.PlaceholderTextField tfVideoMediaName;
+    private org.wingate.freectrl.PlaceholderTextField tfWordsSample;
     private javax.swing.JTree treeCollections;
     // End of variables declaration//GEN-END:variables
 
-    public class AssSelectedPacket {
+    public static class AssSelectedPacket {
         
         private boolean selected = false;
         private AssStyle assStyle = AssStyle.getDefault();
         private String assCollectionName = "Default movie";
 
         public AssSelectedPacket() {
+        }
+        
+        public static AssSelectedPacket create(AssStyle assStyle, String assCollectionName){
+            return create(assCollectionName, assStyle, false);
+        }
+        
+        public static AssSelectedPacket create(String assCollectionName,
+                AssStyle assStyle, boolean selected){
+            AssSelectedPacket p = new AssSelectedPacket();
+            
+            p.assCollectionName = assCollectionName;
+            p.assStyle = assStyle;
+            p.selected = selected;
+            
+            return p;
         }
 
         public boolean isSelected() {

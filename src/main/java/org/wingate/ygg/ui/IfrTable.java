@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.ui.synctable.AssSynchroTable;
 import org.wingate.ygg.ui.synctable.SelectedFormat;
 import org.wingate.ygg.ui.synctable.SrtSynchroTable;
@@ -36,6 +37,9 @@ public class IfrTable extends javax.swing.JInternalFrame {
 
     private final List<AssSynchroTable> st_ass_s = new ArrayList<>();
     private AssSynchroTable lastAssSynchroTable = null;
+    
+    private final List<SsbSynchroTable> st_ssb_s = new ArrayList<>();
+    private SsbSynchroTable lastSsbSynchroTable = null;
     
     /**
      * Creates new form ifrTable
@@ -58,7 +62,11 @@ public class IfrTable extends javax.swing.JInternalFrame {
     }
     
     public void addSSBTable(File file){
-        
+        SsbSynchroTable st_ssb = new SsbSynchroTable();
+        st_ssb_s.add(st_ssb);
+        st_ssb.loadSSBTable(file);
+        ImageIcon icon = new ImageIcon(getClass().getResource("/images/SubStation Beta min.png"));        
+        tabbedSubs.addTab(file.getName(), icon, st_ssb);
     }
     
     public void addSRTTable(File file){
@@ -78,7 +86,8 @@ public class IfrTable extends javax.swing.JInternalFrame {
             AssSynchroTable st_ass = (AssSynchroTable)tabbedSubs.getSelectedComponent();
             st_ass.saveASSTable(file);
         }else if(tabbedSubs.getSelectedComponent() instanceof SsbSynchroTable && extension.contains("ssb")){
-            
+            SsbSynchroTable st_ssb = (SsbSynchroTable)tabbedSubs.getSelectedComponent();
+            st_ssb.saveSSBTable(file);
         }else if(tabbedSubs.getSelectedComponent() instanceof SrtSynchroTable && extension.contains("srt")){
             
         }else if(tabbedSubs.getSelectedComponent() instanceof VesSynchroTable && extension.contains("ves")){
@@ -93,7 +102,8 @@ public class IfrTable extends javax.swing.JInternalFrame {
             AssSynchroTable st_ass = (AssSynchroTable)tabbedSubs.getSelectedComponent();            
             return st_ass.getTable();
         }else if(tabbedSubs.getSelectedComponent() instanceof SsbSynchroTable){
-            
+            SsbSynchroTable st_ssb = (SsbSynchroTable)tabbedSubs.getSelectedComponent();            
+            return st_ssb.getTable();
         }else if(tabbedSubs.getSelectedComponent() instanceof SrtSynchroTable){
             
         }else if(tabbedSubs.getSelectedComponent() instanceof VesSynchroTable){
@@ -110,6 +120,8 @@ public class IfrTable extends javax.swing.JInternalFrame {
             lastAssSynchroTable = st_ass;
             return SelectedFormat.ASS;
         }else if(tabbedSubs.getSelectedComponent() instanceof SsbSynchroTable){
+            SsbSynchroTable st_ssb = (SsbSynchroTable)tabbedSubs.getSelectedComponent();
+            lastSsbSynchroTable = st_ssb;
             return SelectedFormat.SSB;
         }else if(tabbedSubs.getSelectedComponent() instanceof SrtSynchroTable){
             return SelectedFormat.SRT;
@@ -125,7 +137,9 @@ public class IfrTable extends javax.swing.JInternalFrame {
         return lastAssSynchroTable;
     }
     
-    
+    public SsbSynchroTable getLastSsbSynchroTable(){
+        return lastSsbSynchroTable;
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -142,6 +156,12 @@ public class IfrTable extends javax.swing.JInternalFrame {
         setMaximizable(true);
         setResizable(true);
         setTitle("Table");
+
+        tabbedSubs.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                tabbedSubsStateChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout panAssCompareLayout = new javax.swing.GroupLayout(panAssCompare);
         panAssCompare.setLayout(panAssCompareLayout);
@@ -160,6 +180,16 @@ public class IfrTable extends javax.swing.JInternalFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void tabbedSubsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabbedSubsStateChanged
+        try{
+            MainFrame.getTableLinkFrame().setSelected(true);
+            MainFrame.getTableLinkFrame().setSelectedFormat(getFormat());
+            MainFrame.getTableLinkFrame().updateUI();
+        }catch(Exception ex){
+            // No selection or in software initialization
+        }        
+    }//GEN-LAST:event_tabbedSubsStateChanged
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

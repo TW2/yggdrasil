@@ -21,7 +21,7 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.subs.ass.AssYggyApply;
+import org.wingate.ygg.subs.ass.tool.AssYggyApply;
 
 /**
  *

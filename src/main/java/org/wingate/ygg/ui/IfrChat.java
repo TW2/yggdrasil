@@ -77,9 +77,9 @@ public class IfrChat extends javax.swing.JInternalFrame {
         btnAddSmiley = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tpChat = new javax.swing.JTextPane();
-        tfSurname = new org.wingate.placeholdertextfield.PlaceholderTextField();
-        tfTeam = new org.wingate.placeholdertextfield.PlaceholderTextField();
         jCheckBox1 = new javax.swing.JCheckBox();
+        tfTeam = new org.wingate.freectrl.PlaceholderTextField();
+        tfSurname = new org.wingate.freectrl.PlaceholderTextField();
 
         tfChatMessage.setText("Demo :)");
 
@@ -101,12 +101,12 @@ public class IfrChat extends javax.swing.JInternalFrame {
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(tpChat);
 
-        tfSurname.setPlaceholder("Surname");
-
-        tfTeam.setPlaceholder("Team name");
-
         jCheckBox1.setSelected(true);
         jCheckBox1.setText("Online");
+
+        tfTeam.setPlaceholder("Team");
+
+        tfSurname.setPlaceholder("Surname");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -123,9 +123,9 @@ public class IfrChat extends javax.swing.JInternalFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tfChatMessage, javax.swing.GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tfTeam, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tfTeam, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tfSurname, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tfSurname, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jCheckBox1)))
                 .addContainerGap())
@@ -140,9 +140,9 @@ public class IfrChat extends javax.swing.JInternalFrame {
                     .addComponent(tfChatMessage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnAddSmiley)
                     .addComponent(btnSendMessage)
-                    .addComponent(tfSurname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckBox1)
                     .addComponent(tfTeam, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCheckBox1))
+                    .addComponent(tfSurname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -173,8 +173,8 @@ public class IfrChat extends javax.swing.JInternalFrame {
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField tfChatMessage;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfSurname;
-    private org.wingate.placeholdertextfield.PlaceholderTextField tfTeam;
+    private org.wingate.freectrl.PlaceholderTextField tfSurname;
+    private org.wingate.freectrl.PlaceholderTextField tfTeam;
     private javax.swing.JTextPane tpChat;
     // End of variables declaration//GEN-END:variables
 }
