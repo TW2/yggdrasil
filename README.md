@@ -15,6 +15,7 @@ See <a href="https://github.com/TW2/yggdrasil/blob/master/guide/Compile.md">comp
 - Status: v1.2 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
 - Status: v1.2.1 alpha phase - (Yggdrasil 2020-12 - "Happy go Ducky")
 - Status: v1.2.2 alpha phase - (Yggdrasil 2021-01 - "Happy go Ducky")
+- Status: v1.2.3 alpha phase - (Yggdrasil 2021-03 - "Happy go Ducky")
 
 ## Abilities
 
