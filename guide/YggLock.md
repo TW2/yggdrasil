@@ -19,4 +19,4 @@ Your key is:
 uJKl6h6Bj6ktel/Z0MgHjBU7k/Vkh+I3VVpXO0+SER4m3YX90plgoJZsXCCze8Ld3dXEtAocaRg2N1Jb805xKHJogZmMI5fK9y2j1S3rKpr82rRc4Smzy0VQ4RiZkr2naA8nEAtMWV8QAAX7uBBJFofSxACLzzQS5cOYo6K9/Js=
 ```
 
-This tool can encrypt and decrypt but it only decrypt in Yggdrasil and only your surname, ip and port.
+This tool can encrypt and decrypt! In Yggdrasil and and with this tool you can only decrypt your surname, ip and port. Password is set but the decrypt method cannot give the password unless you have the 'hello' which is not a valid password.
