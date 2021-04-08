@@ -18,25 +18,26 @@ package org.wingate.ygg.subs.ssb.tool;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import org.wingate.timelibrary.Time;
-import org.wingate.ygg.subs.ssb.SsbEvent;
 import org.wingate.ygg.subs.ssb.SsbEventType;
+import org.wingate.ygg.subs.ssb.SsbMacro;
 import org.wingate.ygg.util.DrawColor;
 
 /**
  *
  * @author util2
  */
-public class SsbEventTableRenderer extends JPanel implements TableCellRenderer {
+public class SsbEventTableRenderer extends JLabel implements TableCellRenderer {
     
-    private JLabel content_1 = new JLabel();
-    private JLabel content_2 = new JLabel();
-
-    private boolean dark = false;
+    private static boolean dark = false;
     
     public enum Colors{
         Background("Background", Color.white, new Color(71, 75, 76)),
@@ -103,25 +104,44 @@ public class SsbEventTableRenderer extends JPanel implements TableCellRenderer {
                 case Comment -> setBackground(Colors.Comment.getColor(dark));
 //                case Proposal -> setBackground(Colors.Proposal.getColor(dark));
 //                case Request -> setBackground(Colors.Request.getColor(dark));
-                default -> setBackground(Colors.Dialogue.getColor(dark));             }
+                default -> setBackground(Colors.Dialogue.getColor(dark));
+            }
         }
         
         if(value instanceof SsbEventType){
-            content_1.setText(((SsbEventType)value).toString());
+            setText(((SsbEventType)value).toString());
         }
         
         if(value instanceof Integer && column == 0){
             // Fill the number color and display the number
             setBackground(Colors.Line.getColor(dark));
-            content_1.setText(Integer.toString(row + 1));
+            setText(Integer.toString(row + 1));
+        }
+        
+        if(value instanceof String && column == 2){
+            String idt = (String)value;
+            if(idt.contains("%") && table.getModel() instanceof SsbEventTableModel){
+                SsbEventTableModel model = (SsbEventTableModel)table.getModel();
+                return StartEndTime.create(model.getStartTime(row), model.getEndTime(row), isSelected);                
+            }else{
+                if(table.getModel() instanceof SsbEventTableModel){
+                    SsbEventTableModel model = (SsbEventTableModel)table.getModel();
+                    return EventIDTime.create(model.getEventID(row), isSelected);
+                }
+            }            
+        }
+        
+        if(value instanceof SsbMacro){
+            SsbMacro macro = (SsbMacro)value;
+            setText(macro.getMacroName());
         }
         
         if(value instanceof String){
-            content_1.setText(value.toString());
+            setText(value.toString());
         }
         
         if(value instanceof Integer){
-            content_1.setText(Integer.toString((Integer)value));
+            setText(Integer.toString((Integer)value));
         }
         
 //        if(value instanceof Time){
@@ -139,28 +159,28 @@ public class SsbEventTableRenderer extends JPanel implements TableCellRenderer {
                     // Strip text if the text contains edit marks.
                     if(content.contains("{\\")){
                         try{
-                            content_1.setText(content.replaceAll("\\{[^\\}]+\\}", ""));
+                            setText(content.replaceAll("\\{[^\\}]+\\}", ""));
                         }catch(Exception e){
-                            content_1.setText(content);
+                            setText(content);
                         }
                     }else{
-                        content_1.setText(content);
+                        setText(content);
                     }
                 }
                 case WithItems -> {
                     // Replace tags by items if the text contains edit marks.
                     if(content.contains("{\\")){
                         try{
-                            content_1.setText(content.replaceAll("\\{[^\\}]+\\}", "◆"));
+                            setText(content.replaceAll("\\{[^\\}]+\\}", "◆"));
                         }catch(Exception e){
-                            content_1.setText(content);
+                            setText(content);
                         }
                     }else{
-                        content_1.setText(content);
+                        setText(content);
                     }
                 }
                 case Normal -> // Do nothing.
-                    content_1.setText(content);
+                    setText(content);
             }
         }
         
@@ -191,4 +211,108 @@ public class SsbEventTableRenderer extends JPanel implements TableCellRenderer {
     public void setTexttype(TextType texttype) {
         this.texttype = texttype;
     }
+    
+    public static class StartEndTime extends JPanel {
+
+        Time startTime;
+        Time endTime;
+        boolean selected;
+        
+        private StartEndTime() {            
+        }
+        
+        public static StartEndTime create(Time startTime, Time endTime, boolean selected){
+            StartEndTime set = new StartEndTime();
+            
+            set.startTime = startTime;
+            set.endTime = endTime;
+            set.selected = selected;
+            set.repaint();
+            
+            return set;
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            super.paint(g);
+            Graphics2D g2d = (Graphics2D)g;
+            
+            int w;
+            g2d.setFont(g2d.getFont().deriveFont(Font.PLAIN));
+            
+            // Fond
+            g2d.setColor(Colors.Background.getColor(dark));
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+            
+            // Sélection
+            if(selected){
+                g2d.setColor(Colors.Selected.getColor(dark));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+            
+            g2d.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING, 
+                    RenderingHints.VALUE_ANTIALIAS_ON
+            );
+            
+            // Début
+            g2d.setColor(DrawColor.dark_green.getColor());
+            w = g2d.getFontMetrics().stringWidth("Start " + startTime.toProgramExtendedTime());            
+            g2d.drawString("Start " + startTime.toProgramExtendedTime(), 2, 15);
+            
+            // Fin
+            g2d.setColor(Color.red);
+            //w = g.getFontMetrics().stringWidth(endTime.toProgramExtendedTime());
+            g2d.drawString("End " + endTime.toProgramExtendedTime(), 22 + w, 15);
+        }
+        
+        
+    }
+    
+    public static class EventIDTime extends JPanel {
+
+        String ID;
+        boolean selected;
+        
+        private EventIDTime() {            
+        }
+        
+        public static EventIDTime create(String ID, boolean selected){
+            EventIDTime idt = new EventIDTime();
+            
+            idt.ID = ID;
+            idt.selected = selected;
+            idt.repaint();
+            
+            return idt;
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            super.paint(g);
+            Graphics2D g2d = (Graphics2D)g;
+            
+            g2d.setFont(g2d.getFont().deriveFont(Font.PLAIN));
+            
+            // Fond
+            g2d.setColor(Colors.Background.getColor(dark));
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+            
+            // Sélection
+            if(selected){
+                g2d.setColor(Colors.Selected.getColor(dark));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+            
+            g2d.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING, 
+                    RenderingHints.VALUE_ANTIALIAS_ON
+            );
+            
+            // Début
+            g2d.setColor(Color.blue);            
+            g2d.drawString("Event ID " + ID, 2, 15);
+        }
+    }
+    
 }

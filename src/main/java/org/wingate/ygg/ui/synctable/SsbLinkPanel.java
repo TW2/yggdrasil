@@ -18,18 +18,20 @@ package org.wingate.ygg.ui.synctable;
 
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
-import java.io.File;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.audiovideo.AVInfo;
 import org.wingate.ygg.subs.ssb.SSB;
 import org.wingate.ygg.subs.ssb.SsbEvent;
 import org.wingate.ygg.subs.ssb.SsbEventType;
 import org.wingate.ygg.subs.ssb.SsbMacro;
 import org.wingate.ygg.ui.IfrTable;
+import org.wingate.ygg.ui.SsbInfoDialog;
+import org.wingate.ygg.ui.SsbTargetDialog;
 
 /**
  *
@@ -37,8 +39,9 @@ import org.wingate.ygg.ui.IfrTable;
  */
 public class SsbLinkPanel extends javax.swing.JPanel {
     
-    private final SSB ssb = SSB.NoFileToLoad();
-    private final IfrTable table = MainFrame.getTableFrame();
+    private AVInfo avInfos = null;
+    
+    private SSB ssb = SSB.NoFileToLoad();
 
     private final DefaultComboBoxModel dcbmMacro = new DefaultComboBoxModel();
     
@@ -78,6 +81,14 @@ public class SsbLinkPanel extends javax.swing.JPanel {
         });
         initSsbComboMacro();
     }
+
+    public AVInfo getAvInfos() {
+        return avInfos;
+    }
+
+    public void setAvInfos(AVInfo avInfos) {
+        this.avInfos = avInfos;
+    }
     
     public void alter(SsbEvent ev){
         // Type de ligne
@@ -96,13 +107,12 @@ public class SsbLinkPanel extends javax.swing.JPanel {
         tfStartTime.setText(startTime.toProgramExtendedTime());
         tfEndTime.setText(endTime.toProgramExtendedTime());
         tfDurationTime.setText(duration.toProgramExtendedTime());
-//        try{
-//            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, ffss.getFps())));
-//            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, ffss.getFps())));
-//            tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, ffss.getFps())));
-//        }catch(Exception ex){
-//            
-//        }        
+        
+        if(avInfos != null && avInfos.getVideoStream() > -1){
+            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, avInfos.getFps())));
+            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, avInfos.getFps())));
+            tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, avInfos.getFps())));
+        }        
                 
         // Macro
         comboMacro.setSelectedItem(ev.getMacro());
@@ -121,11 +131,14 @@ public class SsbLinkPanel extends javax.swing.JPanel {
         Time dur = Time.substract(ev.getStart(), ev.getEnd());
         
         tfStartTime.setText(ev.getStart().toProgramExtendedTime());
-//        tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStartTime(), ffss.getFps())));
         tfEndTime.setText(ev.getEnd().toProgramExtendedTime());
-//        tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEndTime(), ffss.getFps())));
         tfDurationTime.setText(dur.toProgramExtendedTime());
-//        tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
+        
+        if(avInfos != null && avInfos.getVideoStream() > -1){
+            tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStart(), avInfos.getFps())));
+            tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEnd(), avInfos.getFps())));
+            tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, avInfos.getFps())));
+        }
     }
     
     public void displayEventTime(SsbEvent ev){
@@ -158,7 +171,7 @@ public class SsbLinkPanel extends javax.swing.JPanel {
         }
     }
     
-    public SsbEvent getFromAssSubCommands(){
+    public SsbEvent getFromSsbSubCommands(){
         SsbEvent nv = new SsbEvent();
         
         // Type
@@ -210,33 +223,23 @@ public class SsbLinkPanel extends javax.swing.JPanel {
     
     // Refresh ASS rendering by updating ass temporary file
     private void refreshTempSSB(){
-        File folder = new File("configuration");
-        if(folder.exists() == false) folder.mkdirs();
-        File filepath = new File(folder, "temp.ssb");
-        table.save(filepath, ".ssb");
-        MainFrame.getVideoFrame().setSubtitlesFile(filepath);
+//        File folder = new File("configuration");
+//        if(folder.exists() == false) folder.mkdirs();
+//        File filepath = new File(folder, "temp.ssb");
+//        table.save(filepath, ".ssb");
+//        MainFrame.getVideoFrame().setSubtitlesFile(filepath);
     }
-    
-//    @SuppressWarnings("static-access")
-//    public void loadASSTable(File f){        
-//        ASS loading = ASS.Read(f.getPath());
-//        table.getTableV1().removeAll();
-//        table.getAssTableModel().insertAll(loading.getEvents());
-//        table.getTableV1().updateUI();
-//        initAssComboStyle();
-//        initAssComboName();
-//    }
-//    
-//    @SuppressWarnings("static-access")
-//    public void saveASSTable(File f){
-//        ASS saving = new ASS();        
-//        List<AssEvent> events = table.getAssTableModel().getAllEvents();
-//        saving.setEvents(events);
-//        ASS.Save(f.getPath(), saving);
-//    }
     
     public List<SsbMacro> getMacros(){
         return ssb.getMacros();
+    }
+
+    public SSB getSsb() {
+        return ssb;
+    }
+
+    public void setSsb(SSB ssb) {
+        this.ssb = ssb;
     }
 
     /**
@@ -396,20 +399,60 @@ public class SsbLinkPanel extends javax.swing.JPanel {
         jPanel7.add(jPanel10);
 
         btnAddAtEnd.setText("Add at end");
+        btnAddAtEnd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddAtEndActionPerformed(evt);
+            }
+        });
 
         btnAddAfter.setText("Add after");
+        btnAddAfter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddAfterActionPerformed(evt);
+            }
+        });
 
         btnAddBefore.setText("Add before");
+        btnAddBefore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddBeforeActionPerformed(evt);
+            }
+        });
 
         btnChange.setText("Change");
+        btnChange.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnChangeActionPerformed(evt);
+            }
+        });
 
         btnInfo.setText("Info");
+        btnInfo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnInfoActionPerformed(evt);
+            }
+        });
 
         btnTarget.setText("Target");
+        btnTarget.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTargetActionPerformed(evt);
+            }
+        });
 
         btnMacro.setText("Macro");
+        btnMacro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMacroActionPerformed(evt);
+            }
+        });
 
         btnResources.setText("Resources");
+        btnResources.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResourcesActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -458,6 +501,114 @@ public class SsbLinkPanel extends javax.swing.JPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnAddAtEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddAtEndActionPerformed
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.SSB){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            SsbEvent nv = getFromSsbSubCommands();
+            nv.setUseId(!nv.getId().isEmpty());
+            table.getLastSsbSynchroTable().getSsbTableModel().insertOne(nv);
+            table.getLastSsbSynchroTable().getTable().updateUI();
+            refreshTempSSB();
+        }
+    }//GEN-LAST:event_btnAddAtEndActionPerformed
+
+    private void btnAddAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddAfterActionPerformed
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.SSB){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            SsbEvent nv = getFromSsbSubCommands();
+            nv.setUseId(!nv.getId().isEmpty());
+            if(table.getTable().getSelectedRow() != -1){
+                if(table.getTable().getRowCount() - 1 == table.getTable().getSelectedRow()){
+                    // We are at last event
+                    table.getLastSsbSynchroTable().getSsbTableModel().insertOne(nv);
+                }else{
+                    // We are inside the events cosmos
+                    table.getLastSsbSynchroTable().getSsbTableModel().insertOneAt(nv, table.getTable().getSelectedRow() + 1);
+                }
+                table.getLastSsbSynchroTable().getTable().updateUI();
+                refreshTempSSB();
+            }
+        }
+    }//GEN-LAST:event_btnAddAfterActionPerformed
+
+    private void btnAddBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddBeforeActionPerformed
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.SSB){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            SsbEvent nv = getFromSsbSubCommands();
+            nv.setUseId(!nv.getId().isEmpty());
+            if(table.getTable().getSelectedRow() != -1){
+                table.getLastSsbSynchroTable().getSsbTableModel().insertOneAt(nv, table.getTable().getSelectedRow());
+                table.getLastSsbSynchroTable().getTable().updateUI();
+                refreshTempSSB();
+            }
+        }
+    }//GEN-LAST:event_btnAddBeforeActionPerformed
+
+    private void btnChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeActionPerformed
+        if(MainFrame.getTableFrame() == null) return;
+        if(MainFrame.getTableFrame().getFormat() == SelectedFormat.SSB){
+            //===---
+            IfrTable table = MainFrame.getTableFrame();
+            //===---
+            SsbEvent nv = getFromSsbSubCommands();
+            nv.setUseId(!nv.getId().isEmpty());
+            if(table.getTable().getSelectedRow() != -1){
+                table.getLastSsbSynchroTable().getSsbTableModel().changeEventAt(nv, table.getTable().getSelectedRow());
+                table.getLastSsbSynchroTable().getTable().updateUI();
+                refreshTempSSB();
+            }
+        }
+    }//GEN-LAST:event_btnChangeActionPerformed
+
+    private void btnInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInfoActionPerformed
+        SsbInfoDialog dialog = new SsbInfoDialog(new javax.swing.JFrame(), true);
+        dialog.showDialog(
+                ssb.getSubInfoTitle(),
+                ssb.getSubInfoAuthor(),
+                ssb.getSubInfoVersion(),
+                ssb.getSubInfoDescription()
+        );
+        if(dialog.getDialogResult() == SsbInfoDialog.DialogResult.OK){
+            ssb.setSubInfoTitle(dialog.getTitle());
+            ssb.setSubInfoAuthor(dialog.getAuthor());
+            ssb.setSubInfoVersion(dialog.getVersion());
+            ssb.setSubInfoDescription(dialog.getDescription());
+        }
+    }//GEN-LAST:event_btnInfoActionPerformed
+
+    private void btnTargetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTargetActionPerformed
+        SsbTargetDialog dialog = new SsbTargetDialog(new javax.swing.JFrame(), true);
+        dialog.showDialog(
+                ssb.getSubTargetWidth(),
+                ssb.getSubTargetHeight(),
+                ssb.getSubTargetDepth(),
+                ssb.getSubTargetView()
+        );
+        if(dialog.getDialogResult() == SsbTargetDialog.DialogResult.OK){
+            ssb.setSubTargetWidth(Integer.parseInt(dialog.getPlaneWidth()));
+            ssb.setSubTargetHeight(Integer.parseInt(dialog.getPlaneHeight()));
+            ssb.setSubTargetDepth(Integer.parseInt(dialog.getPlaneDepth()));
+            ssb.setSubTargetView(dialog.getView());
+        }
+    }//GEN-LAST:event_btnTargetActionPerformed
+
+    private void btnMacroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMacroActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnMacroActionPerformed
+
+    private void btnResourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResourcesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnResourcesActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

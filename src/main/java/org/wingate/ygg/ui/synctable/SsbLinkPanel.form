@@ -343,41 +343,65 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Add at end"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddAtEndActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnAddAfter">
       <Properties>
         <Property name="text" type="java.lang.String" value="Add after"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddAfterActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnAddBefore">
       <Properties>
         <Property name="text" type="java.lang.String" value="Add before"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddBeforeActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnChange">
       <Properties>
         <Property name="text" type="java.lang.String" value="Change"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnChangeActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnInfo">
       <Properties>
         <Property name="text" type="java.lang.String" value="Info"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnInfoActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnTarget">
       <Properties>
         <Property name="text" type="java.lang.String" value="Target"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTargetActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnMacro">
       <Properties>
         <Property name="text" type="java.lang.String" value="Macro"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMacroActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnResources">
       <Properties>
         <Property name="text" type="java.lang.String" value="Resources"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnResourcesActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

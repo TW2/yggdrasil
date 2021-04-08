@@ -134,7 +134,7 @@ public class SsbSynchroTable extends javax.swing.JPanel {
     }
     
     public void saveSSBTable(File f){
-        SSB saving = new SSB();
+        SSB saving = tableLink.getSsb();
         List<SsbEvent> events = dtmSSB.getAllEvents();
         saving.setEvents(events);
         saving.setMacros(tableLink.getMacros());

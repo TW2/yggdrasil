@@ -81,7 +81,7 @@ public class SsbEventTableModel extends AbstractTableModel {
             case 0: return Integer.class; // Index 0 = line number
             case 1: return SsbEventType.class; // Index 1 = type
             case 2: return String.class; // Index 2 = idt
-            case 3: return String.class; // Index 3 = macro
+            case 3: return SsbMacro.class; // Index 3 = macro
             case 4: return String.class; // Index 4 = note
             case 5: return Integer.class; // Index 5 = cpl
             case 6: return Integer.class; // Index 6 = cps
@@ -180,13 +180,28 @@ public class SsbEventTableModel extends AbstractTableModel {
                 evts.get(row).getEnd().toProgramExtendedTime();
     }
     
+    // Index 2 -> Event ID or Time (Start-End) >> Event ID
+    public String getEventID(int row){
+        return evts.get(row).getId();
+    }
+    
+    // Index 2 -> Event ID or Time (Start-End) >> Start
+    public Time getStartTime(int row){
+        return evts.get(row).getStart();
+    }
+    
+    // Index 2 -> Event ID or Time (Start-End) >> End
+    public Time getEndTime(int row){
+        return evts.get(row).getEnd();
+    }
+    
     // Index 3 -> Macro
-    public SsbMacro getStartTime(int row){
+    public SsbMacro getMacro(int row){
         return evts.get(row).getMacro();
     }
     
     // Index 4 -> Note
-    public String getEndTime(int row){
+    public String getNote(int row){
         return evts.get(row).getNote();
     }
     

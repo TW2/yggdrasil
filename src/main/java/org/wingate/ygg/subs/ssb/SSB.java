@@ -23,9 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,11 +68,19 @@ public class SSB {
     Font: MaterialIcon,regular,data,AAEAAAAKAIAAAwAgT1MvMnwMf9s...
     */
     
-    private Map<SsbSubInfo, String> subInfos = new HashMap<>();
-    private Map<SsbTargetSubInfo, String> targetInfos = new HashMap<>();
     private List<SsbMacro> macros = new ArrayList<>();
     private List<SsbEvent> events = new ArrayList<>();
     private List<SsbResource> resources = new ArrayList<>();
+    
+    private String subInfoTitle = "";
+    private String subInfoAuthor = "";
+    private String subInfoVersion = "";
+    private String subInfoDescription = "";
+    
+    private int subTargetWidth = 1280;
+    private int subTargetHeight = 720;
+    private int subTargetDepth = 1000;
+    private String subTargetView = "perspective";
 
     public SSB() {
     }
@@ -106,18 +112,18 @@ public class SSB {
                 
                 // Elements     (Infos)
                 if(area == Area.Info){
-                    if(line.startsWith("Title: ")) ssb.subInfos.put(SsbSubInfo.Title, line.substring("Title: ".length()));
-                    if(line.startsWith("Author: ")) ssb.subInfos.put(SsbSubInfo.Author, line.substring("Author: ".length()));
-                    if(line.startsWith("Version: ")) ssb.subInfos.put(SsbSubInfo.Version, line.substring("Version: ".length()));
-                    if(line.startsWith("Description: ")) ssb.subInfos.put(SsbSubInfo.Description, line.substring("Description: ".length()));
+                    if(line.startsWith("Title: ")) ssb.subInfoTitle = line.substring("Title: ".length());
+                    if(line.startsWith("Author: ")) ssb.subInfoAuthor = line.substring("Author: ".length());
+                    if(line.startsWith("Version: ")) ssb.subInfoVersion = line.substring("Version: ".length());
+                    if(line.startsWith("Description: ")) ssb.subInfoDescription = line.substring("Description: ".length());
                 }
                 
                 // Elements     (Target)
                 if(area == Area.Target){
-                    if(line.startsWith("Width: ")) ssb.targetInfos.put(SsbTargetSubInfo.Width, line.substring("Width: ".length()));
-                    if(line.startsWith("Height: ")) ssb.targetInfos.put(SsbTargetSubInfo.Height, line.substring("Height: ".length()));
-                    if(line.startsWith("Depth: ")) ssb.targetInfos.put(SsbTargetSubInfo.Depth, line.substring("Depth: ".length()));
-                    if(line.startsWith("View: ")) ssb.targetInfos.put(SsbTargetSubInfo.View, line.substring("View: ".length()));
+                    if(line.startsWith("Width: ")) ssb.subTargetWidth = Integer.parseInt(line.substring("Width: ".length()));
+                    if(line.startsWith("Height: ")) ssb.subTargetHeight = Integer.parseInt(line.substring("Height: ".length()));
+                    if(line.startsWith("Depth: ")) ssb.subTargetDepth = Integer.parseInt(line.substring("Depth: ".length()));
+                    if(line.startsWith("View: ")) ssb.subTargetView = line.substring("View: ".length());
                 }
                 // Elements     (Macros)
                 if(area == Area.Macros){
@@ -155,10 +161,10 @@ public class SSB {
                 Description: First concept of a new render format.
             */
             pw.println("#INFO");
-            pw.println("Title: " + ssb.subInfos.get(SsbSubInfo.Title));
-            pw.println("Author: " + ssb.subInfos.get(SsbSubInfo.Author));
-            pw.println("Version: " + ssb.subInfos.get(SsbSubInfo.Version));
-            pw.println("Description: " + ssb.subInfos.get(SsbSubInfo.Description));
+            pw.println("Title: " + ssb.subInfoTitle);
+            pw.println("Author: " + ssb.subInfoAuthor);
+            pw.println("Version: " + ssb.subInfoVersion);
+            pw.println("Description: " + ssb.subInfoDescription);
             
             pw.println("");
             
@@ -173,10 +179,10 @@ public class SSB {
                 View: perspective
             */
             pw.println("#TARGET");
-            pw.println("Width: " + ssb.targetInfos.get(SsbTargetSubInfo.Width));
-            pw.println("Height: " + ssb.targetInfos.get(SsbTargetSubInfo.Height));
-            pw.println("Depth: " + ssb.targetInfos.get(SsbTargetSubInfo.Depth));
-            pw.println("View: " + ssb.targetInfos.get(SsbTargetSubInfo.View));
+            pw.println("Width: " + Integer.toString(ssb.subTargetWidth));
+            pw.println("Height: " + Integer.toString(ssb.subTargetHeight));
+            pw.println("Depth: " + Integer.toString(ssb.subTargetDepth));
+            pw.println("View: " + ssb.subTargetView);
             
             pw.println("");
             
@@ -250,22 +256,6 @@ public class SSB {
         this.ssbFile = ssbFile;
     }
 
-    public Map<SsbSubInfo, String> getSubInfos() {
-        return subInfos;
-    }
-
-    public void setSubInfos(Map<SsbSubInfo, String> subInfos) {
-        this.subInfos = subInfos;
-    }
-
-    public Map<SsbTargetSubInfo, String> getTargetInfos() {
-        return targetInfos;
-    }
-
-    public void setTargetInfos(Map<SsbTargetSubInfo, String> targetInfos) {
-        this.targetInfos = targetInfos;
-    }
-
     public List<SsbMacro> getMacros() {
         return macros;
     }
@@ -288,6 +278,70 @@ public class SSB {
 
     public void setResources(List<SsbResource> resources) {
         this.resources = resources;
+    }
+
+    public String getSubInfoTitle() {
+        return subInfoTitle;
+    }
+
+    public void setSubInfoTitle(String subInfoTitle) {
+        this.subInfoTitle = subInfoTitle;
+    }
+
+    public String getSubInfoAuthor() {
+        return subInfoAuthor;
+    }
+
+    public void setSubInfoAuthor(String subInfoAuthor) {
+        this.subInfoAuthor = subInfoAuthor;
+    }
+
+    public String getSubInfoVersion() {
+        return subInfoVersion;
+    }
+
+    public void setSubInfoVersion(String subInfoVersion) {
+        this.subInfoVersion = subInfoVersion;
+    }
+
+    public String getSubInfoDescription() {
+        return subInfoDescription;
+    }
+
+    public void setSubInfoDescription(String subInfoDescription) {
+        this.subInfoDescription = subInfoDescription;
+    }
+
+    public int getSubTargetWidth() {
+        return subTargetWidth;
+    }
+
+    public void setSubTargetWidth(int subTargetWidth) {
+        this.subTargetWidth = subTargetWidth;
+    }
+
+    public int getSubTargetHeight() {
+        return subTargetHeight;
+    }
+
+    public void setSubTargetHeight(int subTargetHeight) {
+        this.subTargetHeight = subTargetHeight;
+    }
+
+    public int getSubTargetDepth() {
+        return subTargetDepth;
+    }
+
+    public void setSubTargetDepth(int subTargetDepth) {
+        this.subTargetDepth = subTargetDepth;
+    }
+
+    public String getSubTargetView() {
+        return subTargetView;
+    }
+
+    public void setSubTargetView(String subTargetView) {
+        this.subTargetView = subTargetView;
     }
     
 }

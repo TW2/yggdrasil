@@ -21,8 +21,8 @@ package org.wingate.ygg.subs.ssb;
  * @author util2
  */
 public enum SsbEventType {
-    Dialogue("Dialogue"),
-    Comment("Comment");
+    Dialogue("Text"),
+    Comment("Note");
     
     String type;
     

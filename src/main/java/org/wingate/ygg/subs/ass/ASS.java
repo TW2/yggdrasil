@@ -513,6 +513,10 @@ public class ASS {
         return names;
     }
 
+    public void setAssFile(File file) {
+        this.assFile = file;
+    }
+
     public File getAssFile() {
         return assFile;
     }

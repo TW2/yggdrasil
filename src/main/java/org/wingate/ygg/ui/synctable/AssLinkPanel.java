@@ -27,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.SpinnerNumberModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.audiovideo.AVInfo;
 import org.wingate.ygg.subs.ass.ASS;
 import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygg.subs.ass.AssStyle;
@@ -39,6 +40,8 @@ import org.wingate.ygg.ui.StylesDialog;
  * @author util2
  */
 public class AssLinkPanel extends javax.swing.JPanel {
+    
+    private AVInfo avInfos = null;
 
     private final ASS ass = ASS.NoFileToLoad();
     
@@ -92,6 +95,14 @@ public class AssLinkPanel extends javax.swing.JPanel {
         initAssComboStyle();
         initAssComboName();
     }
+
+    public AVInfo getAvInfos() {
+        return avInfos;
+    }
+
+    public void setAvInfos(AVInfo avInfos) {
+        this.avInfos = avInfos;
+    }
     
     public void alter(AssEvent ev){
         // Type de ligne
@@ -112,13 +123,12 @@ public class AssLinkPanel extends javax.swing.JPanel {
         tfStartTime.setText(startTime.toProgramExtendedTime());
         tfEndTime.setText(endTime.toProgramExtendedTime());
         tfDurationTime.setText(duration.toProgramExtendedTime());
-//        try{
-//            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, ffss.getFps())));
-//            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, ffss.getFps())));
-//            tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, ffss.getFps())));
-//        }catch(Exception ex){
-//            
-//        }        
+        
+        if(avInfos != null && avInfos.getVideoStream() > -1){
+            tfStartFrame.setText(Integer.toString(Time.getFrame(startTime, avInfos.getFps())));
+            tfEndFrame.setText(Integer.toString(Time.getFrame(endTime, avInfos.getFps())));
+            tfDurationFrame.setText(Integer.toString(Time.getFrame(duration, avInfos.getFps())));
+        }      
         
         // ML
         snmLeft.setValue(ev.getMarginL());
@@ -146,11 +156,14 @@ public class AssLinkPanel extends javax.swing.JPanel {
         Time dur = Time.substract(ev.getStartTime(), ev.getEndTime());
         
         tfStartTime.setText(ev.getStartTime().toProgramExtendedTime());
-//        tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStartTime(), ffss.getFps())));
         tfEndTime.setText(ev.getEndTime().toProgramExtendedTime());
-//        tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEndTime(), ffss.getFps())));
         tfDurationTime.setText(dur.toProgramExtendedTime());
-//        tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, ffss.getFps())));
+
+        if(avInfos != null && avInfos.getVideoStream() > -1){
+            tfStartFrame.setText(Integer.toString(Time.getFrame(ev.getStartTime(), avInfos.getFps())));
+            tfEndFrame.setText(Integer.toString(Time.getFrame(ev.getEndTime(), avInfos.getFps())));
+            tfDurationFrame.setText(Integer.toString(Time.getFrame(dur, avInfos.getFps())));
+        }
     }
     
     public void displayEventTime(AssEvent ev){

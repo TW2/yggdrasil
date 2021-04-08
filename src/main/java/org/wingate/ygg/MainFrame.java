@@ -43,6 +43,7 @@ import org.wingate.ygg.ui.IfrVideo;
 import org.wingate.ygg.ui.IfrWave;
 import org.wingate.ygg.io.VideoFileChooserFileFilter;
 import org.wingate.ygg.io.WebVTTFileFilter;
+import org.wingate.ygg.subs.SubsData;
 import org.wingate.ygg.ui.IfrTranslation;
 import org.wingate.ygg.ui.SubsChoiceDialog;
 
@@ -58,6 +59,9 @@ public class MainFrame extends javax.swing.JFrame {
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
     static Language chosen = null;
+    
+    // Subs collection
+    SubsData subsData = new SubsData();
     
     // Chat components
     private static IfrChat chat;
