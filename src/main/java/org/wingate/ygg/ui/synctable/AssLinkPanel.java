@@ -19,7 +19,10 @@ package org.wingate.ygg.ui.synctable;
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
@@ -28,12 +31,15 @@ import javax.swing.SpinnerNumberModel;
 import org.wingate.timelibrary.Time;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.audiovideo.AVInfo;
+import org.wingate.ygg.io.Client;
 import org.wingate.ygg.subs.ass.ASS;
 import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygg.subs.ass.AssStyle;
 import org.wingate.ygg.ui.IfrTable;
+import org.wingate.ygg.ui.PRDialog;
 import org.wingate.ygg.ui.PropsDialog;
 import org.wingate.ygg.ui.StylesDialog;
+import org.wingate.ygglock.YggLock;
 
 /**
  *
@@ -262,6 +268,40 @@ public class AssLinkPanel extends javax.swing.JPanel {
         
         // Text
         nv.setText(tpText.getText());
+        
+        if(toggleProposal.isSelected()){
+            PRDialog pr = new PRDialog(new JFrame(), true);
+            pr.showDialog(MainFrame.getCryptObjs());
+            if(pr.getDialogResult() == PRDialog.DialogResult.OK){
+                for(YggLock.CryptObj co : pr.getSelection()){
+                    try {
+                        Client nakama = new Client(co);
+                        nakama.connect();
+                        nakama.sendProposal(nv, SelectedFormat.ASS);
+                        nakama.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(AssLinkPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }                
+            }            
+        }
+        
+        if(toggleRequest.isSelected()){
+            PRDialog pr = new PRDialog(new JFrame(), true);
+            pr.showDialog(MainFrame.getCryptObjs());
+            if(pr.getDialogResult() == PRDialog.DialogResult.OK){
+                for(YggLock.CryptObj co : pr.getSelection()){
+                    try {
+                        Client nakama = new Client(co);
+                        nakama.connect();
+                        nakama.sendRequest(nv, SelectedFormat.ASS);
+                        nakama.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(AssLinkPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }                
+            }            
+        }
         
         return nv;
     }

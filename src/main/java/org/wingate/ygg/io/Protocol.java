@@ -14,38 +14,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.ui.synctable;
+package org.wingate.ygg.io;
 
 /**
  *
  * @author util2
  */
-public enum SelectedFormat {
-    Unknown("?"),
-    ASS("ASS"),
-    SSB("SSB"),
-    SRT("SRT"),
-    VES("VES"),
-    WebVTT("WebVTT");
+public enum Protocol {
+    Unknown("xxx"),
+    Message("msg"),
+    Download("ddl"),
+    DownLoadFinished("ldd"),
+    Proposal("prp"),
+    Request("req");
     
-    String type;
+    String protocolMessage;
     
-    private SelectedFormat(String type){
-        this.type = type;
-    }
-
-    public String getType() {
-        return type;
+    private Protocol(String protocolMessage){
+        this.protocolMessage = protocolMessage;
     }
     
-    public static SelectedFormat from(String format){
-        SelectedFormat sf = Unknown;
-        for(SelectedFormat selfmt : values()){
-            if(selfmt.getType().equalsIgnoreCase(format)){
-                sf = selfmt;
-                break;
+    public static Protocol from(String raw){
+        for(Protocol p : values()){
+            if(p.protocolMessage.equalsIgnoreCase(raw) == true){
+                return p;
             }
         }
-        return sf;
+        return Unknown;
     }
+
+    public String getProtocolMessage() {
+        return protocolMessage;
+    }
+    
 }

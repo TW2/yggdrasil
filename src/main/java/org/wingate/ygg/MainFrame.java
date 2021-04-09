@@ -16,11 +16,17 @@
  */
 package org.wingate.ygg;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.MenuElement;
@@ -28,15 +34,17 @@ import javax.swing.filechooser.FileFilter;
 import org.wingate.freectrl.VCheckBoxMenuItem;
 import org.wingate.freectrl.VMenu;
 import org.wingate.freectrl.VMenuItem;
+import org.wingate.ygg.chat.Chat;
 import org.wingate.ygg.io.AssFileFilter;
+import org.wingate.ygg.io.Client;
 import org.wingate.ygg.io.MainFileFilter;
+import org.wingate.ygg.io.Server;
 import org.wingate.ygg.io.SrtFileFilter;
 import org.wingate.ygg.io.SsbFileFilter;
 import org.wingate.ygg.io.VesFileFilter;
 import org.wingate.ygg.io.YggConf;
 import org.wingate.ygg.languages.ISO_3166;
 import org.wingate.ygg.languages.Language;
-import org.wingate.ygg.ui.IfrChat;
 import org.wingate.ygg.ui.IfrTable;
 import org.wingate.ygg.ui.IfrTableLink;
 import org.wingate.ygg.ui.IfrVideo;
@@ -46,6 +54,7 @@ import org.wingate.ygg.io.WebVTTFileFilter;
 import org.wingate.ygg.subs.SubsData;
 import org.wingate.ygg.ui.IfrTranslation;
 import org.wingate.ygg.ui.SubsChoiceDialog;
+import org.wingate.ygglock.YggLock;
 
 /**
  *
@@ -56,15 +65,17 @@ public class MainFrame extends javax.swing.JFrame {
 
     private static boolean darkUI = false;
     
+    private static final List<YggLock.CryptObj> cryptObjs = new ArrayList<>();
+    private YggLock.CryptObj localObj = null;
+    private Server myServer = null;
+    private static Chat chat = null;
+    
     // Language (loading from properties of each component)
     static ISO_3166 wantedIso = ISO_3166.getISO_3166(Locale.getDefault().getISO3Country());
     static Language chosen = null;
     
     // Subs collection
     SubsData subsData = new SubsData();
-    
-    // Chat components
-    private static IfrChat chat;
     
     // Timing components
     private static IfrTable table;
@@ -83,7 +94,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     private void init(){
         // Chargement du titre de l'application
-        setTitle("Yggdrasil v1.2.3 alpha - \"Happy Go Ducky\"");
+        setTitle("Yggdrasil v1.2.4 alpha - \"Happy Go Ducky\"");
         setIconImage(new ImageIcon(getClass().getResource("/images/YGG_Icone.png")).getImage());
         
         // Chargement de la configuration...
@@ -93,7 +104,6 @@ public class MainFrame extends javax.swing.JFrame {
         chosen = new Language();
         
         // Init des objets
-        chat = new IfrChat();
         wave = new IfrWave(); // Wave must be init before video cause video needs for it in its init
         video = new IfrVideo(wave);
         tableLink = new IfrTableLink(); // tl must be init before table cause table needs for it in its init
@@ -127,19 +137,27 @@ public class MainFrame extends javax.swing.JFrame {
         fcASS.addChoosableFileFilter(new SrtFileFilter());
         fcASS.addChoosableFileFilter(new VesFileFilter());
         fcASS.addChoosableFileFilter(new WebVTTFileFilter());
-        
-        //----------------------------------------------------------------------
-        // Chat configuration
-        //----------------------------------------------------------------------
-        chat.setSize(1500, 915);
-        chat.setLocation(0, 0);
-        chat.setVisible(true);
-        //--------------------------------------------------------- CHAT END ---
+        // On redéfinit le fcNetworkConnect
+        for(FileFilter ff : fcNetworkConnect.getChoosableFileFilters()){
+            fcNetworkConnect.removeChoosableFileFilter(ff);
+        }
+        fcNetworkConnect.addChoosableFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                if(file.isDirectory()) return true;
+                return file.getName().endsWith(".txt");
+            }
+
+            @Override
+            public String getDescription() {
+                return "Text file containing a key";
+            }
+        });        
         
         //----------------------------------------------------------------------
         // Timing configuration
         //----------------------------------------------------------------------
-        table.setSize(1864, 300);
+        table.setSize(1864, 232);
         table.setLocation(0, 665);
         table.setVisible(true);
         
@@ -166,6 +184,9 @@ public class MainFrame extends javax.swing.JFrame {
         
         // Affiche le mode de synchronisation par défaut
         displayTime();
+        
+        // On initialise des classes
+        chat = new Chat(chatTextPane.getStyledDocument());
     }
     
     // <editor-fold defaultstate="collapsed" desc="Traduction">
@@ -189,8 +210,6 @@ public class MainFrame extends javax.swing.JFrame {
             }
         }
         
-        // Boutons
-        btnMessageTop.setText(chosen.getTranslated("btnMessageTop", wantedIso, btnMessageTop.getText()));
     }
     
     private List<MenuElement> getAllChildrenMenu(List<MenuElement> res, MenuElement me){
@@ -241,12 +260,8 @@ public class MainFrame extends javax.swing.JFrame {
         return tableLink;
     }
     
-    public static IfrChat getChatFrame(){
-        return chat;
-    }
-    
-    public static void setProgress(float value, String text){
-        progressTask.setValue(Math.round(value * 100f));
+    public static List<YggLock.CryptObj> getCryptObjs() {
+        return cryptObjs;
     }
     
     // </editor-fold>
@@ -255,12 +270,6 @@ public class MainFrame extends javax.swing.JFrame {
     
     private void cleanDesktop(){
         deskMain.removeAll();
-        deskMain.updateUI();
-    }
-    
-    private void displayChat(){
-        cleanDesktop();
-        deskMain.add(chat);
         deskMain.updateUI();
     }
     
@@ -281,6 +290,49 @@ public class MainFrame extends javax.swing.JFrame {
     
     // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc="Réseau">
+    
+    public static void setMessageToChat(String author, String message){
+        Calendar calendar = Calendar.getInstance(Locale.getDefault());
+        int h = calendar.get(Calendar.HOUR_OF_DAY);
+        int m = calendar.get(Calendar.MINUTE);
+        int s = calendar.get(Calendar.SECOND);
+        String sh = h < 10 ? "0" + Integer.toString(h) : Integer.toString(h);
+        String sm = m < 10 ? "0" + Integer.toString(m) : Integer.toString(m);
+        String ss = s < 10 ? "0" + Integer.toString(s) : Integer.toString(s);
+        String time = sh + ":" + sm + ":" + ss;
+        String toPrint = "[" + time + "] <" + author + "> " + message;
+        chat.addToDoc(toPrint);
+    }
+    
+    public static void setProposalToChat(String author, String message){
+        Calendar calendar = Calendar.getInstance(Locale.getDefault());
+        int h = calendar.get(Calendar.HOUR_OF_DAY);
+        int m = calendar.get(Calendar.MINUTE);
+        int s = calendar.get(Calendar.SECOND);
+        String sh = h < 10 ? "0" + Integer.toString(h) : Integer.toString(h);
+        String sm = m < 10 ? "0" + Integer.toString(m) : Integer.toString(m);
+        String ss = s < 10 ? "0" + Integer.toString(s) : Integer.toString(s);
+        String time = sh + ":" + sm + ":" + ss;
+        String toPrint = "[" + time + "] " + author + " " + message;
+        chat.addToDoc(toPrint);
+    }
+    
+    public static void setRequestToChat(String author, String message){
+        Calendar calendar = Calendar.getInstance(Locale.getDefault());
+        int h = calendar.get(Calendar.HOUR_OF_DAY);
+        int m = calendar.get(Calendar.MINUTE);
+        int s = calendar.get(Calendar.SECOND);
+        String sh = h < 10 ? "0" + Integer.toString(h) : Integer.toString(h);
+        String sm = m < 10 ? "0" + Integer.toString(m) : Integer.toString(m);
+        String ss = s < 10 ? "0" + Integer.toString(s) : Integer.toString(s);
+        String time = sh + ":" + sm + ":" + ss;
+        String toPrint = "[" + time + "] " + author + " " + message;
+        chat.addToDoc(toPrint);
+    }
+    
+    // </editor-fold>
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -292,14 +344,13 @@ public class MainFrame extends javax.swing.JFrame {
 
         fcAudio = new javax.swing.JFileChooser();
         fcASS = new javax.swing.JFileChooser();
+        fcNetworkConnect = new javax.swing.JFileChooser();
         deskMain = new javax.swing.JDesktopPane();
-        btnMessageTop = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
-        jPanel2 = new javax.swing.JPanel();
-        progressP2P = new javax.swing.JProgressBar();
-        progressTask = new javax.swing.JProgressBar();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        chatTextPane = new javax.swing.JTextPane();
+        btnSendText = new javax.swing.JButton();
+        chatTextField = new org.wingate.freectrl.PlaceholderTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         vmnFile = new org.wingate.freectrl.VMenu();
         vmnFileTime = new org.wingate.freectrl.VMenu();
@@ -314,9 +365,11 @@ public class MainFrame extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         vmnFileTranslateOpenVideo = new org.wingate.freectrl.VMenuItem();
         vmnFileTranslateOpenAudio = new org.wingate.freectrl.VMenuItem();
+        vmnFileNetwork = new org.wingate.freectrl.VMenu();
+        vmnNetworkMyServ = new org.wingate.freectrl.VMenuItem();
+        vmnNetworkAddClients = new org.wingate.freectrl.VMenuItem();
         vmnDisplay = new org.wingate.freectrl.VMenu();
         vmnDisplayHideAll = new org.wingate.freectrl.VMenuItem();
-        vmnDisplayChat = new org.wingate.freectrl.VMenuItem();
         vmnDisplayFiles = new org.wingate.freectrl.VMenuItem();
         vmnDisplayTranslate = new org.wingate.freectrl.VMenuItem();
         vmnDisplayTime = new org.wingate.freectrl.VMenuItem();
@@ -330,24 +383,53 @@ public class MainFrame extends javax.swing.JFrame {
         deskMain.setLayout(deskMainLayout);
         deskMainLayout.setHorizontalGroup(
             deskMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 718, Short.MAX_VALUE)
         );
         deskMainLayout.setVerticalGroup(
             deskMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 361, Short.MAX_VALUE)
+            .addGap(0, 273, Short.MAX_VALUE)
         );
 
-        btnMessageTop.setText("Send message");
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
-        jPanel1.add(jTextField3);
+        chatTextPane.setEditable(false);
+        jScrollPane1.setViewportView(chatTextPane);
 
-        jTextField4.setEditable(false);
-        jPanel1.add(jTextField4);
+        btnSendText.setText("Send");
+        btnSendText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSendTextActionPerformed(evt);
+            }
+        });
 
-        jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
-        jPanel2.add(progressP2P);
-        jPanel2.add(progressTask);
+        chatTextField.setPlaceholder("Type a text here");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btnSendText)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(chatTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSendText)
+                    .addComponent(chatTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
 
         vmnFile.setText("File");
         vmnFile.setVariableName("vmnFile");
@@ -428,6 +510,26 @@ public class MainFrame extends javax.swing.JFrame {
 
         vmnFile.add(vmnFileTranslate);
 
+        vmnFileNetwork.setText("Network");
+
+        vmnNetworkMyServ.setText("Connect my server...");
+        vmnNetworkMyServ.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                vmnNetworkMyServActionPerformed(evt);
+            }
+        });
+        vmnFileNetwork.add(vmnNetworkMyServ);
+
+        vmnNetworkAddClients.setText("Add clients...");
+        vmnNetworkAddClients.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                vmnNetworkAddClientsActionPerformed(evt);
+            }
+        });
+        vmnFileNetwork.add(vmnNetworkAddClients);
+
+        vmnFile.add(vmnFileNetwork);
+
         jMenuBar1.add(vmnFile);
 
         vmnDisplay.setText("Display");
@@ -441,15 +543,6 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
         vmnDisplay.add(vmnDisplayHideAll);
-
-        vmnDisplayChat.setText("Display chat");
-        vmnDisplayChat.setVariableName("vmnDisplayChat");
-        vmnDisplayChat.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                vmnDisplayChatActionPerformed(evt);
-            }
-        });
-        vmnDisplay.add(vmnDisplayChat);
 
         vmnDisplayFiles.setMnemonic('D');
         vmnDisplayFiles.setText("Display files");
@@ -506,26 +599,15 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(btnMessageTop)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 443, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
             .addComponent(deskMain)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnMessageTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(deskMain)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(deskMain))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -563,10 +645,6 @@ public class MainFrame extends javax.swing.JFrame {
     private void vmnDisplayHideAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnDisplayHideAllActionPerformed
         cleanDesktop();
     }//GEN-LAST:event_vmnDisplayHideAllActionPerformed
-
-    private void vmnDisplayChatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnDisplayChatActionPerformed
-        displayChat();
-    }//GEN-LAST:event_vmnDisplayChatActionPerformed
 
     private void vmnDisplayFilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnDisplayFilesActionPerformed
         // TODO add your handling code here:
@@ -709,6 +787,108 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_vmnFileTranslateOpenAudioActionPerformed
 
+    private void btnSendTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendTextActionPerformed
+        if(chatTextField.getText().isEmpty() == false){
+            setMessageToChat(localObj.getSurname(), chatTextField.getText());
+            for(YggLock.CryptObj co : cryptObjs){
+                try {
+                    Client nakama = new Client(co);
+                    nakama.connect();
+                    nakama.sendMessage(chatTextField.getText());
+                    nakama.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }//GEN-LAST:event_btnSendTextActionPerformed
+
+    private void vmnNetworkMyServActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnNetworkMyServActionPerformed
+        int z = fcNetworkConnect.showOpenDialog(this);
+        if(z == JFileChooser.APPROVE_OPTION){
+            boolean update = false;
+            File f = fcNetworkConnect.getSelectedFile();
+            try(FileReader fr = new FileReader(f);
+                    BufferedReader br = new BufferedReader(fr);){
+                // On récupère une clé et on la décrypte
+                YggLock.CryptObj cObj = YggLock.decrypt(br.readLine());
+                
+                // On regarde si elle n'apparaît pas déjà
+                if(localObj != null && localObj.getIp().equalsIgnoreCase(cObj.getIp()) == true){
+                    if(localObj.getPort() != cObj.getPort()){
+                        update = true;
+                        localObj = cObj;                        
+                    }
+                }
+                
+                // On fait l'action requise
+                if(update == false){
+                    localObj = cObj;
+                }
+                
+                if(myServer != null){
+                    myServer.stopThread();
+                }
+                myServer = new Server(localObj);
+                myServer.startServer();
+                vmnNetworkMyServ.setEnabled(false);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_vmnNetworkMyServActionPerformed
+
+    private void vmnNetworkAddClientsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vmnNetworkAddClientsActionPerformed
+        fcNetworkConnect.setMultiSelectionEnabled(true);
+        int z = fcNetworkConnect.showOpenDialog(this);
+        if(z == JFileChooser.APPROVE_OPTION){
+            for(File f : fcNetworkConnect.getSelectedFiles()){
+                boolean add = true;
+                boolean update = false;
+                YggLock.CryptObj obsolete = null;
+                try(FileReader fr = new FileReader(f); BufferedReader br = new BufferedReader(fr);){
+                    // On récupère une clé et on la décrypte
+                    YggLock.CryptObj cObj = YggLock.decrypt(br.readLine());
+
+                    // On regarde si elle n'apparaît pas déjà
+                    for(YggLock.CryptObj co : cryptObjs){
+                        if(co.getIp().equalsIgnoreCase(cObj.getIp()) == true){
+                            if(co.getPort() != cObj.getPort()){
+                                update = true;
+                                obsolete = co;
+                                break;
+                            }else{
+                                add = false;
+                                break;
+                            }
+                        } 
+                    }
+
+                    // On fait l'action requise
+                    if(update == true && obsolete != null){
+                        cryptObjs.remove(obsolete);
+                        cryptObjs.add(cObj);
+                    }else if(add == true){
+                        cryptObjs.add(cObj);
+                    }
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Exception ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    fcNetworkConnect.setMultiSelectionEnabled(false);
+                }
+            }
+        }
+        fcNetworkConnect.setMultiSelectionEnabled(false);
+    }//GEN-LAST:event_vmnNetworkAddClientsActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -740,21 +920,19 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnMessageTop;
+    private javax.swing.JButton btnSendText;
+    private org.wingate.freectrl.PlaceholderTextField chatTextField;
+    private javax.swing.JTextPane chatTextPane;
     private javax.swing.JDesktopPane deskMain;
     private javax.swing.JFileChooser fcASS;
     private javax.swing.JFileChooser fcAudio;
+    private javax.swing.JFileChooser fcNetworkConnect;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JProgressBar progressP2P;
-    private static javax.swing.JProgressBar progressTask;
     private org.wingate.freectrl.VMenu vmnDisplay;
-    private org.wingate.freectrl.VMenuItem vmnDisplayChat;
     private org.wingate.freectrl.VMenuItem vmnDisplayDrawing;
     private org.wingate.freectrl.VMenuItem vmnDisplayEdit;
     private org.wingate.freectrl.VMenuItem vmnDisplayFiles;
@@ -762,6 +940,7 @@ public class MainFrame extends javax.swing.JFrame {
     private org.wingate.freectrl.VMenuItem vmnDisplayTime;
     private org.wingate.freectrl.VMenuItem vmnDisplayTranslate;
     private org.wingate.freectrl.VMenu vmnFile;
+    private org.wingate.freectrl.VMenu vmnFileNetwork;
     private org.wingate.freectrl.VMenu vmnFileTime;
     private org.wingate.freectrl.VMenuItem vmnFileTimeNewSubs;
     private org.wingate.freectrl.VMenuItem vmnFileTimeOpenAudio;
@@ -772,5 +951,7 @@ public class MainFrame extends javax.swing.JFrame {
     private org.wingate.freectrl.VMenuItem vmnFileTranslateOpenAudio;
     private org.wingate.freectrl.VMenuItem vmnFileTranslateOpenSubs;
     private org.wingate.freectrl.VMenuItem vmnFileTranslateOpenVideo;
+    private org.wingate.freectrl.VMenuItem vmnNetworkAddClients;
+    private org.wingate.freectrl.VMenuItem vmnNetworkMyServ;
     // End of variables declaration//GEN-END:variables
 }

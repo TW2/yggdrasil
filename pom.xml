@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wingate</groupId>
     <artifactId>ygg</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -68,6 +68,11 @@
             <artifactId>freectrl</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.wingate</groupId>
+            <artifactId>ygglock</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
-    <name>Yggdrasil 1.2.3</name>
+    <name>Yggdrasil 1.2.4</name>
 </project>
