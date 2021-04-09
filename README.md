@@ -20,8 +20,8 @@ See <a href="https://github.com/TW2/yggdrasil/blob/master/guide/Compile.md">comp
 ## Abilities
 
 Chat area :
-- [ ] Can send text
-- [ ] Can received text
+- [x] Can send text
+- [x] Can received text
 
 Files area :
 - [ ] Can send file
@@ -38,10 +38,10 @@ Timing area :
 - [x] Can edit style of an event
 - [x] Can use table
 - [ ] Can compare two scripts
-- [ ] Can send request
-- [ ] Can received request
-- [ ] Can send proposal
-- [ ] Can received proposal
+- [x] Can send request (ASS only)
+- [x] Can received request (ASS only)
+- [x] Can send proposal (ASS only)
+- [x] Can received proposal (ASS only)
 - [x] Can display a waveform (FFMpeg)
 - [x] Can display a spectrum (FFMpeg)
 
