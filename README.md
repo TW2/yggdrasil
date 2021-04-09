@@ -3,11 +3,11 @@ Subtitles synchronization software in Java 15 compatible with dark mode
 
 Run with Light Theme
 ```
-java -jar ygg-1.2.2.jar
+java -jar ygg-1.2.4.jar
 ```
 Run with Dark Theme
 ```
-java -jar ygg-1.2.2.jar dark
+java -jar ygg-1.2.4.jar dark
 ```
 See <a href="https://github.com/TW2/yggdrasil/blob/master/guide/Compile.md">compile</a> section to build it from source.
 ## Evolution
@@ -15,6 +15,7 @@ See <a href="https://github.com/TW2/yggdrasil/blob/master/guide/Compile.md">comp
 - Status: v1.2 alpha phase - (Yggdrasil 2020-11 - "Happy go Ducky")
 - Status: v1.2.1 alpha phase - (Yggdrasil 2020-12 - "Happy go Ducky")
 - Status: v1.2.2 alpha phase - (Yggdrasil 2021-01 - "Happy go Ducky")
+- Status: v1.2.3 alpha phase - (Yggdrasil 2021-03 - "Happy go Ducky")
 
 ## Abilities
 
