@@ -20,31 +20,6 @@ package org.wingate.ygg.io;
  *
  * @author util2
  */
-public enum Protocol {
-    Unknown("xxx"),
-    Message("msg"),
-    Download("ddl"),
-    DownLoadFinished("ldd"),
-    Proposal("prp"),
-    Request("req");
-    
-    String protocolMessage;
-    
-    private Protocol(String protocolMessage){
-        this.protocolMessage = protocolMessage;
-    }
-    
-    public static Protocol from(String raw){
-        for(Protocol p : values()){
-            if(p.protocolMessage.equalsIgnoreCase(raw) == true){
-                return p;
-            }
-        }
-        return Unknown;
-    }
-
-    public String getProtocolMessage() {
-        return protocolMessage;
-    }
+public class SQL {
     
 }

@@ -36,9 +36,7 @@ import org.wingate.freectrl.VMenu;
 import org.wingate.freectrl.VMenuItem;
 import org.wingate.ygg.chat.Chat;
 import org.wingate.ygg.io.AssFileFilter;
-import org.wingate.ygg.io.Client;
 import org.wingate.ygg.io.MainFileFilter;
-import org.wingate.ygg.io.Server;
 import org.wingate.ygg.io.SrtFileFilter;
 import org.wingate.ygg.io.SsbFileFilter;
 import org.wingate.ygg.io.VesFileFilter;
@@ -51,6 +49,9 @@ import org.wingate.ygg.ui.IfrVideo;
 import org.wingate.ygg.ui.IfrWave;
 import org.wingate.ygg.io.VideoFileChooserFileFilter;
 import org.wingate.ygg.io.WebVTTFileFilter;
+import org.wingate.ygg.p2p.ChatMessage;
+import org.wingate.ygg.p2p.Client;
+import org.wingate.ygg.p2p.Server;
 import org.wingate.ygg.subs.SubsData;
 import org.wingate.ygg.ui.IfrTranslation;
 import org.wingate.ygg.ui.SubsChoiceDialog;
@@ -115,6 +116,9 @@ public class MainFrame extends javax.swing.JFrame {
         
         // Centrer la fenêtre
         setLocationRelativeTo(null);
+        
+        // Diviseur entre le bureau et le chat
+        jSplitPane1.setDividerLocation(1058 - 1058 * 5/32);
         
         // Vérification de forçage de langue (forced) et réattribution ssi
         if(chosen.isForced() == true){
@@ -264,6 +268,10 @@ public class MainFrame extends javax.swing.JFrame {
         return cryptObjs;
     }
     
+    public static Chat getChat(){
+        return chat;
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Affichage des éléments">
@@ -345,6 +353,7 @@ public class MainFrame extends javax.swing.JFrame {
         fcAudio = new javax.swing.JFileChooser();
         fcASS = new javax.swing.JFileChooser();
         fcNetworkConnect = new javax.swing.JFileChooser();
+        jSplitPane1 = new javax.swing.JSplitPane();
         deskMain = new javax.swing.JDesktopPane();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -379,16 +388,22 @@ public class MainFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Yggdrasil v1.2.1 alpha - \"Happy go Ducky\"");
 
+        jSplitPane1.setDividerLocation(200);
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane1.setOneTouchExpandable(true);
+
         javax.swing.GroupLayout deskMainLayout = new javax.swing.GroupLayout(deskMain);
         deskMain.setLayout(deskMainLayout);
         deskMainLayout.setHorizontalGroup(
             deskMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 718, Short.MAX_VALUE)
+            .addGap(0, 448, Short.MAX_VALUE)
         );
         deskMainLayout.setVerticalGroup(
             deskMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 273, Short.MAX_VALUE)
+            .addGap(0, 200, Short.MAX_VALUE)
         );
+
+        jSplitPane1.setTopComponent(deskMain);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -416,20 +431,22 @@ public class MainFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(btnSendText)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chatTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)))
+                        .addComponent(chatTextField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSendText)
                     .addComponent(chatTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
+
+        jSplitPane1.setRightComponent(jPanel1);
 
         vmnFile.setText("File");
         vmnFile.setVariableName("vmnFile");
@@ -599,15 +616,11 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(deskMain)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jSplitPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(deskMain)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jSplitPane1)
         );
 
         pack();
@@ -790,15 +803,14 @@ public class MainFrame extends javax.swing.JFrame {
     private void btnSendTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendTextActionPerformed
         if(chatTextField.getText().isEmpty() == false){
             setMessageToChat(localObj.getSurname(), chatTextField.getText());
+            
+            List<ChatMessage> list = new ArrayList<>();
+            list.add(new ChatMessage(ChatMessage.InnerChatType.Text, chatTextField.getText()));
+            
+            if(list.isEmpty()) return;
+            
             for(YggLock.CryptObj co : cryptObjs){
-                try {
-                    Client nakama = new Client(co);
-                    nakama.connect();
-                    nakama.sendMessage(chatTextField.getText());
-                    nakama.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                Client.sendChatMessage(co, list);
             }
         }
     }//GEN-LAST:event_btnSendTextActionPerformed
@@ -826,11 +838,7 @@ public class MainFrame extends javax.swing.JFrame {
                     localObj = cObj;
                 }
                 
-                if(myServer != null){
-                    myServer.stopThread();
-                }
-                myServer = new Server(localObj);
-                myServer.startServer();
+                Server.createServer(localObj.getPort());
                 vmnNetworkMyServ.setEnabled(false);
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -922,7 +930,7 @@ public class MainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSendText;
     private org.wingate.freectrl.PlaceholderTextField chatTextField;
-    private javax.swing.JTextPane chatTextPane;
+    private static javax.swing.JTextPane chatTextPane;
     private javax.swing.JDesktopPane deskMain;
     private javax.swing.JFileChooser fcASS;
     private javax.swing.JFileChooser fcAudio;
@@ -932,6 +940,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JSplitPane jSplitPane1;
     private org.wingate.freectrl.VMenu vmnDisplay;
     private org.wingate.freectrl.VMenuItem vmnDisplayDrawing;
     private org.wingate.freectrl.VMenuItem vmnDisplayEdit;
