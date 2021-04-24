@@ -27,7 +27,12 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
 import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.chat.Chat;
+import org.wingate.ygg.chat.PRStyles;
 import org.wingate.ygg.subs.ass.AssEvent;
 import org.wingate.ygglock.YggLock;
 
@@ -55,13 +60,13 @@ public class Handler implements Runnable {
             InputStream in = socket.getInputStream();
             dispatcher(in);
             
-            } catch (IOException ex) {
+            } catch (IOException | BadLocationException ex) {
                 Logger.getLogger(Handler.class.getName()).log(Level.SEVERE, null, ex);
             }
         }        
     }
     
-    private void dispatcher(InputStream in) throws IOException{        
+    private void dispatcher(InputStream in) throws IOException, BadLocationException{        
         
         if(mainProtocol == Protocol.Unknown){
             BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -142,7 +147,7 @@ public class Handler implements Runnable {
     
     // <editor-fold defaultstate="collapsed" desc="PR">
     
-    private void getPRMessage(String data) throws IOException{
+    private void getPRMessage(String data) throws IOException, BadLocationException{
         YggLock.CryptObj cObj = getSender();
         
         Calendar calendar = Calendar.getInstance(Locale.getDefault());
@@ -157,9 +162,27 @@ public class Handler implements Runnable {
         
         AssEvent ev = AssEvent.createFromASS(data);
         
+        Chat chat = MainFrame.getChat();
+        StyledDocument doc = chat.getDocument();
+        JTextPane pane = MainFrame.getChatTextPane();
+        
         switch(InSubsMessage.InSubsType.find(innerProtocol)){
-            case Proposal -> { MainFrame.getChat().addToDoc(toPrint + "{Proposal}: " + ev.getText()); }
-            case Request -> { MainFrame.getChat().addToDoc(toPrint + "{Request}: " + ev.getText()); }
+            case Proposal -> {
+                chat.addToDoc(toPrint +
+                        "{Proposal} starting at " + ev.getStartTime().toASSTime() +
+                        " and ending at " + ev.getEndTime().toASSTime());
+                pane.setCaretPosition(pane.getDocument().getLength());
+                PRStyles.ASS_addProposalToDoc(pane, ev);
+                doc.insertString(doc.getLength(), "\n", chat.getRegular());
+            }
+            case Request -> {
+                chat.addToDoc(toPrint +
+                        "{Request} starting at " + ev.getStartTime().toASSTime() +
+                        " and ending at " + ev.getEndTime().toASSTime());
+                pane.setCaretPosition(pane.getDocument().getLength());
+                PRStyles.ASS_addRequestToDoc(pane, ev);
+                doc.insertString(doc.getLength(), "\n", chat.getRegular());
+            }
         }
     }
     

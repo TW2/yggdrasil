@@ -34,6 +34,7 @@ public class Chat {
     
     private final StyledDocument doc;
     private final Style def = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);
+    private Style regular = null;
     private final Emoticons icons = new Emoticons();
     
     public Chat(StyledDocument doc){
@@ -42,7 +43,7 @@ public class Chat {
     }
     
     private void init(){
-        Style regular = doc.addStyle("regular", def);
+        regular = doc.addStyle("regular", def);
         StyleConstants.setFontFamily(def, "SansSerif");
         
         Style s = doc.addStyle("italic", regular);
@@ -104,6 +105,10 @@ public class Chat {
                 Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    public Style getRegular() {
+        return regular;
     }
     
 }

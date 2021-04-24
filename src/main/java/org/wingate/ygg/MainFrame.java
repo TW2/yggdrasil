@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JTextPane;
 import javax.swing.MenuElement;
 import javax.swing.filechooser.FileFilter;
 import org.wingate.freectrl.VCheckBoxMenuItem;
@@ -270,6 +271,10 @@ public class MainFrame extends javax.swing.JFrame {
     
     public static Chat getChat(){
         return chat;
+    }
+    
+    public static JTextPane getChatTextPane(){
+        return chatTextPane;
     }
     
     // </editor-fold>
