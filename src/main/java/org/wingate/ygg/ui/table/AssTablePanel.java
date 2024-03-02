@@ -16,6 +16,7 @@
  */
 package org.wingate.ygg.ui.table;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Map;
@@ -23,6 +24,9 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.table.TableColumn;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.AssEvent;
@@ -442,6 +446,13 @@ public class AssTablePanel extends javax.swing.JPanel {
         styleEditDialog.showDialog();
         if(styleEditDialog.getDialogResult() == DialogResult.Ok){
             // TODO
+        }
+        
+        try {
+            UIManager.setLookAndFeel( new FlatDarkLaf() );
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch( UnsupportedLookAndFeelException ex ) {
+            System.err.println( "Failed to initialize LaF" );
         }
     }//GEN-LAST:event_btnStylesActionPerformed
 

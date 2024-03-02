@@ -16,12 +16,16 @@
  */
 package org.wingate.ygg;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.ui.ContainerPanel;
 import org.wingate.ygg.ui.ElementAbstract;
@@ -435,6 +439,13 @@ public class MainFrame extends javax.swing.JFrame {
                 ea.setupMenu(name, cp);
                 mElements.add(ea.getMenu());
             }
+        }
+        
+        try {
+            UIManager.setLookAndFeel( new FlatDarkLaf() );
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch( UnsupportedLookAndFeelException ex ) {
+            System.err.println( "Failed to initialize LaF" );
         }
     }//GEN-LAST:event_mFileAddElementActionPerformed
 
