@@ -16,10 +16,14 @@
  */
 package org.wingate.ygg.ui;
 
+import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.helper.DrawColor;
@@ -67,15 +71,21 @@ public class ColorDialog extends java.awt.Dialog {
         for(DrawColor d : DrawColor.values()){
             modelKnownColor.addElement(d);
         }
+        
+        initUI();
+    }
+    
+    private void initUI(){
+        try {
+            UIManager.setLookAndFeel( new FlatLightLaf() );
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch( UnsupportedLookAndFeelException ex ) {
+            System.err.println( "Failed to initialize LaF" );
+        }
     }
     
     public void showDialog(Color color, int alpha){
-        this.color = color;
-        this.alpha = alpha;
-        
-        previewPanel.setColor(color);
-        previewPanel.setAlpha(alpha);
-        updateColor(color, alpha);        
+        updateColor(color, alpha);
         
         setLocationRelativeTo(parent);
         setVisible(true);
@@ -109,15 +119,23 @@ public class ColorDialog extends java.awt.Dialog {
         previewPanel.setColor(color);
         previewPanel.setAlpha(transparency);
         
+        float[] hsb = Color.RGBtoHSB(r, g, b, null);
+        
+        lastBGR = tfBGR.getText();
+        lastRGB = tfHTML.getText();
+        lastSpinR = r; lastSlidR = r;
+        lastSpinG = g; lastSlidG = g;
+        lastSpinB = b; lastSlidB = b;
+        lastSpinA = transparency; lastSlidA = transparency;
+        lastSpinH = Math.round(hsb[0] * 360f); lastSlidH = Math.round(hsb[0] * 360f);
+        lastSpinS = Math.round(hsb[1] * 100f); lastSlidS = Math.round(hsb[1] * 100f);
+        lastSpinL = Math.round(hsb[2] * 100f); lastSlidL = Math.round(hsb[2] * 100f);
+        
         // BGR
         tfBGR.setText(sb + sg + sr);
-        lastBGR = tfBGR.getText();
         
         // RGB
         tfHTML.setText(sr + sg + sb);
-        lastRGB = tfHTML.getText();
-        
-        float[] hsb = Color.RGBtoHSB(r, g, b, null);
         
         // Spinners
         spinR.setValue(r);
@@ -136,14 +154,6 @@ public class ColorDialog extends java.awt.Dialog {
         sliderHue.setValue(Math.round(hsb[0] * 360f));
         sliderSat.setValue(Math.round(hsb[1] * 100f));
         sliderBri.setValue(Math.round(hsb[2] * 100f));
-        
-        lastSpinR = r; lastSlidR = r;
-        lastSpinG = g; lastSlidG = g;
-        lastSpinB = b; lastSlidB = b;
-        lastSpinA = transparency; lastSlidA = transparency;
-        lastSpinH = Math.round(hsb[0] * 360f); lastSlidH = Math.round(hsb[0] * 360f);
-        lastSpinS = Math.round(hsb[1] * 100f); lastSlidS = Math.round(hsb[1] * 100f);
-        lastSpinL = Math.round(hsb[2] * 100f); lastSlidL = Math.round(hsb[2] * 100f);
     }
     
     /**
@@ -162,7 +172,6 @@ public class ColorDialog extends java.awt.Dialog {
         btnOK = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         cbKnownColor = new javax.swing.JComboBox<>();
-        btnUpdate = new javax.swing.JButton();
         sliderAlpha = new javax.swing.JSlider();
         lblAlpha = new javax.swing.JLabel();
         lblRed = new javax.swing.JLabel();
@@ -195,10 +204,20 @@ public class ColorDialog extends java.awt.Dialog {
         lblBGR.setText("BGR Color : ");
 
         tfBGR.setText("000000");
+        tfBGR.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                tfBGRCaretUpdate(evt);
+            }
+        });
 
         lblHTML.setText("HTML Color : ");
 
         tfHTML.setText("000000");
+        tfHTML.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                tfHTMLCaretUpdate(evt);
+            }
+        });
 
         lblKnownColor.setText("Known color : ");
 
@@ -220,13 +239,6 @@ public class ColorDialog extends java.awt.Dialog {
         cbKnownColor.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cbKnownColorActionPerformed(evt);
-            }
-        });
-
-        btnUpdate.setText("Update");
-        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUpdateActionPerformed(evt);
             }
         });
 
@@ -376,9 +388,7 @@ public class ColorDialog extends java.awt.Dialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spinG, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(lblKnownColor)
-                                    .addComponent(btnUpdate, javax.swing.GroupLayout.Alignment.LEADING))
+                                .addComponent(lblKnownColor)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(49, 49, 49)
@@ -434,8 +444,7 @@ public class ColorDialog extends java.awt.Dialog {
                     .addComponent(lblBGR)
                     .addComponent(lblHTML)
                     .addComponent(tfHTML, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tfBGR, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tfBGR, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(spinAlpha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -507,20 +516,266 @@ public class ColorDialog extends java.awt.Dialog {
 
     private void cbKnownColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbKnownColorActionPerformed
         // Met à jour la couleur
-        int r = ((DrawColor)cbKnownColor.getSelectedItem()).getRed();
-        int g = ((DrawColor)cbKnownColor.getSelectedItem()).getGreen();
-        int b = ((DrawColor)cbKnownColor.getSelectedItem()).getBlue();
-        updateColor(new Color(r, g, b), alpha);
+        try{
+            int r = ((DrawColor)cbKnownColor.getSelectedItem()).getRed();
+            int g = ((DrawColor)cbKnownColor.getSelectedItem()).getGreen();
+            int b = ((DrawColor)cbKnownColor.getSelectedItem()).getBlue();
+            updateColor(new Color(r, g, b), alpha);
+        }catch(Exception exc){
+            
+        }        
     }//GEN-LAST:event_cbKnownColorActionPerformed
 
+    private void sliderAlphaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderAlphaStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidA != sliderAlpha.getValue()){
+            try{
+                spinAlpha.setValue(sliderAlpha.getValue());
+                alpha = sliderAlpha.getValue();
+                previewPanel.setAlpha(sliderAlpha.getValue());
+            }catch(Exception exc){
+                
+            }            
+        }
+    }//GEN-LAST:event_sliderAlphaStateChanged
+
+    private void spinAlphaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAlphaStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinA != (int)spinAlpha.getValue()){
+            try{
+                sliderAlpha.setValue((int)spinAlpha.getValue());
+                alpha = (int)spinAlpha.getValue();
+                previewPanel.setAlpha((int)spinAlpha.getValue());
+            }catch(Exception exc){
+                
+            }            
+        }
+    }//GEN-LAST:event_spinAlphaStateChanged
+
+    private void sliderRStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderRStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidR != sliderR.getValue()){
+            try{
+                spinR.setValue(sliderR.getValue());
+                Color c = new Color(
+                        sliderR.getValue(),
+                        sliderG.getValue(),
+                        sliderB.getValue()
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_sliderRStateChanged
+
+    private void spinRStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinRStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinR != (int)spinR.getValue()){
+            try{
+                sliderR.setValue((int)spinR.getValue());
+                Color c = new Color(
+                        (int)spinR.getValue(),
+                        (int)spinG.getValue(),
+                        (int)spinB.getValue()
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_spinRStateChanged
+
+    private void sliderGStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderGStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidG != sliderG.getValue()){
+            try{
+                spinG.setValue(sliderG.getValue());
+                Color c = new Color(
+                        sliderR.getValue(),
+                        sliderG.getValue(),
+                        sliderB.getValue()
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }
+    }//GEN-LAST:event_sliderGStateChanged
+
+    private void spinGStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinGStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinG != (int)spinG.getValue()){
+            try{
+                sliderG.setValue((int)spinG.getValue());
+                Color c = new Color(
+                        (int)spinR.getValue(),
+                        (int)spinG.getValue(),
+                        (int)spinB.getValue()
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_spinGStateChanged
+
+    private void sliderBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderBStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidB != sliderB.getValue()){
+            try{
+                spinB.setValue(sliderB.getValue());
+                Color c = new Color(
+                        sliderR.getValue(),
+                        sliderG.getValue(),
+                        sliderB.getValue()
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_sliderBStateChanged
+
+    private void spinBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinBStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinB != (int)spinB.getValue()){
+            try{
+                sliderB.setValue((int)spinB.getValue());
+                Color c = new Color(
+                        (int)spinR.getValue(),
+                        (int)spinG.getValue(),
+                        (int)spinB.getValue()
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_spinBStateChanged
+
+    private void sliderHueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderHueStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidH != sliderHue.getValue()){
+            try{
+                spinHue.setValue(sliderHue.getValue());
+                Color c = Color.getHSBColor(
+                        (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
+                        (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
+                        (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_sliderHueStateChanged
+
+    private void spinHueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinHueStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinH != (int)spinHue.getValue()){
+            try{
+                sliderHue.setValue((int)spinHue.getValue());
+                Color c = Color.getHSBColor(
+                        (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
+                        (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
+                        (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_spinHueStateChanged
+
+    private void sliderSatStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderSatStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidS != sliderSat.getValue()){
+            try{
+                spinSat.setValue(sliderSat.getValue());
+                Color c = Color.getHSBColor(
+                        (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
+                        (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
+                        (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }        
+    }//GEN-LAST:event_sliderSatStateChanged
+
+    private void spinSatStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinSatStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinS != (int)spinSat.getValue()){
+            try{
+                sliderSat.setValue((int)spinSat.getValue());
+                Color c = Color.getHSBColor(
+                        (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
+                        (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
+                        (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }            
+    }//GEN-LAST:event_spinSatStateChanged
+
+    private void sliderBriStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderBriStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSlidL != sliderBri.getValue()){
+            try{
+                spinBri.setValue(sliderBri.getValue());
+                Color c = Color.getHSBColor(
+                        (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
+                        (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
+                        (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }            
+        }
+    }//GEN-LAST:event_sliderBriStateChanged
+
+    private void spinBriStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinBriStateChanged
+        // Pour voir ce qu'on fait
+        if(lastSpinL != (int)spinBri.getValue()){
+            try{
+                sliderBri.setValue((int)spinBri.getValue());
+                Color c = Color.getHSBColor(
+                        (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
+                        (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
+                        (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
+                );
+                previewPanel.setColor(c);
+                updateColor(c, alpha);
+            }catch(Exception exc){
+                
+            }
+        }        
+    }//GEN-LAST:event_spinBriStateChanged
+
     @SuppressWarnings("UseSpecificCatch")
-    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        // Met à jour la couleur
-        try{
-            if(lastBGR.equals(tfBGR.getText()) == false){
+    private void tfBGRCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_tfBGRCaretUpdate
+        if(lastBGR.equals(tfBGR.getText()) == false){
+            try{
                 String s = tfBGR.getText();
                 if(s.contains("&HF")) s = s.replace("&HF", "");
                 if(s.contains("&")) s = s.replace("&", "");
+                if(s.toUpperCase().matches("[A-F0-9]+") == false) return;
                 if(s.length() == 8){
                     alpha = Integer.parseInt(s.substring(0, 2), 16);
                     s = s.substring(2);
@@ -529,9 +784,19 @@ public class ColorDialog extends java.awt.Dialog {
                 int g = Integer.parseInt(s.substring(2, 4), 16);
                 int b = Integer.parseInt(s.substring(0, 2), 16);
                 updateColor(new Color(r, g, b), alpha);
-            }else if(lastRGB.equals(tfHTML.getText()) == false){
+            }catch(Exception exc){
+                
+            }            
+        }
+    }//GEN-LAST:event_tfBGRCaretUpdate
+
+    @SuppressWarnings("UseSpecificCatch")
+    private void tfHTMLCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_tfHTMLCaretUpdate
+        if(lastRGB.equals(tfHTML.getText()) == false){
+            try{
                 String s = tfHTML.getText();
                 if(s.contains("#")) s = s.replace("#", "");
+                if(s.toUpperCase().matches("[A-F0-9]+") == false) return;
                 if(s.length() == 8){
                     alpha = Integer.parseInt(s.substring(0, 2), 16);
                     s = s.substring(2);
@@ -540,292 +805,25 @@ public class ColorDialog extends java.awt.Dialog {
                 int g = Integer.parseInt(s.substring(2, 4), 16);
                 int b = Integer.parseInt(s.substring(4), 16);
                 updateColor(new Color(r, g, b), alpha);
-            }else if(lastSpinR != (int)spinR.getValue()){
-                Color c = new Color(
-                        (int)spinR.getValue(),
-                        (int)spinG.getValue(),
-                        (int)spinB.getValue()
-                );
-                updateColor(c, alpha);
-            }else if(lastSlidR != sliderR.getValue()){
-                Color c = new Color(
-                        sliderR.getValue(),
-                        sliderG.getValue(),
-                        sliderB.getValue()
-                );
-                updateColor(c, alpha);
-            }else if(lastSpinG != (int)spinG.getValue()){
-                Color c = new Color(
-                        (int)spinR.getValue(),
-                        (int)spinG.getValue(),
-                        (int)spinB.getValue()
-                );
-                updateColor(c, alpha);
-            }else if(lastSlidG != sliderG.getValue()){
-                Color c = new Color(
-                        sliderR.getValue(),
-                        sliderG.getValue(),
-                        sliderB.getValue()
-                );
-                updateColor(c, alpha);
-            }else if(lastSpinB != (int)spinB.getValue()){
-                Color c = new Color(
-                        (int)spinR.getValue(),
-                        (int)spinG.getValue(),
-                        (int)spinB.getValue()
-                );
-                updateColor(c, alpha);
-            }else if(lastSlidB != sliderB.getValue()){
-                Color c = new Color(
-                        sliderR.getValue(),
-                        sliderG.getValue(),
-                        sliderB.getValue()
-                );
-                updateColor(c, alpha);
-            }else if(lastSpinA != (int)spinAlpha.getValue()){
-                updateColor(color, (int)spinAlpha.getValue());
-            }else if(lastSlidA != sliderAlpha.getValue()){
-                updateColor(color, sliderAlpha.getValue());
-            }else if(lastSpinH != (int)spinHue.getValue()){
-                Color c = Color.getHSBColor(
-                        (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
-                        (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
-                        (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
-                );
-                updateColor(c, alpha);
-            }else if(lastSlidH != sliderHue.getValue()){
-                Color c = Color.getHSBColor(
-                        (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
-                        (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
-                        (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
-                );
-                updateColor(c, alpha);
-            }else if(lastSpinS != (int)spinSat.getValue()){
-                Color c = Color.getHSBColor(
-                        (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
-                        (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
-                        (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
-                );
-                updateColor(c, alpha);
-            }else if(lastSlidS != sliderSat.getValue()){
-                Color c = Color.getHSBColor(
-                        (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
-                        (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
-                        (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
-                );
-                updateColor(c, alpha);
-            }else if(lastSpinL != (int)spinBri.getValue()){
-                Color c = Color.getHSBColor(
-                        (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
-                        (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
-                        (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
-                );
-                updateColor(c, alpha);
-            }else if(lastSlidL != sliderBri.getValue()){
-                Color c = Color.getHSBColor(
-                        (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
-                        (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
-                        (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
-                );
-                updateColor(c, alpha);
-            }
-        }catch(Exception exc){
-            // Parce que l'utilisateur a fait n'importe quoi avec les champs
+            }catch(Exception exc){
+                
+            }            
         }
-    }//GEN-LAST:event_btnUpdateActionPerformed
-
-    private void sliderAlphaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderAlphaStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderAlpha){
-            spinAlpha.setValue(sliderAlpha.getValue());
-            alpha = sliderAlpha.getValue();
-            previewPanel.setAlpha(sliderAlpha.getValue());
-        }
-    }//GEN-LAST:event_sliderAlphaStateChanged
-
-    private void spinAlphaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAlphaStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinAlpha){
-            sliderAlpha.setValue((int)spinAlpha.getValue());
-            alpha = (int)spinAlpha.getValue();
-            previewPanel.setAlpha((int)spinAlpha.getValue());
-        }
-    }//GEN-LAST:event_spinAlphaStateChanged
-
-    private void sliderRStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderRStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderR){
-            spinR.setValue(sliderR.getValue());
-            Color c = new Color(
-                    sliderR.getValue(),
-                    sliderG.getValue(),
-                    sliderB.getValue()
-            );
-            previewPanel.setColor(c);
-            updateColor(c, alpha);
-        }        
-    }//GEN-LAST:event_sliderRStateChanged
-
-    private void spinRStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinRStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinR){
-            sliderR.setValue((int)spinR.getValue());
-            Color c = new Color(
-                    (int)spinR.getValue(),
-                    (int)spinG.getValue(),
-                    (int)spinB.getValue()
-            );
-            previewPanel.setColor(c);
-            updateColor(c, alpha);
-        }        
-    }//GEN-LAST:event_spinRStateChanged
-
-    private void sliderGStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderGStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderG){
-            spinG.setValue(sliderG.getValue());
-            Color c = new Color(
-                    sliderR.getValue(),
-                    sliderG.getValue(),
-                    sliderB.getValue()
-            );
-            previewPanel.setColor(c);           
-        }
-    }//GEN-LAST:event_sliderGStateChanged
-
-    private void spinGStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinGStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinG){
-            sliderG.setValue((int)spinG.getValue());
-            Color c = new Color(
-                    (int)spinR.getValue(),
-                    (int)spinG.getValue(),
-                    (int)spinB.getValue()
-            );
-            previewPanel.setColor(c);
-        }        
-    }//GEN-LAST:event_spinGStateChanged
-
-    private void sliderBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderBStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderB){
-            spinB.setValue(sliderB.getValue());
-            Color c = new Color(
-                    sliderR.getValue(),
-                    sliderG.getValue(),
-                    sliderB.getValue()
-            );
-            previewPanel.setColor(c);
-        }        
-    }//GEN-LAST:event_sliderBStateChanged
-
-    private void spinBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinBStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinB){
-            sliderB.setValue((int)spinB.getValue());
-            Color c = new Color(
-                    (int)spinR.getValue(),
-                    (int)spinG.getValue(),
-                    (int)spinB.getValue()
-            );
-            previewPanel.setColor(c);
-        }        
-    }//GEN-LAST:event_spinBStateChanged
-
-    private void sliderHueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderHueStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderHue){
-            spinHue.setValue(sliderHue.getValue());
-            Color c = Color.getHSBColor(
-                    (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
-                    (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
-                    (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
-            );
-            previewPanel.setColor(c);
-        }        
-    }//GEN-LAST:event_sliderHueStateChanged
-
-    private void spinHueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinHueStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinHue){
-            sliderHue.setValue((int)spinHue.getValue());
-            Color c = Color.getHSBColor(
-                    (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
-                    (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
-                    (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
-            );
-            previewPanel.setColor(c);
-        }        
-    }//GEN-LAST:event_spinHueStateChanged
-
-    private void sliderSatStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderSatStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderSat){
-            spinSat.setValue(sliderSat.getValue());
-            Color c = Color.getHSBColor(
-                    (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
-                    (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
-                    (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
-            );
-            previewPanel.setColor(c);
-        }        
-    }//GEN-LAST:event_sliderSatStateChanged
-
-    private void spinSatStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinSatStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinSat){
-            sliderSat.setValue((int)spinSat.getValue());
-            Color c = Color.getHSBColor(
-                    (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
-                    (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
-                    (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
-            );
-            previewPanel.setColor(c);
-        }            
-    }//GEN-LAST:event_spinSatStateChanged
-
-    private void sliderBriStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderBriStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == sliderBri){
-            spinBri.setValue(sliderBri.getValue());
-            Color c = Color.getHSBColor(
-                    (float)sliderHue.getValue() / 360f, // Hue (0 to 1 float) (0->360)
-                    (float)sliderSat.getValue() / 100f, // Saturation (0 to 1 float) (0->100)
-                    (float)sliderBri.getValue() / 100f  // Brightness (0 to 1 float) (0->100)
-            );
-            previewPanel.setColor(c);
-        }
-    }//GEN-LAST:event_sliderBriStateChanged
-
-    private void spinBriStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinBriStateChanged
-        // Pour voir ce qu'on fait
-        if(evt.getSource() == spinBri){
-            sliderBri.setValue((int)spinBri.getValue());
-            Color c = Color.getHSBColor(
-                    (float)((int)spinHue.getValue()) / 360f, // Hue (0 to 1 float) (0->360)
-                    (float)((int)spinSat.getValue()) / 100f, // Saturation (0 to 1 float) (0->100)
-                    (float)((int)spinBri.getValue()) / 100f  // Brightness (0 to 1 float) (0->100)
-            );
-            previewPanel.setColor(c);
-            
-            
-        }        
-    }//GEN-LAST:event_spinBriStateChanged
+    }//GEN-LAST:event_tfHTMLCaretUpdate
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                ColorDialog dialog = new ColorDialog(new java.awt.Frame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            ColorDialog dialog = new ColorDialog(new java.awt.Frame(), true);
+            dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    System.exit(0);
+                }
+            });
+            dialog.setVisible(true);
         });
     }
 
@@ -833,7 +831,6 @@ public class ColorDialog extends java.awt.Dialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnOK;
-    private javax.swing.JButton btnUpdate;
     private javax.swing.JComboBox<String> cbKnownColor;
     private javax.swing.JPanel embedPanel;
     private javax.swing.JLabel lblAlpha;

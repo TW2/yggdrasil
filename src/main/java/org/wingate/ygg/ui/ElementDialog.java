@@ -16,7 +16,11 @@
  */
 package org.wingate.ygg.ui;
 
+import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.DefaultListModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.ui.table.AssTableElement;
 
@@ -49,6 +53,17 @@ public class ElementDialog extends java.awt.Dialog {
                 btnOK.setEnabled(false);
             }
         }).start();
+        
+        initUI();
+    }
+    
+    private void initUI(){
+        try {
+            UIManager.setLookAndFeel( new FlatLightLaf() );
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch( UnsupportedLookAndFeelException ex ) {
+            System.err.println( "Failed to initialize LaF" );
+        }
     }
     
     public void showDialog(){

@@ -16,9 +16,13 @@
  */
 package org.wingate.ygg.ui;
 
+import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.GraphicsEnvironment;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.wingate.ygg.ass.AssEncoding;
 import org.wingate.ygg.helper.DialogResult;
 
@@ -62,6 +66,17 @@ public class StyleEditDialog extends java.awt.Dialog {
             modelEncoding.addElement(enc);
         }
         modelEncoding.setSelectedItem(AssEncoding.Default);
+        
+        initUI();
+    }
+    
+    private void initUI(){
+        try {
+            UIManager.setLookAndFeel( new FlatLightLaf() );
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch( UnsupportedLookAndFeelException ex ) {
+            System.err.println( "Failed to initialize LaF" );
+        }
     }
     
     public void showDialog(){
@@ -634,16 +649,15 @@ public class StyleEditDialog extends java.awt.Dialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                StyleEditDialog dialog = new StyleEditDialog(new java.awt.Frame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            StyleEditDialog dialog = new StyleEditDialog(new java.awt.Frame(), true);
+            dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    System.exit(0);
+                }
+            });
+            dialog.setVisible(true);
         });
     }
 
