@@ -1,2 +1,2 @@
 # yggdrasil
-Fansubs and works
+Fansubs and works (no stable versions)
