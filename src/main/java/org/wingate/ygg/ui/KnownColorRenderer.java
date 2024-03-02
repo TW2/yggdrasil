@@ -43,8 +43,8 @@ public class KnownColorRenderer extends JPanel implements ListCellRenderer {
         lblName.setOpaque(true);
         
         lblColor.setBackground(Color.white);
-        lblName.setBackground(Color.black);
-        lblName.setForeground(Color.white);
+        lblName.setBackground(Color.white);
+        lblName.setForeground(Color.black);
         
         setLayout(new BorderLayout());
         add(lblColor, BorderLayout.WEST);
