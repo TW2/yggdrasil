@@ -17,22 +17,30 @@
 package org.wingate.ygg.ui;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+import java.awt.image.BufferedImage;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.LineBorder;
 import org.wingate.ygg.ass.AssEncoding;
+import org.wingate.ygg.ass.AssStyle;
+import org.wingate.ygg.ass.SubtitlesRender;
 import org.wingate.ygg.helper.DialogResult;
 
 /**
  *
  * @author util2
  */
-public class StyleEditDialog extends java.awt.Dialog {
+public class StyleEditDialog extends java.awt.Dialog implements Runnable {
     
-    private  ColorDialog colorDialog;
+    private final PreviewPanel previewPanel;
+    private ColorDialog colorDialog;
     
     private DialogResult dialogResult = DialogResult.Unknown;
     private final java.awt.Frame parent;
@@ -50,6 +58,9 @@ public class StyleEditDialog extends java.awt.Dialog {
         initComponents();
         
         this.parent = parent;
+        
+        previewPanel = new PreviewPanel();
+        embedPanel.add(previewPanel, BorderLayout.CENTER);
         
         modelFontNames = new DefaultListModel();
         listFontNames.setModel(modelFontNames);
@@ -82,12 +93,67 @@ public class StyleEditDialog extends java.awt.Dialog {
     public void showDialog(){
         setLocationRelativeTo(parent);
         setVisible(true);
+        
+        startThread();
     }
 
     public DialogResult getDialogResult() {
         return dialogResult;
     }
 
+    public AssStyle updateStyle(){
+        AssStyle style = AssStyle.getDefault();
+        
+        style.setFontname(listFontNames.getSelectedIndex() == -1 ?
+                "Arial" : listFontNames.getSelectedValue());
+        style.setFontsize((int)spinFontSize.getValue());
+        int[] index = listFontStyles.getSelectedIndices();
+        for(int i=0; i<index.length; i++){
+            String x = listFontStyles.getModel().getElementAt(index[i]);
+            if(x.equalsIgnoreCase("bold")) style.setBold(true);
+            if(x.equalsIgnoreCase("italic")) style.setItalic(true);
+            if(x.equalsIgnoreCase("underline")) style.setUnderline(true);
+            if(x.equalsIgnoreCase("strikeout")) style.setStrikeout(true);
+        }
+        if(rb1.isSelected()) style.setAlignment(1);
+        if(rb2.isSelected()) style.setAlignment(2);
+        if(rb3.isSelected()) style.setAlignment(3);
+        if(rb4.isSelected()) style.setAlignment(4);
+        if(rb5.isSelected()) style.setAlignment(5);
+        if(rb6.isSelected()) style.setAlignment(6);
+        if(rb7.isSelected()) style.setAlignment(7);
+        if(rb8.isSelected()) style.setAlignment(8);
+        if(rb9.isSelected()) style.setAlignment(9);
+        style.setMarginL((int)spinL.getValue());
+        style.setMarginR((int)spinR.getValue());
+        style.setMarginV((int)spinV.getValue());
+        style.setOutline((int)spinBorder.getValue());
+        style.setShadow((int)spinShadow.getValue());
+        style.setBorderStyle(chkOpaqueBox.isSelected());
+        style.setScaleX((int)spinScaleX.getValue());
+        style.setScaleY((int)spinScaleY.getValue());
+        style.setAngle((int)spinAngleZ.getValue());
+        style.setSpacing((int)spinSpacing.getValue());
+        Color c1 = lblColorText.getBackground();
+        int a1 = 255 - (int)spinAlphaText.getValue();
+        style.setTextColor(new Color(c1.getRed(), c1.getGreen(), c1.getBlue(), a1));
+        Color c2 = lblColorKaraoke.getBackground();
+        int a2 = 255 - (int)spinAlphaKaraoke.getValue();
+        style.setTextColor(new Color(c2.getRed(), c2.getGreen(), c2.getBlue(), a2));
+        Color c3 = lblColorOutline.getBackground();
+        int a3 = 255 - (int)spinAlphaOutline.getValue();
+        style.setTextColor(new Color(c3.getRed(), c3.getGreen(), c3.getBlue(), a3));
+        Color c4 = lblColorShadow.getBackground();
+        int a4 = 255 - (int)spinAlphaShadow.getValue();
+        style.setTextColor(new Color(c4.getRed(), c4.getGreen(), c4.getBlue(), a4));
+        
+        return style;
+    }
+    
+    private void updatePreview(){
+        previewPanel.updatePreview(tfSample.getText(), updateStyle());
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -144,7 +210,7 @@ public class StyleEditDialog extends java.awt.Dialog {
         btnCancel = new javax.swing.JButton();
         btnCollections = new javax.swing.JButton();
         btnImportStyles = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        embedPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         lblColor1 = new javax.swing.JLabel();
         lblColor2 = new javax.swing.JLabel();
@@ -201,6 +267,11 @@ public class StyleEditDialog extends java.awt.Dialog {
         lblFontStyle.setText("Font style : ");
 
         spinFontSize.setModel(new javax.swing.SpinnerNumberModel(54, 2, 1000, 1));
+        spinFontSize.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinFontSizeStateChanged(evt);
+            }
+        });
 
         lblFontSize.setText("Font size : ");
 
@@ -211,40 +282,100 @@ public class StyleEditDialog extends java.awt.Dialog {
         lblBorder.setText("Border : ");
 
         spinBorder.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        spinBorder.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinBorderStateChanged(evt);
+            }
+        });
 
         lblShadow.setText("Shadow : ");
 
         spinShadow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        spinShadow.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinShadowStateChanged(evt);
+            }
+        });
 
         chkOpaqueBox.setText("Opaque box");
+        chkOpaqueBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkOpaqueBoxActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb7);
         rb7.setText("7");
+        rb7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb7ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb4);
         rb4.setText("4");
+        rb4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb4ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb1);
         rb1.setText("1");
+        rb1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb1ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb8);
         rb8.setText("8");
+        rb8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb8ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb5);
         rb5.setText("5");
+        rb5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb5ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb2);
         rb2.setSelected(true);
         rb2.setText("2");
+        rb2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb2ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb3);
         rb3.setText("3");
+        rb3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb3ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb9);
         rb9.setText("9");
+        rb9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb9ActionPerformed(evt);
+            }
+        });
 
         bgAlignment.add(rb6);
         rb6.setText("6");
+        rb6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb6ActionPerformed(evt);
+            }
+        });
 
         lblAlign.setText("Alignment : ");
 
@@ -258,18 +389,43 @@ public class StyleEditDialog extends java.awt.Dialog {
         lblMarginV.setToolTipText("Margin V");
 
         spinL.setModel(new javax.swing.SpinnerNumberModel(0, 0, 9000, 1));
+        spinL.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinLStateChanged(evt);
+            }
+        });
 
         spinR.setModel(new javax.swing.SpinnerNumberModel(0, 0, 9000, 1));
+        spinR.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinRStateChanged(evt);
+            }
+        });
 
         spinV.setModel(new javax.swing.SpinnerNumberModel(0, 0, 9000, 1));
+        spinV.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinVStateChanged(evt);
+            }
+        });
 
         lblScaleX.setText("Scale X (%) : ");
 
         lblScaleY.setText("Scale Y (%) : ");
 
         spinScaleX.setModel(new javax.swing.SpinnerNumberModel(100, 0, 10000, 1));
+        spinScaleX.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinScaleXStateChanged(evt);
+            }
+        });
 
         spinScaleY.setModel(new javax.swing.SpinnerNumberModel(100, 0, 10000, 1));
+        spinScaleY.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinScaleYStateChanged(evt);
+            }
+        });
 
         lblAngleZ.setText("Angle Z (°) : ");
 
@@ -278,14 +434,29 @@ public class StyleEditDialog extends java.awt.Dialog {
         lblEncoding.setText("Encoding : ");
 
         spinAngleZ.setModel(new javax.swing.SpinnerNumberModel(0, -10000, 10000, 1));
+        spinAngleZ.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinAngleZStateChanged(evt);
+            }
+        });
 
         spinSpacing.setModel(new javax.swing.SpinnerNumberModel(0, -10000, 10000, 1));
+        spinSpacing.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinSpacingStateChanged(evt);
+            }
+        });
 
         cbEncoding.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         lblSample.setText("Sample : ");
 
         tfSample.setText("yggdrasil is an unknown new comer at the corner of the square 1234567890");
+        tfSample.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tfSampleActionPerformed(evt);
+            }
+        });
 
         btnOK.setText("OK");
         btnOK.addActionListener(new java.awt.event.ActionListener() {
@@ -305,7 +476,7 @@ public class StyleEditDialog extends java.awt.Dialog {
 
         btnImportStyles.setText("Import styles...");
 
-        jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 204), 1, true));
+        embedPanel.setLayout(new java.awt.BorderLayout());
 
         jPanel2.setOpaque(false);
         jPanel2.setLayout(new java.awt.GridLayout(3, 4));
@@ -367,15 +538,35 @@ public class StyleEditDialog extends java.awt.Dialog {
         jPanel2.add(lblColorShadow);
 
         spinAlphaText.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
+        spinAlphaText.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinAlphaTextStateChanged(evt);
+            }
+        });
         jPanel2.add(spinAlphaText);
 
         spinAlphaKaraoke.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
+        spinAlphaKaraoke.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinAlphaKaraokeStateChanged(evt);
+            }
+        });
         jPanel2.add(spinAlphaKaraoke);
 
         spinAlphaOutline.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
+        spinAlphaOutline.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinAlphaOutlineStateChanged(evt);
+            }
+        });
         jPanel2.add(spinAlphaOutline);
 
         spinAlphaShadow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
+        spinAlphaShadow.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinAlphaShadowStateChanged(evt);
+            }
+        });
         jPanel2.add(spinAlphaShadow);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -386,7 +577,7 @@ public class StyleEditDialog extends java.awt.Dialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(embedPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btnImportStyles)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -556,7 +747,7 @@ public class StyleEditDialog extends java.awt.Dialog {
                     .addComponent(tfSample, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblSample))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
+                .addComponent(embedPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnOK)
@@ -574,6 +765,7 @@ public class StyleEditDialog extends java.awt.Dialog {
      */
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
         setVisible(false);
+        stopThread();
         dispose();
     }//GEN-LAST:event_closeDialog
 
@@ -581,6 +773,7 @@ public class StyleEditDialog extends java.awt.Dialog {
         // OK
         dialogResult = DialogResult.Ok;
         setVisible(false);
+        stopThread();
         dispose();
     }//GEN-LAST:event_btnOKActionPerformed
 
@@ -588,17 +781,16 @@ public class StyleEditDialog extends java.awt.Dialog {
         // Annuler
         dialogResult = DialogResult.Cancel;
         setVisible(false);
+        stopThread();
         dispose();
     }//GEN-LAST:event_btnCancelActionPerformed
 
     private void listFontNamesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listFontNamesValueChanged
-        // Quand on clique sur un nom de la liste de famille
-        String selectedName = listFontNames.getSelectedValue();
-        
+        needUpdate = true;
     }//GEN-LAST:event_listFontNamesValueChanged
 
     private void listFontStylesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listFontStylesValueChanged
-        // TODO add your handling code here:
+        needUpdate = true;
     }//GEN-LAST:event_listFontStylesValueChanged
 
     private void lblColorTextMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorTextMouseClicked
@@ -610,6 +802,8 @@ public class StyleEditDialog extends java.awt.Dialog {
             lblColorText.setBackground(colorDialog.getColor());
             spinAlphaText.setValue(colorDialog.getAlpha());
         }
+        
+        needUpdate = true;
     }//GEN-LAST:event_lblColorTextMouseClicked
 
     private void lblColorKaraokeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorKaraokeMouseClicked
@@ -621,6 +815,8 @@ public class StyleEditDialog extends java.awt.Dialog {
             lblColorKaraoke.setBackground(colorDialog.getColor());
             spinAlphaKaraoke.setValue(colorDialog.getAlpha());
         }
+        
+        needUpdate = true;
     }//GEN-LAST:event_lblColorKaraokeMouseClicked
 
     private void lblColorOutlineMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorOutlineMouseClicked
@@ -632,6 +828,8 @@ public class StyleEditDialog extends java.awt.Dialog {
             lblColorOutline.setBackground(colorDialog.getColor());
             spinAlphaOutline.setValue(colorDialog.getAlpha());
         }
+        
+        needUpdate = true;
     }//GEN-LAST:event_lblColorOutlineMouseClicked
 
     private void lblColorShadowMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorShadowMouseClicked
@@ -643,7 +841,109 @@ public class StyleEditDialog extends java.awt.Dialog {
             lblColorShadow.setBackground(colorDialog.getColor());
             spinAlphaShadow.setValue(colorDialog.getAlpha());
         }
+        
+        needUpdate = true;
     }//GEN-LAST:event_lblColorShadowMouseClicked
+
+    private void spinFontSizeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinFontSizeStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinFontSizeStateChanged
+
+    private void rb1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb1ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb1ActionPerformed
+
+    private void rb2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb2ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb2ActionPerformed
+
+    private void rb3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb3ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb3ActionPerformed
+
+    private void rb4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb4ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb4ActionPerformed
+
+    private void rb5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb5ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb5ActionPerformed
+
+    private void rb6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb6ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb6ActionPerformed
+
+    private void rb7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb7ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb7ActionPerformed
+
+    private void rb8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb8ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb8ActionPerformed
+
+    private void rb9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb9ActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_rb9ActionPerformed
+
+    private void spinLStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinLStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinLStateChanged
+
+    private void spinRStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinRStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinRStateChanged
+
+    private void spinVStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinVStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinVStateChanged
+
+    private void spinBorderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinBorderStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinBorderStateChanged
+
+    private void spinShadowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinShadowStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinShadowStateChanged
+
+    private void chkOpaqueBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkOpaqueBoxActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_chkOpaqueBoxActionPerformed
+
+    private void spinScaleXStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinScaleXStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinScaleXStateChanged
+
+    private void spinScaleYStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinScaleYStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinScaleYStateChanged
+
+    private void spinAngleZStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAngleZStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinAngleZStateChanged
+
+    private void spinSpacingStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinSpacingStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinSpacingStateChanged
+
+    private void spinAlphaTextStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAlphaTextStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinAlphaTextStateChanged
+
+    private void spinAlphaKaraokeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAlphaKaraokeStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinAlphaKaraokeStateChanged
+
+    private void spinAlphaOutlineStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAlphaOutlineStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinAlphaOutlineStateChanged
+
+    private void spinAlphaShadowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinAlphaShadowStateChanged
+        needUpdate = true;
+    }//GEN-LAST:event_spinAlphaShadowStateChanged
+
+    private void tfSampleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfSampleActionPerformed
+        needUpdate = true;
+    }//GEN-LAST:event_tfSampleActionPerformed
 
     /**
      * @param args the command line arguments
@@ -660,7 +960,34 @@ public class StyleEditDialog extends java.awt.Dialog {
             dialog.setVisible(true);
         });
     }
-
+    
+    @Override
+    public void run(){
+        while(true){
+            if(needUpdate){
+                updatePreview();
+                needUpdate = false;
+            }
+        }
+    }
+    
+    private volatile boolean needUpdate = false;
+    private Thread thPreview = null;
+    
+    public void startThread(){
+        stopThread();
+        thPreview = new Thread(this);
+        thPreview.start();
+    }
+    
+    public void stopThread(){
+        needUpdate = false;
+        if(thPreview == null) return;
+        if(thPreview.isAlive() || thPreview.isInterrupted() == false){
+            thPreview.interrupt();
+            thPreview = null;
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup bgAlignment;
@@ -670,7 +997,7 @@ public class StyleEditDialog extends java.awt.Dialog {
     private javax.swing.JButton btnOK;
     private javax.swing.JComboBox<String> cbEncoding;
     private javax.swing.JCheckBox chkOpaqueBox;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel embedPanel;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -726,4 +1053,52 @@ public class StyleEditDialog extends java.awt.Dialog {
     private javax.swing.JTextField tfSample;
     private javax.swing.JTextField tfStyleName;
     // End of variables declaration//GEN-END:variables
+
+    public class PreviewPanel extends javax.swing.JPanel {
+
+        private static final int SQUARE_SIZE = 16;
+        private String text = "yggdrasil";
+        private AssStyle style = AssStyle.getDefault();
+
+        public PreviewPanel() {
+            setBorder(new LineBorder(Color.black, 1, true));
+        }
+        
+        public void updatePreview(String text, AssStyle style){
+            this.text = text;
+            this.style = style;
+            repaint();
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            
+            g.setColor(Color.white);
+            g.fillRect(0, 0, getWidth(), getHeight());
+            
+            g.setColor(Color.lightGray);
+            boolean isSquare;
+            int plus = SQUARE_SIZE;
+            
+            for(int y=0; y<getHeight(); y+=SQUARE_SIZE){
+                isSquare = true;
+                for(int x=plus; x<getWidth(); x+=SQUARE_SIZE){
+                    if(isSquare == true){
+                        g.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
+                        isSquare = false;
+                    }else{
+                        isSquare = true;
+                    }
+                }
+                plus = plus == SQUARE_SIZE ? 0 : SQUARE_SIZE;
+            }
+            
+            BufferedImage img = SubtitlesRender.get(text, style, getWidth(), getHeight());
+            
+            g.drawImage(img, 0, 0, null);
+        }
+        
+    }
+
 }

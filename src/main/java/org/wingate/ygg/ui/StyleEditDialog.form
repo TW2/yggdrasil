@@ -31,7 +31,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jPanel2" max="32767" attributes="0"/>
-                  <Component id="jPanel1" max="32767" attributes="0"/>
+                  <Component id="embedPanel" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="btnImportStyles" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -242,7 +242,7 @@
                   <Component id="lblSample" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jPanel1" pref="291" max="32767" attributes="0"/>
+              <Component id="embedPanel" pref="291" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnOK" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -337,6 +337,9 @@
           <SpinnerModel initial="54" maximum="1000" minimum="2" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinFontSizeStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblFontSize">
       <Properties>
@@ -364,6 +367,9 @@
           <SpinnerModel initial="0" maximum="1000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinBorderStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblShadow">
       <Properties>
@@ -376,11 +382,17 @@
           <SpinnerModel initial="0" maximum="1000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinShadowStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkOpaqueBox">
       <Properties>
         <Property name="text" type="java.lang.String" value="Opaque box"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkOpaqueBoxActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb7">
       <Properties>
@@ -389,6 +401,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="7"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb7ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb4">
       <Properties>
@@ -397,6 +412,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="4"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb4ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb1">
       <Properties>
@@ -405,6 +423,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="1"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb1ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb8">
       <Properties>
@@ -413,6 +434,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="8"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb8ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb5">
       <Properties>
@@ -421,6 +445,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="5"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb5ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb2">
       <Properties>
@@ -430,6 +457,9 @@
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="2"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb2ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb3">
       <Properties>
@@ -438,6 +468,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="3"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb3ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb9">
       <Properties>
@@ -446,6 +479,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="9"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb9ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="rb6">
       <Properties>
@@ -454,6 +490,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="6"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rb6ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblAlign">
       <Properties>
@@ -484,6 +523,9 @@
           <SpinnerModel initial="0" maximum="9000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinLStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JSpinner" name="spinR">
       <Properties>
@@ -491,6 +533,9 @@
           <SpinnerModel initial="0" maximum="9000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinRStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JSpinner" name="spinV">
       <Properties>
@@ -498,6 +543,9 @@
           <SpinnerModel initial="0" maximum="9000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinVStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblScaleX">
       <Properties>
@@ -515,6 +563,9 @@
           <SpinnerModel initial="100" maximum="10000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinScaleXStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JSpinner" name="spinScaleY">
       <Properties>
@@ -522,6 +573,9 @@
           <SpinnerModel initial="100" maximum="10000" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinScaleYStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblAngleZ">
       <Properties>
@@ -544,6 +598,9 @@
           <SpinnerModel initial="0" maximum="10000" minimum="-10000" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinAngleZStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JSpinner" name="spinSpacing">
       <Properties>
@@ -551,6 +608,9 @@
           <SpinnerModel initial="0" maximum="10000" minimum="-10000" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinSpacingStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JComboBox" name="cbEncoding">
       <Properties>
@@ -576,6 +636,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="yggdrasil is an unknown new comer at the corner of the square 1234567890"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tfSampleActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnOK">
       <Properties>
@@ -603,18 +666,9 @@
         <Property name="text" type="java.lang.String" value="Import styles..."/>
       </Properties>
     </Component>
-    <Container class="javax.swing.JPanel" name="jPanel1">
-      <Properties>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-            <LineBorder roundedCorners="true">
-              <Color PropertyName="color" blue="cc" green="0" red="0" type="rgb"/>
-            </LineBorder>
-          </Border>
-        </Property>
-      </Properties>
+    <Container class="javax.swing.JPanel" name="embedPanel">
 
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
     </Container>
     <Container class="javax.swing.JPanel" name="jPanel2">
       <Properties>
@@ -720,6 +774,9 @@
               <SpinnerModel initial="0" maximum="255" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinAlphaTextStateChanged"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JSpinner" name="spinAlphaKaraoke">
           <Properties>
@@ -727,6 +784,9 @@
               <SpinnerModel initial="0" maximum="255" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinAlphaKaraokeStateChanged"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JSpinner" name="spinAlphaOutline">
           <Properties>
@@ -734,6 +794,9 @@
               <SpinnerModel initial="0" maximum="255" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinAlphaOutlineStateChanged"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JSpinner" name="spinAlphaShadow">
           <Properties>
@@ -741,6 +804,9 @@
               <SpinnerModel initial="0" maximum="255" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinAlphaShadowStateChanged"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
