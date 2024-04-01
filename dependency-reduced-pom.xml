@@ -29,6 +29,12 @@
       </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>clojars.org</id>
+      <url>https://repo.clojars.org</url>
+    </repository>
+  </repositories>
   <properties>
     <maven.compiler.target>21</maven.compiler.target>
     <exec.mainClass>org.wingate.ygg.Ygg</exec.mainClass>

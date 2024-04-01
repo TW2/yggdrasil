@@ -38,11 +38,22 @@
             </plugin>
         </plugins>
     </build>
+    <repositories>
+        <repository>
+            <id>clojars.org</id>
+            <url>https://repo.clojars.org</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.clojars.suuft</groupId>
+            <artifactId>libretranslate-java</artifactId>
+            <version>1.0.5</version>
         </dependency>
     </dependencies>
 </project>

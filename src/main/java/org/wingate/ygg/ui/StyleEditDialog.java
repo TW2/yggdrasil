@@ -28,9 +28,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
+import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.AssEncoding;
+import org.wingate.ygg.ass.AssEvent;
 import org.wingate.ygg.ass.AssStyle;
-import org.wingate.ygg.ass.SubtitlesRender;
+import org.wingate.ygg.ass.AssTime;
+import org.wingate.ygg.bss.BssRenderer;
 import org.wingate.ygg.helper.DialogResult;
 
 /**
@@ -1094,7 +1097,18 @@ public class StyleEditDialog extends java.awt.Dialog implements Runnable {
                 plus = plus == SQUARE_SIZE ? 0 : SQUARE_SIZE;
             }
             
-            BufferedImage img = SubtitlesRender.get(text, style, getWidth(), getHeight());
+            ASS ass = ASS.NoFileToLoad();
+            AssStyle def = style;
+            def.setName("Default");
+            ass.getStyles().clear();
+            ass.getStyles().put("Default", def);
+            AssEvent event = new AssEvent();
+            event.setStartTime(AssTime.create(0L));
+            event.setEndTime(AssTime.create(1L));
+            event.setStyle(def);
+            event.setText(text);
+            ass.getEvents().add(event);
+            BufferedImage img = BssRenderer.getAssImage(ass, AssTime.create(0L), getWidth(), getHeight());
             
             g.drawImage(img, 0, 0, null);
         }

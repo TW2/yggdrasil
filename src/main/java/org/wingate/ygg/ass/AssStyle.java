@@ -18,8 +18,8 @@ package org.wingate.ygg.ass;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -893,68 +893,62 @@ public class AssStyle {
         return style;
     }
     
-    public List<String> getTagsFromStyle(){
-        List<String> tags = new ArrayList<>();
+    /**
+     * Rassemble tous les tags ASS (et BSS qui ne sont pas ASS)
+     * @return map that contains tags
+     */
+    public Map<String, Object> getTagsFromStyle(){
+        Map<String, Object> tags = new HashMap<>();
         
         // Fontname
-        tags.add("\\fn" + getFontname());
+        tags.put("\\fn", getFontname());
         // Fontsize
-        tags.add("\\fs" + getFontsize());
+        tags.put("\\fs", getFontsize());
         // TextColor
-        tags.add("\\1c&H" + getTextColorHex(false) + "&");
-        tags.add("\\1a&H" + getTextAlphaHex() + "&");
+        tags.put("\\1c", getTextColor());
+        tags.put("\\1a", Integer.valueOf(getTextAlphaHex(), 16));
         // KaraColor
-        tags.add("\\2c&H" + getKaraokeColorHex(false) + "&");
-        tags.add("\\2a&H" + getKaraokeAlphaHex() + "&");
+        tags.put("\\2c", getKaraokeColor());
+        tags.put("\\2a", Integer.valueOf(getKaraokeAlphaHex(), 16));
         // OutlineColor
-        tags.add("\\3c&H" + getBordColorHex(false) + "&");
-        tags.add("\\3a&H" + getBordAlphaHex() + "&");
+        tags.put("\\3c", getBordColor());
+        tags.put("\\3a", Integer.valueOf(getBordAlphaHex(), 16));
         // ShadowColor
-        tags.add("\\4c&H" + getShadColorHex(false) + "&");
-        tags.add("\\4a&H" + getShadAlphaHex() + "&");
+        tags.put("\\4c", getShadColor());
+        tags.put("\\4a", Integer.valueOf(getShadAlphaHex(), 16));
         // Bold
-        tags.add("\\b" + (isBold() ? "1" : "0"));
+        tags.put("\\b", isBold());
         // Italic
-        tags.add("\\i" + (isItalic() ? "1" : "0"));
+        tags.put("\\i", isItalic());
         // Underline
-        tags.add("\\u" + (isUnderline() ? "1" : "0"));
+        tags.put("\\u", isUnderline());
         // Strikeout
-        tags.add("\\s" + (isStrikeout() ? "1" : "0"));
+        tags.put("\\s", isStrikeout());
         // Scale X
-        tags.add("\\fscx" + getScaleX());
+        tags.put("\\fscx", getScaleX());
         // Scale Y
-        tags.add("\\fcsy" + getScaleY());
+        tags.put("\\fcsy", getScaleY());
         // Spacing
-        tags.add("\\fsp" + getSpacing());
+        tags.put("\\fsp", getSpacing());
         // Angle (Z axis)
-        tags.add("\\frz" + getAngle());
+        tags.put("\\frz", getAngle());
         // BorderStyle (non-ASS, custom to work with methods)
-        tags.add("\\bs" + getBorderStyle());
+        tags.put("\\bs", getBorderStyle());
         // Outline
-        tags.add("\\bord" + getOutline());
+        tags.put("\\bord", getOutline());
         // Shadow
-        tags.add("\\shad" + getShadow());
+        tags.put("\\shad", getShadow());
         // Alignment
-        tags.add("\\an" + getAlignment());
+        tags.put("\\an", getAlignment());
         // MarginL (non-ASS, custom to work with methods)
-        tags.add("\\ml" + getMarginL());
+        tags.put("\\ml", getMarginL());
         // MarginR (non-ASS, custom to work with methods)
-        tags.add("\\mr" + getMarginR());
+        tags.put("\\mr", getMarginR());
         // MarginV (non-ASS, custom to work with methods)
-        tags.add("\\mv" + getMarginV());
+        tags.put("\\mv", getMarginV());
         // Encoding (maybe the most suck thing in 2022)
-        tags.add("\\fe" + getEncoding());
+        tags.put("\\fe", getEncoding());
             
-        return tags;
-    }
-    
-    public String getTagsFromStyleToString(){
-        String tags = "";
-        
-        for(String s : getTagsFromStyle()){
-            tags += s;
-        }
-        
         return tags;
     }
 }
