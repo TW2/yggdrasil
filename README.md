@@ -16,7 +16,7 @@ Fansubs and works (no stable versions)
 - [ ] Include audio timing
 - [ ] Include ASS karaoke engine
 ### Customization
-- [ ] Themes system
+- [x] Theme system
 - [ ] Scripting
 - [ ] Plugins
 - [ ] Translations of the software
