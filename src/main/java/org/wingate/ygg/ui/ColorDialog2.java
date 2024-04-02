@@ -118,7 +118,7 @@ public class ColorDialog2 extends javax.swing.JDialog {
         String g = Integer.toHexString(c.getGreen()); if(g.length() == 1) g = "0" + g;
         String b = Integer.toHexString(c.getBlue()); if(b.length() == 1) b = "0" + b;
         
-        return String.format("%s%s%s", b, g, r);
+        return String.format("%s%s%s", b, g, r).toUpperCase();
     }
     
     private String toHTML(Color c){
@@ -126,7 +126,7 @@ public class ColorDialog2 extends javax.swing.JDialog {
         String g = Integer.toHexString(c.getGreen()); if(g.length() == 1) g = "0" + g;
         String b = Integer.toHexString(c.getBlue()); if(b.length() == 1) b = "0" + b;
         
-        return String.format("%s%s%s", r, g, b);
+        return String.format("%s%s%s", r, g, b).toUpperCase();
     }
     
     private void updateKnownColor(){
@@ -407,6 +407,11 @@ public class ColorDialog2 extends javax.swing.JDialog {
 
         tfBGR.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfBGR.setText("000000");
+        tfBGR.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                tfBGRCaretUpdate(evt);
+            }
+        });
         tfBGR.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tfBGRActionPerformed(evt);
@@ -420,6 +425,11 @@ public class ColorDialog2 extends javax.swing.JDialog {
 
         tfHTML.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         tfHTML.setText("000000");
+        tfHTML.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                tfHTMLCaretUpdate(evt);
+            }
+        });
         tfHTML.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tfHTMLActionPerformed(evt);
@@ -846,6 +856,24 @@ public class ColorDialog2 extends javax.swing.JDialog {
             selectedComponent = null;
         }        
     }//GEN-LAST:event_spinnerBrightnessStateChanged
+
+    private void tfBGRCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_tfBGRCaretUpdate
+        // BGR color changes
+        if(selectedComponent == null){
+            selectedComponent = tfBGR;
+            updateBGRColor();
+            selectedComponent = null;
+        }
+    }//GEN-LAST:event_tfBGRCaretUpdate
+
+    private void tfHTMLCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_tfHTMLCaretUpdate
+        // HTML color changes
+        if(selectedComponent == null){
+            selectedComponent = tfHTML;
+            updateHTMLColor();
+            selectedComponent = null;
+        }
+    }//GEN-LAST:event_tfHTMLCaretUpdate
 
     /**
      * @param args the command line arguments

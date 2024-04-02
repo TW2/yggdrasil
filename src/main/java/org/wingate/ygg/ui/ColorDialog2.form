@@ -151,6 +151,7 @@
                 <Property name="text" type="java.lang.String" value="000000"/>
               </Properties>
               <Events>
+                <EventHandler event="caretUpdate" listener="javax.swing.event.CaretListener" parameters="javax.swing.event.CaretEvent" handler="tfBGRCaretUpdate"/>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tfBGRActionPerformed"/>
               </Events>
             </Component>
@@ -166,6 +167,7 @@
                 <Property name="text" type="java.lang.String" value="000000"/>
               </Properties>
               <Events>
+                <EventHandler event="caretUpdate" listener="javax.swing.event.CaretListener" parameters="javax.swing.event.CaretEvent" handler="tfHTMLCaretUpdate"/>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tfHTMLActionPerformed"/>
               </Events>
             </Component>

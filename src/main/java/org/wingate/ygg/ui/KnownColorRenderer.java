@@ -23,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import org.wingate.ygg.helper.DrawColor;
 
@@ -43,8 +44,6 @@ public class KnownColorRenderer extends JPanel implements ListCellRenderer {
         lblName.setOpaque(true);
         
         lblColor.setBackground(Color.white);
-        lblName.setBackground(Color.white);
-        lblName.setForeground(Color.black);
         
         setLayout(new BorderLayout());
         add(lblColor, BorderLayout.WEST);
@@ -57,10 +56,32 @@ public class KnownColorRenderer extends JPanel implements ListCellRenderer {
     @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         
+        Color bg = UIManager.getColor("List.background");
+        Color fg = UIManager.getColor("List.foreground");
+        
+        setBackground(bg);
+        setForeground(fg);
+        lblName.setBackground(bg);
+        lblName.setForeground(fg);
+        
         if(value instanceof DrawColor x){
             String compo = String.format("(R:%d,G:%d,B:%d)", x.getRed(), x.getGreen(), x.getBlue());
             lblName.setText("  " + x.getName() + " (" + x.getHTML() + ") " + compo);
             lblColor.setBackground(x.getColor());
+        }
+        
+        if(isSelected){
+            if(list.hasFocus()){
+                bg = UIManager.getColor("List.selectionBackground");
+                fg = UIManager.getColor("List.selectionForeground");
+            }else{
+                bg = UIManager.getColor("List.selectionInactiveBackground");
+                fg = UIManager.getColor("List.selectionInactiveForeground");
+            }
+            setBackground(bg);
+            setForeground(fg);
+            lblName.setBackground(bg);
+            lblName.setForeground(fg);
         }
         
         return this;
