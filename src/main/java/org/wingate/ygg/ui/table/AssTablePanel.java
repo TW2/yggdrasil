@@ -33,7 +33,7 @@ import org.wingate.ygg.helper.AssFileFilter;
 import org.wingate.ygg.helper.AssLanguageAccessory;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.theme.Theme;
-import org.wingate.ygg.ui.StyleEditDialog2;
+import org.wingate.ygg.ui.StyleEditDialog;
 
 /**
  *
@@ -56,7 +56,7 @@ public class AssTablePanel extends javax.swing.JPanel {
     private final AssLanguageAccessory assLanguageOpen;
     private boolean editOneSimpleClick = false;
     
-    private StyleEditDialog2 styleEditDialog;
+    private StyleEditDialog styleEditDialog;
     
     /**
      * Creates new form AssTablePanel
@@ -445,7 +445,7 @@ public class AssTablePanel extends javax.swing.JPanel {
 
     private void btnStylesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStylesActionPerformed
         // Ouvre la boîte d'édition de style
-        styleEditDialog = new StyleEditDialog2(new javax.swing.JFrame(), true);
+        styleEditDialog = new StyleEditDialog(new javax.swing.JFrame(), true);
         styleEditDialog.showDialog();
         if(styleEditDialog.getDialogResult() == DialogResult.Ok){
             // TODO

@@ -29,7 +29,7 @@ import org.wingate.ygg.helper.DrawColor;
  *
  * @author util2
  */
-public class ColorDialog2 extends javax.swing.JDialog {
+public class ColorDialog extends javax.swing.JDialog {
     
     private final PreviewPanel previewPanel;
     
@@ -45,7 +45,7 @@ public class ColorDialog2 extends javax.swing.JDialog {
      * @param parent
      * @param modal
      */
-    public ColorDialog2(java.awt.Frame parent, boolean modal) {
+    public ColorDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
         this.parent = parent;
@@ -892,13 +892,14 @@ public class ColorDialog2 extends javax.swing.JDialog {
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ColorDialog2.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ColorDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(() -> {
-            ColorDialog2 dialog = new ColorDialog2(new javax.swing.JFrame(), true);
+            ColorDialog dialog = new ColorDialog(new javax.swing.JFrame(), true);
             dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
                 public void windowClosing(java.awt.event.WindowEvent e) {
