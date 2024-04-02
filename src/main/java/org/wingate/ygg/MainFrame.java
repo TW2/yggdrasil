@@ -30,7 +30,7 @@ import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.ContainerPanel;
 import org.wingate.ygg.ui.ElementAbstract;
 import org.wingate.ygg.ui.ElementDialog;
-import org.wingate.ygg.ui.ElementDialog2;
+import org.wingate.ygg.ui.ElementDialog;
 import org.wingate.ygg.ui.Matrix;
 import org.wingate.ygg.ui.table.AssTablePanel;
 
@@ -434,7 +434,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void mFileAddElementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mFileAddElementActionPerformed
         // Open dialog to choose a new element
-        ElementDialog2 d = new ElementDialog2(this, true, theme);
+        ElementDialog d = new ElementDialog(this, true, theme);
         d.showDialog();
         if(d.getDialogResult() == DialogResult.Ok){
             ElementAbstract ea = d.getElementComponent();
