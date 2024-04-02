@@ -60,7 +60,6 @@ public class ContainerPanel extends javax.swing.JPanel {
 
         centerPanel = new javax.swing.JPanel();
 
-        setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true));
         setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout centerPanelLayout = new javax.swing.GroupLayout(centerPanel);
@@ -71,7 +70,7 @@ public class ContainerPanel extends javax.swing.JPanel {
         );
         centerPanelLayout.setVerticalGroup(
             centerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 296, Short.MAX_VALUE)
+            .addGap(0, 300, Short.MAX_VALUE)
         );
 
         add(centerPanel, java.awt.BorderLayout.CENTER);

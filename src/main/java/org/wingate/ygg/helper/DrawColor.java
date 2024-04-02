@@ -21,7 +21,7 @@ import java.awt.Color;
 public enum DrawColor {
 	
     //Colors from http://www.rapidtables.com/web/color/RGB_Color.htm
-    maroon("Marrow","800000",128,0,0),
+    marron("Marron","800000",128,0,0),
     dark_red("Dark red","8B0000",139,0,0),
     brown("Brown","A52A2A",165,42,42),
     firebrick("Firebrick","B22222",178,34,34),

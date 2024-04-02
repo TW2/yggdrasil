@@ -43,7 +43,7 @@ import org.wingate.ygg.helper.DialogResult;
 public class StyleEditDialog extends java.awt.Dialog implements Runnable {
     
     private final PreviewPanel previewPanel;
-    private ColorDialog colorDialog;
+    private ColorDialog2 colorDialog;
     
     private DialogResult dialogResult = DialogResult.Unknown;
     private final java.awt.Frame parent;
@@ -799,7 +799,7 @@ public class StyleEditDialog extends java.awt.Dialog implements Runnable {
     private void lblColorTextMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorTextMouseClicked
         // Si on clique dans la zone colorée, invite à changer de couleur
         // Couleur de texte
-        colorDialog = new ColorDialog(parent, true);
+        colorDialog = new ColorDialog2(parent, true);
         colorDialog.showDialog(lblColorText.getBackground(), (int)spinAlphaText.getValue());
         if(colorDialog.getDialogResult() == DialogResult.Ok){
             lblColorText.setBackground(colorDialog.getColor());
@@ -812,7 +812,7 @@ public class StyleEditDialog extends java.awt.Dialog implements Runnable {
     private void lblColorKaraokeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorKaraokeMouseClicked
         // Si on clique dans la zone colorée, invite à changer de couleur
         // Couleur de karaoke
-        colorDialog = new ColorDialog(parent, true);
+        colorDialog = new ColorDialog2(parent, true);
         colorDialog.showDialog(lblColorKaraoke.getBackground(), (int)spinAlphaKaraoke.getValue());
         if(colorDialog.getDialogResult() == DialogResult.Ok){
             lblColorKaraoke.setBackground(colorDialog.getColor());
@@ -825,7 +825,7 @@ public class StyleEditDialog extends java.awt.Dialog implements Runnable {
     private void lblColorOutlineMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorOutlineMouseClicked
         // Si on clique dans la zone colorée, invite à changer de couleur
         // Couleur de bordure
-        colorDialog = new ColorDialog(parent, true);
+        colorDialog = new ColorDialog2(parent, true);
         colorDialog.showDialog(lblColorOutline.getBackground(), (int)spinAlphaOutline.getValue());
         if(colorDialog.getDialogResult() == DialogResult.Ok){
             lblColorOutline.setBackground(colorDialog.getColor());
@@ -838,7 +838,7 @@ public class StyleEditDialog extends java.awt.Dialog implements Runnable {
     private void lblColorShadowMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblColorShadowMouseClicked
         // Si on clique dans la zone colorée, invite à changer de couleur
         // Couleur d'ombre portée
-        colorDialog = new ColorDialog(parent, true);
+        colorDialog = new ColorDialog2(parent, true);
         colorDialog.showDialog(lblColorShadow.getBackground(), (int)spinAlphaShadow.getValue());
         if(colorDialog.getDialogResult() == DialogResult.Ok){
             lblColorShadow.setBackground(colorDialog.getColor());
