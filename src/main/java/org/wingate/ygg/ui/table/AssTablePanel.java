@@ -242,9 +242,7 @@ public class AssTablePanel extends javax.swing.JPanel {
         fcSaveDoc = new javax.swing.JFileChooser();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jSplitPane1 = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        tfText = new javax.swing.JTextField();
+        jPanel7 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -274,14 +272,15 @@ public class AssTablePanel extends javax.swing.JPanel {
         btnReplace = new javax.swing.JButton();
         btnAddBefore = new javax.swing.JButton();
         btnAddAfter = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jPanel5 = new javax.swing.JPanel();
+        jSplitPane2 = new javax.swing.JSplitPane();
+        tfText = new javax.swing.JTextField();
         jScrollPane3 = new javax.swing.JScrollPane();
         tpText = new javax.swing.JTextPane();
         jPanel6 = new javax.swing.JPanel();
         btnSettings = new javax.swing.JButton();
         btnTranslate = new javax.swing.JButton();
+
+        setLayout(new java.awt.BorderLayout());
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -300,13 +299,10 @@ public class AssTablePanel extends javax.swing.JPanel {
         jTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         jScrollPane1.setViewportView(jTable1);
 
-        jSplitPane1.setDividerLocation(70);
-        jSplitPane1.setDividerSize(8);
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setOneTouchExpandable(true);
+        add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        jPanel1.setLayout(new java.awt.BorderLayout());
-        jPanel1.add(tfText, java.awt.BorderLayout.SOUTH);
+        jPanel7.setPreferredSize(new java.awt.Dimension(1229, 140));
+        jPanel7.setLayout(new java.awt.BorderLayout());
 
         jPanel3.setLayout(new java.awt.GridLayout(2, 12));
 
@@ -351,9 +347,19 @@ public class AssTablePanel extends javax.swing.JPanel {
         jPanel3.add(btnStyles);
 
         btnNames.setText("Name");
+        btnNames.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNamesActionPerformed(evt);
+            }
+        });
         jPanel3.add(btnNames);
 
         btnEffects.setText("Effect(s)");
+        btnEffects.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEffectsActionPerformed(evt);
+            }
+        });
         jPanel3.add(btnEffects);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -384,63 +390,73 @@ public class AssTablePanel extends javax.swing.JPanel {
         jPanel4.setLayout(new java.awt.GridLayout(1, 4));
 
         btnAdd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/16OK-custom-green.png"))); // NOI18N
+        btnAdd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddActionPerformed(evt);
+            }
+        });
         jPanel4.add(btnAdd);
 
         btnReplace.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/16OK-custom-blue.png"))); // NOI18N
+        btnReplace.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnReplaceActionPerformed(evt);
+            }
+        });
         jPanel4.add(btnReplace);
 
         btnAddBefore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/16OK-custom-orange.png"))); // NOI18N
+        btnAddBefore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddBeforeActionPerformed(evt);
+            }
+        });
         jPanel4.add(btnAddBefore);
 
         btnAddAfter.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/16OK-custom-violet.png"))); // NOI18N
+        btnAddAfter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddAfterActionPerformed(evt);
+            }
+        });
         jPanel4.add(btnAddAfter);
 
         jPanel3.add(jPanel4);
 
-        jPanel1.add(jPanel3, java.awt.BorderLayout.CENTER);
+        jPanel7.add(jPanel3, java.awt.BorderLayout.NORTH);
 
-        jSplitPane1.setTopComponent(jPanel1);
-
-        jPanel2.setLayout(new java.awt.BorderLayout());
-
-        jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
-        jPanel5.setLayout(new java.awt.BorderLayout());
+        jSplitPane2.setDividerSize(8);
+        jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane2.setOneTouchExpandable(true);
+        jSplitPane2.setTopComponent(tfText);
 
         jScrollPane3.setViewportView(tpText);
 
-        jPanel5.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+        jSplitPane2.setRightComponent(jScrollPane3);
+
+        jPanel7.add(jSplitPane2, java.awt.BorderLayout.CENTER);
 
         jPanel6.setLayout(new java.awt.GridLayout(1, 2));
 
         btnSettings.setText("Settings");
+        btnSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSettingsActionPerformed(evt);
+            }
+        });
         jPanel6.add(btnSettings);
 
         btnTranslate.setText("Translate");
+        btnTranslate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTranslateActionPerformed(evt);
+            }
+        });
         jPanel6.add(btnTranslate);
 
-        jPanel5.add(jPanel6, java.awt.BorderLayout.SOUTH);
+        jPanel7.add(jPanel6, java.awt.BorderLayout.SOUTH);
 
-        jScrollPane2.setViewportView(jPanel5);
-
-        jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
-
-        jSplitPane1.setRightComponent(jPanel2);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 842, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE))
-        );
+        add(jPanel7, java.awt.BorderLayout.NORTH);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnStylesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStylesActionPerformed
@@ -451,6 +467,136 @@ public class AssTablePanel extends javax.swing.JPanel {
             // TODO
         }
     }//GEN-LAST:event_btnStylesActionPerformed
+
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        // Add event
+        String style = cbStyle.getSelectedItem() != null ?
+                cbStyle.getSelectedItem().toString() : "Default";
+        model.add(
+                LineType.from(cbLineType.getSelectedItem().toString()), // LineType (linetype)
+                (int)spinLayer.getValue(), // Layer (int)
+                tfStart.getText(), // Start (str)
+                tfEnd.getText(), // End (str)
+                style, // Style (str)
+                tfName.getText(), // Name (str)
+                (int)spModelML.getValue(), // Margin L (int)
+                (int)spModelMR.getValue(), // Margin R (int)
+                (int)spModelMV.getValue(), // Margin V (int)
+                tfEffects.getText(), // Effects (str)
+                tpText.getText().isEmpty() ? tfText.getText() : tpText.getText() // Text (str)
+        );
+        jTable1.updateUI();
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnReplaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReplaceActionPerformed
+        // Replace event
+        String style = cbStyle.getSelectedItem() != null ?
+                cbStyle.getSelectedItem().toString() : "Default";
+        int[] indices = jTable1.getSelectedRows();
+        if(indices.length > 0){
+            // Remove selected events
+            for(int i=indices.length - 1; i>=0; i--){
+                model.remove(indices[i]);
+            }
+            // Insert new event
+            model.insert(
+                    indices[0],
+                    LineType.from(cbLineType.getSelectedItem().toString()), // LineType (linetype)
+                    (int)spinLayer.getValue(), // Layer (int)
+                    tfStart.getText(), // Start (str)
+                    tfEnd.getText(), // End (str)
+                    style, // Style (str)
+                    tfName.getText(), // Name (str)
+                    (int)spModelML.getValue(), // Margin L (int)
+                    (int)spModelMR.getValue(), // Margin R (int)
+                    (int)spModelMV.getValue(), // Margin V (int)
+                    tfEffects.getText(), // Effects (str)
+                    tpText.getText().isEmpty() ? tfText.getText() : tpText.getText() // Text (str)
+            );
+        }
+        jTable1.updateUI();
+    }//GEN-LAST:event_btnReplaceActionPerformed
+
+    private void btnAddBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddBeforeActionPerformed
+        // Add before index of event
+        String style = cbStyle.getSelectedItem() != null ?
+                cbStyle.getSelectedItem().toString() : "Default";
+        int selIndex = jTable1.getSelectedRow();
+        if(selIndex == -1) return;
+        model.insert(
+                selIndex,
+                LineType.from(cbLineType.getSelectedItem().toString()), // LineType (linetype)
+                (int)spinLayer.getValue(), // Layer (int)
+                tfStart.getText(), // Start (str)
+                tfEnd.getText(), // End (str)
+                style, // Style (str)
+                tfName.getText(), // Name (str)
+                (int)spModelML.getValue(), // Margin L (int)
+                (int)spModelMR.getValue(), // Margin R (int)
+                (int)spModelMV.getValue(), // Margin V (int)
+                tfEffects.getText(), // Effects (str)
+                tpText.getText().isEmpty() ? tfText.getText() : tpText.getText() // Text (str)
+        );
+        jTable1.updateUI();
+    }//GEN-LAST:event_btnAddBeforeActionPerformed
+
+    private void btnAddAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddAfterActionPerformed
+        // Add after index of event
+        String style = cbStyle.getSelectedItem() != null ?
+                cbStyle.getSelectedItem().toString() : "Default";
+        int selIndex = jTable1.getSelectedRow();
+        int rowCount = jTable1.getRowCount();
+        if(rowCount - 1 == selIndex){
+            // Add
+            model.add(
+                    LineType.from(cbLineType.getSelectedItem().toString()), // LineType (linetype)
+                    (int)spinLayer.getValue(), // Layer (int)
+                    tfStart.getText(), // Start (str)
+                    tfEnd.getText(), // End (str)
+                    style, // Style (str)
+                    tfName.getText(), // Name (str)
+                    (int)spModelML.getValue(), // Margin L (int)
+                    (int)spModelMR.getValue(), // Margin R (int)
+                    (int)spModelMV.getValue(), // Margin V (int)
+                    tfEffects.getText(), // Effects (str)
+                    tpText.getText().isEmpty() ? tfText.getText() : tpText.getText() // Text (str)
+            );
+        }else{
+            if(selIndex == -1) return;
+            // Insert
+            model.insert(
+                    selIndex + 1,
+                    LineType.from(cbLineType.getSelectedItem().toString()), // LineType (linetype)
+                    (int)spinLayer.getValue(), // Layer (int)
+                    tfStart.getText(), // Start (str)
+                    tfEnd.getText(), // End (str)
+                    style, // Style (str)
+                    tfName.getText(), // Name (str)
+                    (int)spModelML.getValue(), // Margin L (int)
+                    (int)spModelMR.getValue(), // Margin R (int)
+                    (int)spModelMV.getValue(), // Margin V (int)
+                    tfEffects.getText(), // Effects (str)
+                    tpText.getText().isEmpty() ? tfText.getText() : tpText.getText() // Text (str)
+            );
+        }
+        jTable1.updateUI();
+    }//GEN-LAST:event_btnAddAfterActionPerformed
+
+    private void btnNamesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNamesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnNamesActionPerformed
+
+    private void btnEffectsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEffectsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnEffectsActionPerformed
+
+    private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSettingsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSettingsActionPerformed
+
+    private void btnTranslateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTranslateActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnTranslateActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -476,16 +622,13 @@ public class AssTablePanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JSpinner spinLayer;
     private javax.swing.JSpinner spinML;
