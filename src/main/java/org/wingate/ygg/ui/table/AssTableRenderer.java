@@ -19,6 +19,7 @@ package org.wingate.ygg.ui.table;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import org.wingate.ygg.ass.AssEvent;
 import org.wingate.ygg.ass.AssTime;
@@ -37,16 +38,18 @@ public class AssTableRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         
-        setBackground(Color.white);
-        setForeground(Color.black);
+        Color bg = UIManager.getColor("Table.background");
+        Color fg = UIManager.getColor("Table.foreground");
+        
+        setBackground(bg == null ? Color.white : bg);
+        setForeground(fg == null ? Color.black : fg);
         
         switch (value) {
-            case Integer x -> setText(Integer.toString(x));
-            case AssTime x -> setText(x.toASSTime());
-            case AssEvent.LineType x -> setText(x.toString());
-            case String x -> setText(x);
-            default -> {
-            }
+            case Integer x -> { setText(Integer.toString(x)); }
+            case AssTime x -> { setText(x.toASSTime()); }
+            case AssEvent.LineType x -> { setText(x.toString()); }
+            case String x -> { setText(x); }
+            default -> {}
         }
         
         if(((AssEvent.LineType)table.getValueAt(row, 1)).compareTo(AssEvent.LineType.Comment) == 0){
@@ -55,8 +58,19 @@ public class AssTableRenderer extends DefaultTableCellRenderer {
         }
         
         if(isSelected){
-            setBackground(DrawColor.corn_flower_blue.getColor());
-            setForeground(Color.white);
+            if(table.hasFocus()){
+                bg = UIManager.getColor("Table.selectionBackground");
+                fg = UIManager.getColor("Table.selectionForeground");
+                
+                setBackground(bg == null ? DrawColor.corn_flower_blue.getColor() : bg);
+                setForeground(fg == null ? Color.white : fg);
+            }else{
+                bg = UIManager.getColor("Table.selectionInactiveBackground");
+                fg = UIManager.getColor("Table.selectionInactiveForeground");
+                
+                setBackground(bg == null ? Color.lightGray : bg);
+                setForeground(fg == null ? Color.black : fg);              
+            }
         }
         
         return this;

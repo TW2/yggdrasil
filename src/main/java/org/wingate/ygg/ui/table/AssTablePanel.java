@@ -16,7 +16,6 @@
  */
 package org.wingate.ygg.ui.table;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Map;
@@ -24,9 +23,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.table.TableColumn;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.ass.AssEvent;
@@ -36,6 +32,7 @@ import org.wingate.ygg.ass.AssTime;
 import org.wingate.ygg.helper.AssFileFilter;
 import org.wingate.ygg.helper.AssLanguageAccessory;
 import org.wingate.ygg.helper.DialogResult;
+import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.StyleEditDialog;
 
 /**
@@ -43,6 +40,8 @@ import org.wingate.ygg.ui.StyleEditDialog;
  * @author util2
  */
 public class AssTablePanel extends javax.swing.JPanel {
+    
+    private final Theme theme;
 
     private final AssTableModel model;
     private final AssTableRenderer renderer;
@@ -61,8 +60,9 @@ public class AssTablePanel extends javax.swing.JPanel {
     
     /**
      * Creates new form AssTablePanel
+     * @param theme
      */
-    public AssTablePanel() {
+    public AssTablePanel(Theme theme) {
         initComponents();
         
         model = new AssTableModel();
@@ -133,10 +133,13 @@ public class AssTablePanel extends javax.swing.JPanel {
             }
         });
         
+        this.theme = theme;
+        
         init();
     }
     
     private void init(){
+        theme.apply(this);
         resetColumnWidth();
         jTable1.updateUI();
     }
@@ -448,12 +451,8 @@ public class AssTablePanel extends javax.swing.JPanel {
             // TODO
         }
         
-        try {
-            UIManager.setLookAndFeel( new FlatDarkLaf() );
-            SwingUtilities.updateComponentTreeUI(this);
-        } catch( UnsupportedLookAndFeelException ex ) {
-            System.err.println( "Failed to initialize LaF" );
-        }
+        // Reset look & feel
+        theme.apply(this);
     }//GEN-LAST:event_btnStylesActionPerformed
 
 

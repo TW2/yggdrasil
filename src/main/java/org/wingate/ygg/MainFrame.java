@@ -16,7 +16,6 @@
  */
 package org.wingate.ygg;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
@@ -27,6 +26,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.wingate.ygg.helper.DialogResult;
+import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.ContainerPanel;
 import org.wingate.ygg.ui.ElementAbstract;
 import org.wingate.ygg.ui.ElementDialog;
@@ -39,14 +39,19 @@ import org.wingate.ygg.ui.table.AssTablePanel;
  */
 public class MainFrame extends javax.swing.JFrame {
     
+    private Theme theme;
+    
     private Matrix matrix;
     private final Map<String, ContainerPanel> cs = new HashMap<>();
 
     /**
      * Creates new form MainFrame
+     * @param theme
      */
-    public MainFrame() {
+    public MainFrame(Theme theme) {
         initComponents();
+        
+        this.theme = theme;
         
         matrix = new Matrix();
         
@@ -62,6 +67,10 @@ public class MainFrame extends javax.swing.JFrame {
                 }
             }
         });
+    }
+
+    public Theme getTheme() {
+        return theme;
     }
 
     public Matrix getMatrix() {
@@ -424,7 +433,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void mFileAddElementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mFileAddElementActionPerformed
         // Open dialog to choose a new element
-        ElementDialog d = new ElementDialog(this, true);
+        ElementDialog d = new ElementDialog(this, true, theme);
         d.showDialog();
         if(d.getDialogResult() == DialogResult.Ok){
             ElementAbstract ea = d.getElementComponent();
@@ -441,12 +450,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         }
         
-        try {
-            UIManager.setLookAndFeel( new FlatDarkLaf() );
-            SwingUtilities.updateComponentTreeUI(this);
-        } catch( UnsupportedLookAndFeelException ex ) {
-            System.err.println( "Failed to initialize LaF" );
-        }
+        theme.apply(this);
     }//GEN-LAST:event_mFileAddElementActionPerformed
 
     private void rbmEditDoubleClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbmEditDoubleClickActionPerformed

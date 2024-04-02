@@ -22,6 +22,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.wingate.ygg.helper.DialogResult;
+import org.wingate.ygg.theme.Dark;
+import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.table.AssTableElement;
 
 /**
@@ -38,13 +40,14 @@ public class ElementDialog extends java.awt.Dialog {
      * Creates new form ElementDialog
      * @param parent
      * @param modal
+     * @param mainTheme
      */
-    public ElementDialog(java.awt.Frame parent, boolean modal) {
+    public ElementDialog(java.awt.Frame parent, boolean modal, Theme mainTheme) {
         super(parent, modal);
         initComponents();
         this.parent = parent;
         elementList.setModel(listModel);
-        listModel.addElement(new AssTableElement());
+        listModel.addElement(new AssTableElement(mainTheme));
         
         new javax.swing.Timer(100, (l) -> {
             if(elementList.getSelectedIndex() != -1 && !tfElementName.getText().isEmpty()){
@@ -204,7 +207,7 @@ public class ElementDialog extends java.awt.Dialog {
      */
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> {
-            ElementDialog dialog = new ElementDialog(new java.awt.Frame(), true);
+            ElementDialog dialog = new ElementDialog(new java.awt.Frame(), true, new Dark());
             dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
                 public void windowClosing(java.awt.event.WindowEvent e) {

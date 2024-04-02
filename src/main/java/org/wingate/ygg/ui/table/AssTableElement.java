@@ -24,6 +24,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.MainFrame;
+import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.ContainerPanel;
 import org.wingate.ygg.ui.ElementAbstract;
 
@@ -35,9 +36,9 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
     
     private String lastSavePath = null;
     
-    public AssTableElement() {
+    public AssTableElement(Theme theme) {
         name = "ASSA Table";
-        panel = new AssTablePanel();
+        panel = new AssTablePanel(theme);
         panel.resetColumnWidth();
     }
 
