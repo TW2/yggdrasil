@@ -53,6 +53,11 @@ public abstract class ElementAbstract<P> implements ElementInterface {
     public void setName(String name) {
         this.name = name;
     }
+    
+    @Override
+    public String toString() {
+        return name;
+    }
 
     public P getPanel() {
         return panel;

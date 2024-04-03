@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.wingate.ygg.ui.table;
+package org.wingate.ygg.ui.video;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
@@ -22,7 +22,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
-import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.ContainerPanel;
@@ -32,21 +31,16 @@ import org.wingate.ygg.ui.ElementAbstract;
  *
  * @author util2
  */
-public class AssTableElement extends ElementAbstract<AssTablePanel> {
-    
-    private String lastSavePath = null;
-    
-    public AssTableElement(Theme theme) {
-        name = "ASSA Table";
-        panel = new AssTablePanel(theme);
-        panel.resetColumnWidth();
+public class VideoElement extends ElementAbstract<VideoPanel> {
+
+    public VideoElement(Theme theme) {
+        name = "Video viewer";
+        panel = new VideoPanel(theme);
     }
-    
+
     @Override
-    public void setupMenu(String friendlyName, ContainerPanel cp){
-        ImageIcon iiNewDoc = new ImageIcon(getClass().getResource("/images/16 newdocument.png"));
+    public void setupMenu(String friendlyName, ContainerPanel cp) {
         ImageIcon iiOpenDoc = new ImageIcon(getClass().getResource("/images/16 folder.png"));
-        ImageIcon iiSaveDoc = new ImageIcon(getClass().getResource("/images/16 floppydisk.png"));
         ImageIcon iiCorner1 = new ImageIcon(getClass().getResource("/images/16 corner 1.png"));
         ImageIcon iiCorner3 = new ImageIcon(getClass().getResource("/images/16 corner 3.png"));
         ImageIcon iiCorner9 = new ImageIcon(getClass().getResource("/images/16 corner 9.png"));
@@ -56,64 +50,16 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         menu = new JMenu();
         menu.setText(String.format("%s (%s)", name, friendlyName));
         
-        JMenuItem miNewDoc = new JMenuItem("New empty document");
-        miNewDoc.addActionListener((listener)->{
-            panel.getModel().createNew();           // Setup
-            panel.getTable().updateUI();
-        });
-        miNewDoc.setIcon(iiNewDoc);
-        menu.add(miNewDoc);
-        
-        JMenuItem miOpenDoc = new JMenuItem("Open document...");
+        JMenuItem miOpenDoc = new JMenuItem("Open video...");
         miOpenDoc.addActionListener((listener)->{
-            panel.getModel().clear();               // Clean
-            int z = panel.getOpenFileChooser().showOpenDialog(panel);
+            int z = panel.getOpenVideoChooser().showOpenDialog(panel);
             if(z == JFileChooser.APPROVE_OPTION){
-                String path = panel.getOpenFileChooser().getSelectedFile().getPath();
-                ASS ass = ASS.Read(path);
-                panel.getModel().setAss(ass);
-                panel.getModel().setLanguages(ass.getLanguages());
-                panel.getTable().updateUI();
+                String path = panel.getOpenVideoChooser().getSelectedFile().getPath();
+                panel.setVideoFile(path);                
             }
         });
         miOpenDoc.setIcon(iiOpenDoc);
         menu.add(miOpenDoc);
-        
-        JMenuItem miSaveDocAs = new JMenuItem("Save document as...");
-        miSaveDocAs.addActionListener((listener)->{
-            int z = panel.getSaveFileChooser().showSaveDialog(panel);
-            if(z == JFileChooser.APPROVE_OPTION){
-                String path = panel.getSaveFileChooser().getSelectedFile().getPath();
-                if(path.endsWith(".ass") == false) path += ".ass";
-                lastSavePath = path;
-                ASS ass = panel.getModel().getAss();
-                ass.setLanguages(panel.getModel().getLanguages());
-                ASS.Save(path, ass);
-            }
-        });
-        miSaveDocAs.setIcon(iiSaveDoc);
-        menu.add(miSaveDocAs);
-        
-        JMenuItem miSaveDoc = new JMenuItem("Save document");
-        miSaveDoc.addActionListener((listener)->{
-            if(lastSavePath == null){
-                int z = panel.getSaveFileChooser().showSaveDialog(panel);
-                if(z == JFileChooser.APPROVE_OPTION){
-                    String path = panel.getSaveFileChooser().getSelectedFile().getPath();
-                    if(path.endsWith(".ass") == false) path += ".ass";
-                    lastSavePath = path;
-                    ASS ass = panel.getModel().getAss();
-                    ass.setLanguages(panel.getModel().getLanguages());
-                    ASS.Save(path, ass);
-                }
-            }else{                
-                ASS ass = panel.getModel().getAss();
-                ass.setLanguages(panel.getModel().getLanguages());
-                ASS.Save(lastSavePath, ass);
-            }            
-        });
-        miSaveDoc.setIcon(iiSaveDoc);
-        menu.add(miSaveDoc);
         
         menu.add(new JSeparator());
         
@@ -188,10 +134,12 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         
         JMenuItem miClose = new JMenuItem("Close element");
         miClose.addActionListener((listener)->{
+            panel.disposeVideo();
             cp.setVisible(false);
             cp.getMainFrame().removeContainerPanel(cp);
         });
         miClose.setIcon(iiClose);
         menu.add(miClose);
     }
+    
 }
