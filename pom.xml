@@ -55,5 +55,10 @@
             <artifactId>libretranslate-java</artifactId>
             <version>1.0.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>23.0.3</version>
+        </dependency>
     </dependencies>
 </project>
