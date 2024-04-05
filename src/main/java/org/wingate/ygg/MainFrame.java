@@ -22,14 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.ContainerPanel;
 import org.wingate.ygg.ui.ElementAbstract;
-import org.wingate.ygg.ui.ElementDialog;
 import org.wingate.ygg.ui.ElementDialog;
 import org.wingate.ygg.ui.Matrix;
 import org.wingate.ygg.ui.table.AssTablePanel;
@@ -40,7 +36,7 @@ import org.wingate.ygg.ui.table.AssTablePanel;
  */
 public class MainFrame extends javax.swing.JFrame {
     
-    private Theme theme;
+    private final Theme theme;
     
     private Matrix matrix;
     private final Map<String, ContainerPanel> cs = new HashMap<>();

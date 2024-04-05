@@ -211,14 +211,17 @@ public class AudioForm extends JPanel {
                 
                 // On dessine les secondes et les groupes / Draw seconds and groups
                 g2d.setColor(Color.pink);
-                int seconds = (int)(partDuration / 1000d * n);
-                int period = (int)(partDuration / 1000d);
-                for(double a=x1, ss = seconds; a<x1+partWidth; a+=(partWidth / 10), ss++){
-                    g2d.draw(new Line2D.Double(a, 0, a, getHeight()));
-                    g2d.draw(new Line2D.Double(a + partWidth, 0, a + partWidth, getHeight()));
-                    drawSeconds(g2d, a - 2, 2, ss);
-                    drawSeconds(g2d, a - 2 + partWidth, 2, ss + period);
+                double seconds = partDuration / 1000d * n;
+                double period = partDuration / 1000d;
+                if(period > 0){
+                    for(double a=x1, ss = seconds; a<x1+partWidth; a+=(partWidth / period), ss++){
+                        g2d.draw(new Line2D.Double(a, 0, a, getHeight()));
+                        g2d.draw(new Line2D.Double(a + partWidth, 0, a + partWidth, getHeight()));
+                        drawSeconds(g2d, a - 2, 2, ss);
+                        drawSeconds(g2d, a - 2 + partWidth, 2, ss + period);
+                    }
                 }
+                
                 
                 // Lignes d'image clé
                 drawKeyFrames(g2d, x1, getHeight(), n);
@@ -365,6 +368,7 @@ public class AudioForm extends JPanel {
     
     private void drawKeyFrames(Graphics2D g, double offsetX, double h, int n){
         g.setColor(Color.magenta);
+        double y = 2;
         for(Map.Entry<Long, Integer> entry : keyframes.entrySet()){
             // partDuration 5000L ms, partWidth 2000 pixels, entry ms, x pixels
             // x <> partWidth (partWidth as pw)
@@ -384,11 +388,11 @@ public class AudioForm extends JPanel {
             String s = String.format("Keyframe: %s, Time: %s", frame, time);
             int measureText = g.getFontMetrics().stringWidth(s);
 
-            g.translate(offsetX+xt - 2, measureText);
+            g.translate(offsetX+xt - 2, y + measureText);
             g.rotate(Math.toRadians(-90));
             g.drawString(s, 0, 0);
             g.rotate(Math.toRadians(90));
-            g.translate(-(offsetX+xt - 2), -(measureText));
+            g.translate(-(offsetX+xt - 2), -(y + measureText));
         }
     }
     
