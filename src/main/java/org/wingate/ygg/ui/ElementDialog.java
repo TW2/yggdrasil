@@ -20,6 +20,7 @@ import javax.swing.DefaultListModel;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.theme.Dark;
 import org.wingate.ygg.theme.Theme;
+import org.wingate.ygg.ui.audio.AudioElement;
 import org.wingate.ygg.ui.table.AssTableElement;
 import org.wingate.ygg.ui.video.VideoElement;
 
@@ -47,6 +48,7 @@ public class ElementDialog extends javax.swing.JDialog {
         elementList.setModel(listModel);
         listModel.addElement(new AssTableElement(mainTheme));
         listModel.addElement(new VideoElement(mainTheme));
+        listModel.addElement(new AudioElement(mainTheme));
         
         new javax.swing.Timer(100, (l) -> {
             if(elementList.getSelectedIndex() != -1 && !tfElementName.getText().isEmpty()){
