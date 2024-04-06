@@ -18,6 +18,8 @@ package org.wingate.ygg;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JMenu;
@@ -28,7 +30,9 @@ import org.wingate.ygg.ui.ContainerPanel;
 import org.wingate.ygg.ui.ElementAbstract;
 import org.wingate.ygg.ui.ElementDialog;
 import org.wingate.ygg.ui.Matrix;
+import org.wingate.ygg.ui.audio.AudioPanel;
 import org.wingate.ygg.ui.table.AssTablePanel;
+import org.wingate.ygg.ui.video.VideoPanel;
 
 /**
  *
@@ -61,6 +65,22 @@ public class MainFrame extends javax.swing.JFrame {
                     ElementAbstract ea = cp.getElementAbstract();
                     applyBoundaries(cp);
                     shiftMax(ea.getCorner(), cp);
+                }
+            }
+        });
+        
+        addWindowListener(new WindowAdapter(){
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                
+                for(Map.Entry<String, ContainerPanel> entry : cs.entrySet()){
+                    switch (entry.getValue().getElementAbstract().getPanel()) {
+                        case VideoPanel x -> x.disposeVideo();
+                        case AudioPanel x -> x.disposeAudio();
+                        default -> {
+                        }
+                    }
                 }
             }
         });
