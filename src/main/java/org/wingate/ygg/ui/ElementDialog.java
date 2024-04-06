@@ -106,6 +106,11 @@ public class ElementDialog extends javax.swing.JDialog {
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
+        elementList.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                elementListKeyReleased(evt);
+            }
+        });
         jScrollPane1.setViewportView(elementList);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -125,6 +130,12 @@ public class ElementDialog extends javax.swing.JDialog {
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Please choose a name for this element"));
+
+        tfElementName.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                tfElementNameKeyReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -199,6 +210,28 @@ public class ElementDialog extends javax.swing.JDialog {
         setVisible(false);
         dispose();
     }//GEN-LAST:event_btnCancelActionPerformed
+
+    private void elementListKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_elementListKeyReleased
+        // OK on Enter
+        if(evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER){
+            if(elementList.getSelectedIndex() != -1 && tfElementName.getText().isEmpty() == false){
+                dialogResult = DialogResult.Ok;
+                setVisible(false);
+                dispose();
+            }
+        }
+    }//GEN-LAST:event_elementListKeyReleased
+
+    private void tfElementNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfElementNameKeyReleased
+        // OK on Enter
+        if(evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER){
+            if(elementList.getSelectedIndex() != -1 && tfElementName.getText().isEmpty() == false){
+                dialogResult = DialogResult.Ok;
+                setVisible(false);
+                dispose();
+            }
+        }
+    }//GEN-LAST:event_tfElementNameKeyReleased
 
     /**
      * @param args the command line arguments
