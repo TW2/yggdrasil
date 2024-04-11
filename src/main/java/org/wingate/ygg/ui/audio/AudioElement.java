@@ -17,14 +17,12 @@
 package org.wingate.ygg.ui.audio;
 
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 import org.wingate.ygg.MainFrame;
-import org.wingate.ygg.theme.Theme;
-import org.wingate.ygg.ui.ContainerPanel;
+import org.wingate.ygg.ui.ContainerInternalFrame;
 import org.wingate.ygg.ui.ElementAbstract;
 
 /**
@@ -33,13 +31,13 @@ import org.wingate.ygg.ui.ElementAbstract;
  */
 public class AudioElement extends ElementAbstract<AudioPanel> {
 
-    public AudioElement(Theme theme) {
+    public AudioElement(MainFrame mainFrame) {
         name = "Audio viewer";
-        panel = new AudioPanel(theme);
+        panel = new AudioPanel(mainFrame.getTheme());
     }
 
     @Override
-    public void setupMenu(String friendlyName, ContainerPanel cp) {
+    public void setupMenu(String friendlyName, ContainerInternalFrame cp) {
         ImageIcon iiOpenDoc = new ImageIcon(getClass().getResource("/images/16 folder.png"));
         ImageIcon iiCorner1 = new ImageIcon(getClass().getResource("/images/16 corner 1.png"));
         ImageIcon iiCorner3 = new ImageIcon(getClass().getResource("/images/16 corner 3.png"));
@@ -63,9 +61,9 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         
         menu.add(new JSeparator());
         
-        JMenuItem miToLeftTop = new JMenuItem("Put to the corner 7");
+         JMenuItem miToLeftTop = new JMenuItem("Put to the corner 7");
         miToLeftTop.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(7, cp);
+            cp.getContainersDesktopPane().toCorner7(this);
             cp.getElementAbstract().setCorner(7);
         });
         miToLeftTop.setIcon(iiCorner7);
@@ -73,7 +71,7 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         
         JMenuItem miToRightTop = new JMenuItem("Put to the corner 9");
         miToRightTop.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(9, cp);
+            cp.getContainersDesktopPane().toCorner9(this);
             cp.getElementAbstract().setCorner(9);
         });
         miToRightTop.setIcon(iiCorner9);
@@ -81,7 +79,7 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         
         JMenuItem miToRightBottom = new JMenuItem("Put to the corner 3");
         miToRightBottom.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(3, cp);
+            cp.getContainersDesktopPane().toCorner3(this);
             cp.getElementAbstract().setCorner(3);
         });
         miToRightBottom.setIcon(iiCorner3);
@@ -89,7 +87,7 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         
         JMenuItem miToLeftBottom = new JMenuItem("Put to the corner 1");
         miToLeftBottom.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(1, cp);
+            cp.getContainersDesktopPane().toCorner1(this);
             cp.getElementAbstract().setCorner(1);
         });
         miToLeftBottom.setIcon(iiCorner1);
@@ -99,44 +97,34 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         
         JMenuItem miToLeft = new JMenuItem("Left by 1");
         miToLeft.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Left, cp);
+            cp.getContainersDesktopPane().toLeft(this);
         });
         menu.add(miToLeft);
         
         JMenuItem miToRight = new JMenuItem("Right by 1");
         miToRight.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Right, cp);
+            cp.getContainersDesktopPane().toRight(this);
         });
         menu.add(miToRight);
         
         JMenuItem miToTop = new JMenuItem("Top by 1");
         miToTop.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Top, cp);
+            cp.getContainersDesktopPane().toUp(this);
         });
         menu.add(miToTop);
         
         JMenuItem miToBottom = new JMenuItem("Bottom by 1");
         miToBottom.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Bottom, cp);
+            cp.getContainersDesktopPane().toDown(this);
         });
         menu.add(miToBottom);
-        
-        menu.add(new JSeparator());
-        
-        JCheckBoxMenuItem miHide = new JCheckBoxMenuItem("Hide");
-        miHide.setSelected(false);
-        miHide.addActionListener((listener)->{
-            cp.setVisible(!miHide.isSelected());
-        });
-        menu.add(miHide);
         
         menu.add(new JSeparator());
         
         JMenuItem miClose = new JMenuItem("Close element");
         miClose.addActionListener((listener)->{
             panel.disposeAudio();
-            cp.setVisible(false);
-            cp.getMainFrame().removeContainerPanel(cp);
+            cp.getContainersDesktopPane().removeElementAbstract(this);
         });
         miClose.setIcon(iiClose);
         menu.add(miClose);

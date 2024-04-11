@@ -17,6 +17,10 @@
 package org.wingate.ygg.helper;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public enum DrawColor {
 	
@@ -208,5 +212,44 @@ public enum DrawColor {
             float VALUE = (float)x;
             return VALUE / MAX;
     }
-	
+    
+    public static Color getClosest(Color c){
+        return getClosest(c, 1f);
+    }
+    
+    public static Color getClosest(Color c, float alpha){
+        Map<DrawColor, Double> map = new HashMap<>();
+        
+        for(DrawColor x : values()){
+            map.put(x, getColorDistance(c, x.getColor()));
+        }
+        
+        DrawColor d = black;
+        double distance = Double.MAX_VALUE;
+        for(Map.Entry<DrawColor, Double> entry : map.entrySet()){
+            if(entry.getValue() <= distance){
+                d = entry.getKey();
+                distance = Double.min(distance, entry.getValue());
+            }
+        }
+        
+        return d.getColor(alpha);
+    }
+    
+    /**
+     * https://stackoverflow.com/questions/6334311/whats-the-best-way-to-round-a-color-object-to-the-nearest-color-constant
+     * @param c1
+     * @param c2
+     * @return 
+     */
+    private static double getColorDistance(Color c1, Color c2){
+        int red1 = c1.getRed();
+        int red2 = c2.getRed();
+        int rmean = (red1 + red2) >> 1;
+        int r = red1 - red2;
+        int g = c1.getGreen() - c2.getGreen();
+        int b = c1.getBlue() - c2.getBlue();
+        
+        return Math.sqrt((((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8));
+    }
 }

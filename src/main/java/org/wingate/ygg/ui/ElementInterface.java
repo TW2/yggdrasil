@@ -24,5 +24,5 @@ public interface ElementInterface {
     public String getName();
     public void setName(String name);
     
-    public void setupMenu(String friendlyName, ContainerPanel cp);
+    public void setupMenu(String friendlyName, ContainerInternalFrame cp);
 }

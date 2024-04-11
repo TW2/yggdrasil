@@ -16,22 +16,17 @@
  */
 package org.wingate.ygg;
 
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.HashMap;
-import java.util.Map;
-import javax.swing.JMenu;
-import javax.swing.JPanel;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import org.wingate.ygg.helper.DialogResult;
 import org.wingate.ygg.theme.Theme;
-import org.wingate.ygg.ui.ContainerPanel;
-import org.wingate.ygg.ui.ElementAbstract;
+import org.wingate.ygg.ui.ContainerInternalFrame;
+import org.wingate.ygg.ui.ContainersDesktopPane;
 import org.wingate.ygg.ui.ElementDialog;
-import org.wingate.ygg.ui.Matrix;
 import org.wingate.ygg.ui.audio.AudioPanel;
-import org.wingate.ygg.ui.table.AssTablePanel;
 import org.wingate.ygg.ui.video.VideoPanel;
 
 /**
@@ -41,9 +36,7 @@ import org.wingate.ygg.ui.video.VideoPanel;
 public class MainFrame extends javax.swing.JFrame {
     
     private final Theme theme;
-    
-    private Matrix matrix;
-    private final Map<String, ContainerPanel> cs = new HashMap<>();
+    private final ContainersDesktopPane desktopPane;
 
     /**
      * Creates new form MainFrame
@@ -54,32 +47,41 @@ public class MainFrame extends javax.swing.JFrame {
         
         this.theme = theme;
         
-        matrix = new Matrix();
+        desktopPane = new ContainersDesktopPane();
         
-        addComponentListener(new ComponentAdapter(){
-            @Override
-            public void componentResized(ComponentEvent e) {
-                super.componentResized(e);
-                for(Map.Entry<String, ContainerPanel> entry : cs.entrySet()){
-                    ContainerPanel cp = entry.getValue();
-                    ElementAbstract ea = cp.getElementAbstract();
-                    applyBoundaries(cp);
-                    shiftMax(ea.getCorner(), cp);
-                }
-            }
-        });
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.add(desktopPane, BorderLayout.CENTER);
+        
+        ImageIcon iiWallpaper = new ImageIcon(getClass().getResource(
+                "/images/wallpapers/beach-1920x1080-sea-ocean-pink-sunset-25978.jpeg"
+        ));
+        
+        desktopPane.setWallpaper(iiWallpaper);
+        
+        for(int i=0; i<35; i++){
+            JCheckBoxMenuItem m = configureMatrix(MatrixOrientation.X, i+1);
+            mMatrixX.add(m);
+            bgMatrixX.add(m);
+            m.setSelected(i == 0);
+        }
+        
+        for(int i=0; i<35; i++){
+            JCheckBoxMenuItem m = configureMatrix(MatrixOrientation.Y, i+1);
+            mMatrixY.add(m);
+            bgMatrixY.add(m);
+            m.setSelected(i == 0);
+        }
         
         addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 
-                for(Map.Entry<String, ContainerPanel> entry : cs.entrySet()){
-                    switch (entry.getValue().getElementAbstract().getPanel()) {
+                for(ContainerInternalFrame cp : desktopPane.getContainers()){
+                    switch (cp.getElementAbstract().getPanel()) {
                         case VideoPanel x -> x.disposeVideo();
                         case AudioPanel x -> x.disposeAudio();
-                        default -> {
-                        }
+                        default -> {}
                     }
                 }
             }
@@ -89,208 +91,35 @@ public class MainFrame extends javax.swing.JFrame {
     public Theme getTheme() {
         return theme;
     }
-
-    public Matrix getMatrix() {
-        return matrix;
-    }
-
-    public void setMatrix(Matrix matrix) {
-        this.matrix = matrix;
-    }
     
-    public void applyBoundaries(ContainerPanel cp){
-        ElementAbstract ea = cp.getElementAbstract();
-        JPanel panel = (JPanel)ea.getPanel();
+    public enum MatrixOrientation { X, Y; }
+    private JCheckBoxMenuItem configureMatrix(MatrixOrientation orientation, int unit){
+        JCheckBoxMenuItem m = null;
         
-        if(mainPanel.getWidth() != 0 && mainPanel.getHeight() != 0 && panel != null){
-            int x = 0, y = 0, width = mainPanel.getWidth(), height = mainPanel.getHeight();
-            
-            int lastWCase = ea.getLastWCase();
-            int firstWCase = ea.getFirstWCase();
-            int caseWidth = matrix.getWCases();
-            
-            if(lastWCase - firstWCase < caseWidth){
-                int partWidth = width / caseWidth;
-                x = firstWCase * partWidth;
-                width = (lastWCase - firstWCase) * partWidth;
+        switch(orientation){
+            case X -> {
+                m = new JCheckBoxMenuItem("Set x value of matrix to " + unit);
+                m.addActionListener((e) -> {
+                    desktopPane.getMatrix().setWCases(unit);
+                    for(ContainerInternalFrame cp : desktopPane.getContainers()){
+                        desktopPane.changeLocation(cp.getElementAbstract());
+                        cp.updateUI();
+                    }
+                });
             }
-            
-            int lastHCase = ea.getLastHCase();
-            int firstHCase = ea.getFirstHCase();
-            int caseHeight = matrix.getHCases();
-            
-            if(lastHCase - firstHCase < caseHeight){
-                int partHeight = height / caseHeight;
-                y = firstHCase * partHeight;
-                height = (lastHCase - firstHCase) * partHeight;
+            case Y -> {
+                m = new JCheckBoxMenuItem("Set y value of matrix to " + unit);
+                m.addActionListener((e) -> {
+                    desktopPane.getMatrix().setHCases(unit);
+                    for(ContainerInternalFrame cp : desktopPane.getContainers()){
+                        desktopPane.changeLocation(cp.getElementAbstract());
+                        cp.updateUI();
+                    }
+                });
             }
-            
-            cp.setLocation(x, y);
-            cp.setSize(width, height);
-            
-            mainPanel.updateUI();
         }
-    }
-    
-    public void shiftMax(int corner, ContainerPanel cp){
-        ElementAbstract ea = cp.getElementAbstract();
-        JPanel panel = (JPanel)ea.getPanel();
         
-        if(mainPanel.getWidth() != 0 && mainPanel.getHeight() != 0 && panel != null){
-            int x = 0, y = 0, width = mainPanel.getWidth(), height = mainPanel.getHeight();
-            
-            int lastWCase = ea.getLastWCase();
-            int firstWCase = ea.getFirstWCase();
-            int caseWidth = matrix.getWCases();
-            
-            int lastHCase = ea.getLastHCase();
-            int firstHCase = ea.getFirstHCase();
-            int caseHeight = matrix.getHCases();
-            
-            int eW = lastWCase - firstWCase;
-            int eH = lastHCase - firstHCase;
-            
-            // X
-            switch(corner){
-                case 1, 4, 7 -> {
-                    // x = 0
-                    firstWCase = 0; lastWCase = firstWCase + eW;
-                }
-                case 2, 5, 8 -> {
-                    // x = middle
-
-                }
-                case 3, 6, 9 -> {
-                    // x = max
-                    lastWCase = caseWidth; firstWCase = lastWCase - eW;
-                }
-            }
-
-            // Y
-            switch(corner){
-                case 1, 2, 3 -> {
-                    // y = max
-                    lastHCase = caseHeight; firstHCase = lastHCase - eH;
-                }
-                case 4, 5, 6 -> {
-                    // y = middle
-
-                }
-                case 7, 8, 9 -> {
-                    // y = 0
-                    firstHCase = 0; lastHCase = firstHCase + eH;
-                }
-            }
-            
-            if(lastWCase - firstWCase < caseWidth){
-                int partWidth = width / caseWidth;
-                x = firstWCase * partWidth;
-                width = (lastWCase - firstWCase) * partWidth;
-            }
-            
-            if(lastHCase - firstHCase < caseHeight){
-                int partHeight = height / caseHeight;
-                y = firstHCase * partHeight;
-                height = (lastHCase - firstHCase) * partHeight;
-            }
-            
-            ea.setFirstWCase(firstWCase);
-            ea.setLastWCase(lastWCase);
-            ea.setFirstHCase(firstHCase);
-            ea.setLastHCase(lastHCase);
-            
-            cp.setLocation(x, y);
-            cp.setSize(width, height);
-            
-            mainPanel.updateUI();
-        }
-    }
-    
-    public enum ShiftDirection {
-        Left, Right, Top, Bottom;
-    }
-    
-    public void shift(ShiftDirection dir, ContainerPanel cp){
-        ElementAbstract ea = cp.getElementAbstract();
-        JPanel panel = (JPanel)ea.getPanel();
-        
-        if(mainPanel.getWidth() != 0 && mainPanel.getHeight() != 0 && panel != null){
-            int x = 0, y = 0, width = mainPanel.getWidth(), height = mainPanel.getHeight();
-            
-            int lastWCase = ea.getLastWCase();
-            int firstWCase = ea.getFirstWCase();
-            int caseWidth = matrix.getWCases();
-            
-            int lastHCase = ea.getLastHCase();
-            int firstHCase = ea.getFirstHCase();
-            int caseHeight = matrix.getHCases();
-            
-            switch(dir){
-                case Left -> {
-                    int oldValue = firstWCase;
-                    firstWCase = firstWCase > 0 ? firstWCase - 1 : 0;
-                    if(oldValue != firstWCase){
-                        lastWCase = lastWCase > 1 ? lastWCase - 1 : 1;
-                    }
-                }
-                case Right -> {
-                    int oldValue = lastWCase;
-                    lastWCase = lastWCase < caseWidth ? lastWCase + 1 : caseWidth;
-                    if(oldValue != lastWCase){
-                        firstWCase = firstWCase < caseWidth - 1 ? firstWCase + 1 : caseWidth - 1;
-                    }
-                }
-                case Top -> {
-                    int oldValue = firstHCase;
-                    firstHCase = firstHCase > 0 ? firstHCase - 1 : 0;
-                    if(oldValue != firstHCase){
-                        lastHCase = lastHCase > 1 ? lastHCase - 1 : 1;
-                    }
-                }
-                case Bottom -> {
-                    int oldValue = lastHCase;
-                    lastHCase = lastHCase < caseHeight ? lastHCase + 1 : caseHeight;
-                    if(oldValue != lastHCase){
-                        firstHCase = firstHCase < caseHeight - 1 ? firstHCase + 1 : caseHeight - 1;
-                    }
-                }
-            }
-            
-            if(lastWCase - firstWCase < caseWidth){
-                int partWidth = width / caseWidth;
-                x = firstWCase * partWidth;
-                width = (lastWCase - firstWCase) * partWidth;
-            }
-            
-            if(lastHCase - firstHCase < caseHeight){
-                int partHeight = height / caseHeight;
-                y = firstHCase * partHeight;
-                height = (lastHCase - firstHCase) * partHeight;
-            }
-            
-            ea.setFirstWCase(firstWCase);
-            ea.setLastWCase(lastWCase);
-            ea.setFirstHCase(firstHCase);
-            ea.setLastHCase(lastHCase);
-            
-            ea.setCorner(-1);
-            
-            cp.setLocation(x, y);
-            cp.setSize(width, height);
-            
-            mainPanel.updateUI();
-        }
-    }
-    
-    public void removeContainerPanel(ContainerPanel cp){
-        try{
-            cs.remove(cp.getElementAbstract().getName());
-            mainPanel.remove(cp);
-
-            JMenu m = cp.getElementAbstract().getMenu();
-            mElements.remove(m);
-        }catch(Exception exc){
-        }        
+        return m;
     }
     
     /**
@@ -302,7 +131,9 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        bgEditClickASSATable = new javax.swing.ButtonGroup();
+        bgMatrixX = new javax.swing.ButtonGroup();
+        bgMatrixY = new javax.swing.ButtonGroup();
+        jPanel1 = new javax.swing.JPanel();
         mainPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         mFile = new javax.swing.JMenu();
@@ -310,28 +141,30 @@ public class MainFrame extends javax.swing.JFrame {
         mFileOpenProject = new javax.swing.JMenuItem();
         mFileSaveProjectAs = new javax.swing.JMenuItem();
         mFileSaveProject = new javax.swing.JMenuItem();
-        mEdit = new javax.swing.JMenu();
-        rbmEditDoubleClick = new javax.swing.JRadioButtonMenuItem();
-        rbmEditOneClick = new javax.swing.JRadioButtonMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        mElements = new javax.swing.JMenu();
+        jSeparator3 = new javax.swing.JPopupMenu.Separator();
         mFileAddElement = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        mEdit = new javax.swing.JMenu();
+        mMatrixX = new javax.swing.JMenu();
+        mMatrixY = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        mainPanel.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel1.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 744, Short.MAX_VALUE)
+            .addGap(0, 702, Short.MAX_VALUE)
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 406, Short.MAX_VALUE)
+            .addGap(0, 379, Short.MAX_VALUE)
         );
+
+        jPanel1.add(mainPanel, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
         mFile.setText("File");
 
@@ -374,34 +207,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
         mFile.add(mFileSaveProject);
-
-        jMenuBar1.add(mFile);
-
-        mEdit.setText("Edit");
-
-        bgEditClickASSATable.add(rbmEditDoubleClick);
-        rbmEditDoubleClick.setSelected(true);
-        rbmEditDoubleClick.setText("Edit on double click in ASSA Table");
-        rbmEditDoubleClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rbmEditDoubleClickActionPerformed(evt);
-            }
-        });
-        mEdit.add(rbmEditDoubleClick);
-
-        bgEditClickASSATable.add(rbmEditOneClick);
-        rbmEditOneClick.setText("Edit on simple click in ASSA Table");
-        rbmEditOneClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rbmEditOneClickActionPerformed(evt);
-            }
-        });
-        mEdit.add(rbmEditOneClick);
-        mEdit.add(jSeparator1);
-
-        jMenuBar1.add(mEdit);
-
-        mElements.setText("Elements");
+        mFile.add(jSeparator3);
 
         mFileAddElement.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mFileAddElement.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/16px-Crystal_Clear_action_edit_add.png"))); // NOI18N
@@ -411,23 +217,21 @@ public class MainFrame extends javax.swing.JFrame {
                 mFileAddElementActionPerformed(evt);
             }
         });
-        mElements.add(mFileAddElement);
-        mElements.add(jSeparator2);
+        mFile.add(mFileAddElement);
 
-        jMenuBar1.add(mElements);
+        jMenuBar1.add(mFile);
+
+        mEdit.setText("Edit");
+
+        mMatrixX.setText("Matrix on X");
+        mEdit.add(mMatrixX);
+
+        mMatrixY.setText("Matrix on Y");
+        mEdit.add(mMatrixY);
+
+        jMenuBar1.add(mEdit);
 
         setJMenuBar(jMenuBar1);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -450,57 +254,28 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void mFileAddElementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mFileAddElementActionPerformed
         // Open dialog to choose a new element
-        ElementDialog d = new ElementDialog(this, true, theme);
+        ElementDialog d = new ElementDialog(this, true, this);
         d.showDialog();
         if(d.getDialogResult() == DialogResult.Ok){
-            ElementAbstract ea = d.getElementComponent();
-            String name = d.getElementName();
-            
-            if(ea.getPanel() instanceof javax.swing.JPanel){
-                ContainerPanel cp = new ContainerPanel(this, ea);
-                mainPanel.add(cp);                
-                cs.put(name, cp);                
-                applyBoundaries(cp);
-                
-                ea.setupMenu(name, cp);
-                mElements.add(ea.getMenu());
-            }
+            desktopPane.addElementAbstract(d.getElementComponent(), d.getElementName());
         }
     }//GEN-LAST:event_mFileAddElementActionPerformed
 
-    private void rbmEditDoubleClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbmEditDoubleClickActionPerformed
-        // Sélectionne le double clic sur les éléments ASSA Table
-        for(Map.Entry<String, ContainerPanel> entry : cs.entrySet()){
-            if(entry.getValue().getElementAbstract().getPanel() instanceof AssTablePanel p){
-                p.setEditOneSimpleClick(false);
-            }
-        }
-    }//GEN-LAST:event_rbmEditDoubleClickActionPerformed
-
-    private void rbmEditOneClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbmEditOneClickActionPerformed
-        // Sélectionne le simple clic sur les éléments ASSA Table
-        for(Map.Entry<String, ContainerPanel> entry : cs.entrySet()){
-            if(entry.getValue().getElementAbstract().getPanel() instanceof AssTablePanel p){
-                p.setEditOneSimpleClick(true);
-            }
-        }
-    }//GEN-LAST:event_rbmEditOneClickActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.ButtonGroup bgEditClickASSATable;
+    private javax.swing.ButtonGroup bgMatrixX;
+    private javax.swing.ButtonGroup bgMatrixY;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JMenu mEdit;
-    private javax.swing.JMenu mElements;
     private javax.swing.JMenu mFile;
     private javax.swing.JMenuItem mFileAddElement;
     private javax.swing.JMenuItem mFileNewProject;
     private javax.swing.JMenuItem mFileOpenProject;
     private javax.swing.JMenuItem mFileSaveProject;
     private javax.swing.JMenuItem mFileSaveProjectAs;
+    private javax.swing.JMenu mMatrixX;
+    private javax.swing.JMenu mMatrixY;
     private javax.swing.JPanel mainPanel;
-    private javax.swing.JRadioButtonMenuItem rbmEditDoubleClick;
-    private javax.swing.JRadioButtonMenuItem rbmEditOneClick;
     // End of variables declaration//GEN-END:variables
 }

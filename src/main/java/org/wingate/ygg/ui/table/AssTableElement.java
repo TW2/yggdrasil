@@ -16,16 +16,15 @@
  */
 package org.wingate.ygg.ui.table;
 
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 import org.wingate.ygg.ass.ASS;
 import org.wingate.ygg.MainFrame;
-import org.wingate.ygg.theme.Theme;
-import org.wingate.ygg.ui.ContainerPanel;
+import org.wingate.ygg.ui.ContainerInternalFrame;
 import org.wingate.ygg.ui.ElementAbstract;
 
 /**
@@ -36,14 +35,14 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
     
     private String lastSavePath = null;
     
-    public AssTableElement(Theme theme) {
+    public AssTableElement(MainFrame mainFrame) {
         name = "ASSA Table";
-        panel = new AssTablePanel(theme);
+        panel = new AssTablePanel(mainFrame.getTheme());
         panel.resetColumnWidth();
     }
     
     @Override
-    public void setupMenu(String friendlyName, ContainerPanel cp){
+    public void setupMenu(String friendlyName, ContainerInternalFrame cp){
         ImageIcon iiNewDoc = new ImageIcon(getClass().getResource("/images/16 newdocument.png"));
         ImageIcon iiOpenDoc = new ImageIcon(getClass().getResource("/images/16 folder.png"));
         ImageIcon iiSaveDoc = new ImageIcon(getClass().getResource("/images/16 floppydisk.png"));
@@ -53,7 +52,7 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         ImageIcon iiCorner7 = new ImageIcon(getClass().getResource("/images/16 corner 7.png"));
         ImageIcon iiClose = new ImageIcon(getClass().getResource("/images/16 cross-small.png"));
         
-        menu = new JMenu();
+        menu = cp.getFileMenu();
         menu.setText(String.format("%s (%s)", name, friendlyName));
         
         JMenuItem miNewDoc = new JMenuItem("New empty document");
@@ -117,9 +116,9 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         
         menu.add(new JSeparator());
         
-        JMenuItem miToLeftTop = new JMenuItem("Put to the corner 7");
+         JMenuItem miToLeftTop = new JMenuItem("Put to the corner 7");
         miToLeftTop.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(7, cp);
+            cp.getContainersDesktopPane().toCorner7(this);
             cp.getElementAbstract().setCorner(7);
         });
         miToLeftTop.setIcon(iiCorner7);
@@ -127,7 +126,7 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         
         JMenuItem miToRightTop = new JMenuItem("Put to the corner 9");
         miToRightTop.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(9, cp);
+            cp.getContainersDesktopPane().toCorner9(this);
             cp.getElementAbstract().setCorner(9);
         });
         miToRightTop.setIcon(iiCorner9);
@@ -135,7 +134,7 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         
         JMenuItem miToRightBottom = new JMenuItem("Put to the corner 3");
         miToRightBottom.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(3, cp);
+            cp.getContainersDesktopPane().toCorner3(this);
             cp.getElementAbstract().setCorner(3);
         });
         miToRightBottom.setIcon(iiCorner3);
@@ -143,7 +142,7 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         
         JMenuItem miToLeftBottom = new JMenuItem("Put to the corner 1");
         miToLeftBottom.addActionListener((listener)->{
-            cp.getMainFrame().shiftMax(1, cp);
+            cp.getContainersDesktopPane().toCorner1(this);
             cp.getElementAbstract().setCorner(1);
         });
         miToLeftBottom.setIcon(iiCorner1);
@@ -153,45 +152,57 @@ public class AssTableElement extends ElementAbstract<AssTablePanel> {
         
         JMenuItem miToLeft = new JMenuItem("Left by 1");
         miToLeft.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Left, cp);
+            cp.getContainersDesktopPane().toLeft(this);
         });
         menu.add(miToLeft);
         
         JMenuItem miToRight = new JMenuItem("Right by 1");
         miToRight.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Right, cp);
+            cp.getContainersDesktopPane().toRight(this);
         });
         menu.add(miToRight);
         
         JMenuItem miToTop = new JMenuItem("Top by 1");
         miToTop.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Top, cp);
+            cp.getContainersDesktopPane().toUp(this);
         });
         menu.add(miToTop);
         
         JMenuItem miToBottom = new JMenuItem("Bottom by 1");
         miToBottom.addActionListener((listener)->{
-            cp.getMainFrame().shift(MainFrame.ShiftDirection.Bottom, cp);
+            cp.getContainersDesktopPane().toDown(this);
         });
         menu.add(miToBottom);
         
         menu.add(new JSeparator());
         
-        JCheckBoxMenuItem miHide = new JCheckBoxMenuItem("Hide");
-        miHide.setSelected(false);
-        miHide.addActionListener((listener)->{
-            cp.setVisible(!miHide.isSelected());
-        });
-        menu.add(miHide);
-        
-        menu.add(new JSeparator());
-        
         JMenuItem miClose = new JMenuItem("Close element");
         miClose.addActionListener((listener)->{
-            cp.setVisible(false);
-            cp.getMainFrame().removeContainerPanel(cp);
+            cp.getContainersDesktopPane().removeElementAbstract(this);
         });
         miClose.setIcon(iiClose);
         menu.add(miClose);
+        
+        menu = cp.getEditMenu();
+        
+        ButtonGroup clickCountGroup = new ButtonGroup();
+        
+        JCheckBoxMenuItem miDblClkTwo = new JCheckBoxMenuItem("Edit on double click");
+        miDblClkTwo.addActionListener((listener)->{
+            panel.setEditOneSimpleClick(false);
+        });
+        menu.setSelected(true);
+        menu.add(miDblClkTwo);
+        
+        clickCountGroup.add(menu);
+        
+        JCheckBoxMenuItem miDblClkOne = new JCheckBoxMenuItem("Edit on simple click");
+        miDblClkOne.addActionListener((listener)->{
+            panel.setEditOneSimpleClick(true);
+        });
+        menu.setSelected(false);
+        menu.add(miDblClkOne);
+        
+        clickCountGroup.add(menu);
     }
 }

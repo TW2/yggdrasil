@@ -17,9 +17,8 @@
 package org.wingate.ygg.ui;
 
 import javax.swing.DefaultListModel;
+import org.wingate.ygg.MainFrame;
 import org.wingate.ygg.helper.DialogResult;
-import org.wingate.ygg.theme.Dark;
-import org.wingate.ygg.theme.Theme;
 import org.wingate.ygg.ui.audio.AudioElement;
 import org.wingate.ygg.ui.table.AssTableElement;
 import org.wingate.ygg.ui.video.VideoElement;
@@ -38,17 +37,17 @@ public class ElementDialog extends javax.swing.JDialog {
      * Creates new form ElementDialog2
      * @param parent
      * @param modal
-     * @param mainTheme
+     * @param mainFrame
      */
-    public ElementDialog(java.awt.Frame parent, boolean modal, Theme mainTheme) {
+    public ElementDialog(java.awt.Frame parent, boolean modal, MainFrame mainFrame) {
         super(parent, modal);
         initComponents();
         
         this.parent = parent;
         elementList.setModel(listModel);
-        listModel.addElement(new AssTableElement(mainTheme));
-        listModel.addElement(new VideoElement(mainTheme));
-        listModel.addElement(new AudioElement(mainTheme));
+        listModel.addElement(new AssTableElement(mainFrame));
+        listModel.addElement(new VideoElement(mainFrame));
+        listModel.addElement(new AudioElement(mainFrame));
         
         new javax.swing.Timer(100, (l) -> {
             if(elementList.getSelectedIndex() != -1 && !tfElementName.getText().isEmpty()){
@@ -232,50 +231,7 @@ public class ElementDialog extends javax.swing.JDialog {
             }
         }
     }//GEN-LAST:event_tfElementNameKeyReleased
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ElementDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ElementDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ElementDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ElementDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                ElementDialog dialog = new ElementDialog(new javax.swing.JFrame(), true, new Dark());
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnOK;

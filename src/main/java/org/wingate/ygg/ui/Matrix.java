@@ -21,26 +21,13 @@ package org.wingate.ygg.ui;
  * @author util2
  */
 public class Matrix {
+    private final int maxWCases = 35;
+    private final int maxHCases = 35;
+        
     private int wCases = 1;
     private int hCases = 1;
 
     public Matrix() {
-    }
-    
-    public void addW(){
-        wCases = wCases < 35 ? wCases++ : 35;        
-    }
-    
-    public void removeW(){
-        wCases = wCases > 1 ? wCases-- : 1;
-    }
-    
-    public void addH(){
-        hCases = hCases < 35 ? hCases++ : 35;        
-    }
-    
-    public void removeH(){
-        hCases = hCases > 1 ? hCases-- : 1;
     }
 
     public int getWCases() {
@@ -49,7 +36,7 @@ public class Matrix {
 
     public void setWCases(int wCases) {
         if(wCases < 1) wCases = 1;
-        if(wCases > 35) wCases = 35;
+        if(wCases > maxWCases) wCases = maxWCases;
         this.wCases = wCases;
     }
 
@@ -59,7 +46,15 @@ public class Matrix {
 
     public void setHCases(int hCases) {
         if(hCases < 1) hCases = 1;
-        if(hCases > 35) hCases = 35;
+        if(hCases > maxHCases) hCases = maxHCases;
         this.hCases = hCases;
+    }
+
+    public int getMaxWCases() {
+        return maxWCases;
+    }
+
+    public int getMaxHCases() {
+        return maxHCases;
     }
 }
