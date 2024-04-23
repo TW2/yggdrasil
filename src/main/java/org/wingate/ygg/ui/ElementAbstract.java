@@ -26,6 +26,7 @@ import javax.swing.JMenu;
 public abstract class ElementAbstract<P> implements ElementInterface {
     
     protected String name;
+    protected String friendlyName;
     protected P panel;
     protected JMenu menu;
     
@@ -52,6 +53,16 @@ public abstract class ElementAbstract<P> implements ElementInterface {
     @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String getFriendlyName() {
+        return friendlyName;
+    }
+
+    @Override
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
     }
     
     @Override

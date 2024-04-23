@@ -27,6 +27,7 @@ import javax.swing.JFileChooser;
 import org.wingate.ygg.helper.AudioFileFilter;
 import org.wingate.ygg.helper.VideoFileFilter;
 import org.wingate.ygg.theme.Theme;
+import org.wingate.ygg.ui.video.VideoPanel;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurface;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -53,6 +54,17 @@ public class AudioPanel extends javax.swing.JPanel {
     private String videoPath = null;
     
     private final AudioForm audioForm;
+    
+    private long timeToStop = 0L;
+    private long fromAudioStart = 0L;
+    private long fromAudioEnd = 0L;
+    private long previewTime = 500L;
+    private long fromAudioStartK = 0L;
+    private long fromAudioEndK = 0L;
+    private long previewTimeK = 500L;
+    
+    private VideoPanel videoPanel = null;
+    private boolean useVideoPanel = true;
 
     /**
      * Creates new form AudioPanel
@@ -100,6 +112,10 @@ public class AudioPanel extends javax.swing.JPanel {
 
                 @Override
                 public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
+                    if(timeToStop > 0L && timeToStop >= newTime && videoPath != null){
+                        embeddedMediaPlayer.controls().stop();
+                        timeToStop = 0L;
+                    }
                 }
             });
             
@@ -149,6 +165,97 @@ public class AudioPanel extends javax.swing.JPanel {
         });
     }
 
+    /**
+     * Play from start to end (from end to start if detected with reordering)
+     * @param start Start time in ms
+     * @param end End time in ms
+     */
+    public void playArea(long start, long end){
+        Platform.runLater(()->{
+            if(videoPath != null){
+                long s = Math.min(start, end);
+                long e = Math.max(start, end);
+                if(s != e && e > 0L){
+                    timeToStop = e;
+                    embeddedMediaPlayer.media().play(videoPath);
+                    embeddedMediaPlayer.controls().setTime(s);
+                }                
+            }
+        });
+    }
+
+    public long getTimeToStop() {
+        return timeToStop;
+    }
+
+    public void setTimeToStop(long timeToStop) {
+        this.timeToStop = timeToStop;
+    }
+
+    public long getFromAudioStart() {
+        return fromAudioStart;
+    }
+
+    public void setFromAudioStart(long fromAudioStart) {
+        this.fromAudioStart = fromAudioStart;
+    }
+
+    public long getFromAudioEnd() {
+        return fromAudioEnd;
+    }
+
+    public void setFromAudioEnd(long fromAudioEnd) {
+        this.fromAudioEnd = fromAudioEnd;
+    }
+
+    public long getPreviewTime() {
+        return previewTime;
+    }
+
+    public void setPreviewTime(long previewTime) {
+        this.previewTime = previewTime;
+    }
+
+    public long getFromAudioStartK() {
+        return fromAudioStartK;
+    }
+
+    public void setFromAudioStartK(long fromAudioStartK) {
+        this.fromAudioStartK = fromAudioStartK;
+    }
+
+    public long getFromAudioEndK() {
+        return fromAudioEndK;
+    }
+
+    public void setFromAudioEndK(long fromAudioEndK) {
+        this.fromAudioEndK = fromAudioEndK;
+    }
+
+    public long getPreviewTimeK() {
+        return previewTimeK;
+    }
+
+    public void setPreviewTimeK(long previewTimeK) {
+        this.previewTimeK = previewTimeK;
+    }
+
+    public VideoPanel getVideoPanel() {
+        return videoPanel;
+    }
+
+    public void setVideoPanel(VideoPanel videoPanel) {
+        this.videoPanel = videoPanel;
+    }
+
+    public boolean isUseVideoPanel() {
+        return useVideoPanel;
+    }
+
+    public void setUseVideoPanel(boolean useVideoPanel) {
+        this.useVideoPanel = useVideoPanel;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -431,43 +538,83 @@ public class AudioPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioStart - previewTime, fromAudioStart);
+        }else{
+            playArea(fromAudioStart - previewTime, fromAudioStart);
+        }
     }//GEN-LAST:event_btnPlayBeforeActionPerformed
 
     private void btnPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeginActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioStart, fromAudioStart + previewTime);
+        }else{
+            playArea(fromAudioStart, fromAudioStart + previewTime);
+        }
     }//GEN-LAST:event_btnPlayBeginActionPerformed
 
     private void btnPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioStart, fromAudioEnd);
+        }else{
+            playArea(fromAudioStart, fromAudioEnd);
+        }
     }//GEN-LAST:event_btnPlayAreaActionPerformed
 
     private void btnPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayEndActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioEnd - previewTime, fromAudioEnd);
+        }else{
+            playArea(fromAudioEnd - previewTime, fromAudioEnd);
+        }
     }//GEN-LAST:event_btnPlayEndActionPerformed
 
     private void btnPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioEnd, fromAudioEnd + previewTime);
+        }else{
+            playArea(fromAudioEnd, fromAudioEnd + previewTime);
+        }
     }//GEN-LAST:event_btnPlayAfterActionPerformed
 
     private void btnKPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayBeforeActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioStartK - previewTimeK, fromAudioStartK);
+        }else{
+            playArea(fromAudioStartK - previewTimeK, fromAudioStartK);
+        }
     }//GEN-LAST:event_btnKPlayBeforeActionPerformed
 
     private void btnKPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayBeginActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioStartK, fromAudioStartK + previewTimeK);
+        }else{
+            playArea(fromAudioStartK, fromAudioStartK + previewTimeK);
+        }
     }//GEN-LAST:event_btnKPlayBeginActionPerformed
 
     private void btnKPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayAreaActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioStartK, fromAudioEndK);
+        }else{
+            playArea(fromAudioStartK, fromAudioEndK);
+        }
     }//GEN-LAST:event_btnKPlayAreaActionPerformed
 
     private void btnKPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayEndActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioEndK - previewTimeK, fromAudioEndK);
+        }else{
+            playArea(fromAudioEndK - previewTimeK, fromAudioEndK);
+        }
     }//GEN-LAST:event_btnKPlayEndActionPerformed
 
     private void btnKPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayAfterActionPerformed
-        // TODO add your handling code here:
+        if(videoPanel != null && useVideoPanel){
+            videoPanel.playArea(fromAudioEndK, fromAudioEndK + previewTimeK);
+        }else{
+            playArea(fromAudioEndK, fromAudioEndK + previewTimeK);
+        }
     }//GEN-LAST:event_btnKPlayAfterActionPerformed
 
     private void jScrollBar1AdjustmentValueChanged(java.awt.event.AdjustmentEvent evt) {//GEN-FIRST:event_jScrollBar1AdjustmentValueChanged

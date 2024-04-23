@@ -16,10 +16,13 @@
  */
 package org.wingate.ygg.ui;
 
+import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDesktopPane;
 
 /**
@@ -57,8 +60,10 @@ public class ContainersDesktopPane extends JDesktopPane {
     public void addElementAbstract(ElementAbstract ea, String friendlyName){
         ContainerInternalFrame cp = new ContainerInternalFrame(this, ea);
         ea.setupMenu(friendlyName, cp);
+        ea.setFriendlyName(friendlyName);// Set friendlyName
         add(cp); // Add to desktop
         containers.add(cp); // Add to list (in order to remove it later)
+        updateLinks(null); // Add links (edit menu >> links menu)        
         changeLocation(ea); // Set size and location according matrix
         cp.setVisible(true); // Set internal frame to visible
     }
@@ -73,10 +78,117 @@ public class ContainersDesktopPane extends JDesktopPane {
             }
         }
         if(index != -1){
-            ContainerInternalFrame cp = containers.get(index); // Get internal frame to remove
+            ContainerInternalFrame cp = containers.get(index); // Get internal frame to remove            
+            updateLinks(cp); // Remove links (edit menu >> links menu)
             remove(cp); // Remove from desktop
             containers.remove(index); // Remove from list
             updateUI();
+        }
+    }
+    
+    /**
+     * Update links
+     * @param toRemove Element to remove or <code>null</code> if add. 
+     */
+    public void updateLinks(ContainerInternalFrame toRemove){
+        // Remove if toRemove isn't null
+        if(toRemove != null){
+            ElementAbstract ea = toRemove.getElementAbstract();
+            String s = String.format("%s (%s)", ea.getName(), ea.getFriendlyName());
+            for(ContainerInternalFrame c1 : containers){
+                int index = -1;
+                for(int i=0; i<c1.getLinksMenu().getMenuComponents().length; i++){
+                    Component c = c1.getLinksMenu().getMenuComponents()[i];
+                    if(c instanceof JCheckBoxMenuItem mnu){
+                        if(mnu.getText().equalsIgnoreCase(s)){
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+                if(index != -1){
+                    c1.getLinksMenu().remove(index);
+                }
+            }
+        }else{
+            // Add if null
+            for(ContainerInternalFrame c1 : containers){
+                ElementAbstract ea = c1.getElementAbstract();
+                String s = String.format("%s (%s)", ea.getName(), ea.getFriendlyName());
+                for(ContainerInternalFrame c2 : containers){
+                    if(c1 != c2){
+                        boolean exists = false;
+                        for(Component c : c1.getLinksMenu().getMenuComponents()){
+                            if(c instanceof JCheckBoxMenuItem mnu){
+                                if(mnu.getText().equalsIgnoreCase(s)){
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                        }
+                        for(Component c : c2.getLinksMenu().getMenuComponents()){
+                            if(c instanceof JCheckBoxMenuItem mnu){
+                                if(mnu.getText().equalsIgnoreCase(s)){
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(exists == false){
+                            // If exists equals false then add CheckBoxMenuItem and its event
+                            JCheckBoxMenuItem mnu = new JCheckBoxMenuItem(s);
+                            mnu.addActionListener((e) -> {
+                                checkPermissionEventListener(e);
+                            });
+                            c2.getLinksMenu().add(mnu);
+                        }                        
+                    }
+                }            
+            }
+        }
+    }
+    
+    public void checkPermissionEventListener(ActionEvent evt){
+        // Select source menu
+        JCheckBoxMenuItem item = null;
+        if(evt.getSource() instanceof JCheckBoxMenuItem mnu){
+            item = mnu;
+        }
+        if(item == null) return;
+        
+        // Get text to search
+        String sourceText = null;
+        String targetText = null;
+        for(ContainerInternalFrame container : containers){
+            for(Component c : container.getLinksMenu().getMenuComponents()){
+                if(c instanceof JCheckBoxMenuItem mnu){
+                    if(mnu == item){
+                        sourceText = container.getFileMenu().getText();
+                        targetText = item.getText();
+                        break;
+                    }
+                }
+            }
+            if(targetText != null) break;
+        }
+        if(targetText == null || sourceText == null) return;
+        
+        // Get target primitive element
+        ContainerInternalFrame cp = null;
+        for(ContainerInternalFrame container : containers){
+            if(container.getFileMenu().getText().equalsIgnoreCase(targetText)){
+                cp = container;
+            }
+        }
+        if(cp == null) return;
+        
+        // Change permission
+        for(Component c : cp.getLinksMenu().getMenuComponents()){
+            if(c instanceof JCheckBoxMenuItem mnu){
+                if(mnu.getText().equalsIgnoreCase(sourceText)){
+                    mnu.setSelected(!mnu.isSelected());
+                }
+            }
         }
     }
     

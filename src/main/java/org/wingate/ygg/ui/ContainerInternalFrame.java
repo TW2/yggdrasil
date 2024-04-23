@@ -58,6 +58,10 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
     public javax.swing.JMenu getEditMenu(){
         return mnuEdit;
     }
+    
+    public javax.swing.JMenu getLinksMenu(){
+        return mnuLink;
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -72,6 +76,7 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
         mnuEdit = new javax.swing.JMenu();
+        mnuLink = new javax.swing.JMenu();
         mnuW = new javax.swing.JMenu();
         mnuH = new javax.swing.JMenu();
         mnuLeft = new javax.swing.JMenu();
@@ -101,6 +106,10 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
         jMenuBar1.add(mnuFile);
 
         mnuEdit.setText("Edit");
+
+        mnuLink.setText("Links");
+        mnuEdit.add(mnuLink);
+
         jMenuBar1.add(mnuEdit);
 
         mnuW.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/fnew_46_16.png"))); // NOI18N
@@ -214,6 +223,7 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuH;
     private javax.swing.JMenu mnuLeft;
+    private javax.swing.JMenu mnuLink;
     private javax.swing.JMenu mnuRight;
     private javax.swing.JMenu mnuSettings;
     private javax.swing.JMenu mnuUp;

@@ -18,7 +18,6 @@ package org.wingate.ygg.ui.audio;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 import org.wingate.ygg.MainFrame;
@@ -45,7 +44,7 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         ImageIcon iiCorner7 = new ImageIcon(getClass().getResource("/images/16 corner 7.png"));
         ImageIcon iiClose = new ImageIcon(getClass().getResource("/images/16 cross-small.png"));
         
-        menu = new JMenu();
+        menu = cp.getFileMenu();
         menu.setText(String.format("%s (%s)", name, friendlyName));
         
         JMenuItem miOpenDoc = new JMenuItem("Open video or audio...");

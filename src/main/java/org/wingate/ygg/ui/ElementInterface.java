@@ -23,6 +23,8 @@ package org.wingate.ygg.ui;
 public interface ElementInterface {
     public String getName();
     public void setName(String name);
+    public String getFriendlyName();
+    public void setFriendlyName(String friendlyName);
     
     public void setupMenu(String friendlyName, ContainerInternalFrame cp);
 }

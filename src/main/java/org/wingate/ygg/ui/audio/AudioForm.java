@@ -21,6 +21,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -70,6 +72,26 @@ public class AudioForm extends JPanel {
         if(display != null) this.display = display;
         if(style != null) this.style = style;
         keyframes = new HashMap<>();
+        
+        addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                
+                switch(e.getButton()){
+                    case MouseEvent.BUTTON1 -> {
+                        // Button 1 is the left one
+                        startX = e.getX();
+                        repaint();
+                    }
+                    case MouseEvent.BUTTON3 -> {
+                        // Button 3 is the right one
+                        endX = e.getX();
+                        repaint();
+                    }
+                }
+            } 
+        });
     }
     
     public void openFile(String path, long partDuration, int partWidth, int partHeight){
@@ -151,6 +173,38 @@ public class AudioForm extends JPanel {
     
     public long getMsDuration(){
         return data.getMsDuration();
+    }
+
+    public AssTime getStart() {
+        return start;
+    }
+
+    public void setStart(AssTime start) {
+        this.start = start;
+    }
+
+    public AssTime getEnd() {
+        return end;
+    }
+
+    public void setEnd(AssTime end) {
+        this.end = end;
+    }
+
+    public int getStartX() {
+        return startX;
+    }
+
+    public void setStartX(int startX) {
+        this.startX = startX;
+    }
+
+    public int getEndX() {
+        return endX;
+    }
+
+    public void setEndX(int endX) {
+        this.endX = endX;
     }
 
     //==========================================================================
@@ -313,11 +367,11 @@ public class AudioForm extends JPanel {
         double stickyEnd = endX + offsetX;
         
         g.setColor(DrawColor.blue.getColor(.35f));
-        AssTime tStart = AssTime.fromMillisecondsTime(
+        start = AssTime.fromMillisecondsTime(
                     Math.round(stickyStart / partWidth * partDuration) + partDuration * n);
-        AssTime tEnd = AssTime.fromMillisecondsTime(
-                    Math.round(stickyEnd / partWidth * partDuration) + partDuration * n);
-        AssTime diff = AssTime.substract(tStart, tEnd);
+        end = AssTime.fromMillisecondsTime(
+                    Math.round(stickyEnd / partWidth * partDuration) + partDuration * n);        
+        AssTime diff = AssTime.substract(start, end);
         g.fill(new Rectangle2D.Double(stickyStart, 0, endX - startX, h));
         
         String s = diff.toASSTime();
@@ -337,8 +391,8 @@ public class AudioForm extends JPanel {
         
         g.setFont(oldFont);
         
-        tStart = AssTime.create(Math.round(startX / partWidth * partDuration) + partDuration * n);
-        s = tStart.toASSTime();
+        start = AssTime.create(Math.round(startX / partWidth * partDuration) + partDuration * n);
+        s = start.toASSTime();
         measureText = g.getFontMetrics().stringWidth(s);
         
         // Début / Start
@@ -350,8 +404,8 @@ public class AudioForm extends JPanel {
         g.rotate(Math.toRadians(90));
         g.translate(-(stickyStart - 2), -(y + measureText));
         
-        tEnd = AssTime.create(Math.round(endX / partWidth * partDuration) + partDuration * n);
-        s = tEnd.toASSTime();
+        end = AssTime.create(Math.round(endX / partWidth * partDuration) + partDuration * n);
+        s = end.toASSTime();
         measureText = g.getFontMetrics().stringWidth(s);
 
         // Fin / End

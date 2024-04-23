@@ -31,7 +31,7 @@ import org.wingate.ygg.ui.ElementAbstract;
 public class VideoElement extends ElementAbstract<VideoPanel> {
     
     public VideoElement(MainFrame mainFrame) {
-        name = "Video viewer";
+        name = "Video player";
         panel = new VideoPanel(mainFrame.getTheme());
     }
 
