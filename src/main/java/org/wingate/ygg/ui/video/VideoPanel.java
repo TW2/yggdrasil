@@ -102,8 +102,10 @@ public class VideoPanel extends javax.swing.JPanel {
                 @Override
                 public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
                     if(timeToStop > 0L && timeToStop >= newTime && videoPath != null){
-                        embeddedMediaPlayer.controls().stop();
-                        timeToStop = 0L;
+                        embeddedMediaPlayer.submit(()->{
+                            embeddedMediaPlayer.controls().stop();
+                            timeToStop = 0L;
+                        });
                     }
                 }
             });
@@ -156,15 +158,16 @@ public class VideoPanel extends javax.swing.JPanel {
      * Play from start to end (from end to start if detected with reordering)
      * @param start Start time in ms
      * @param end End time in ms
+     * @param path
      */
-    public void playArea(long start, long end){
+    public void playArea(long start, long end, String path){
         Platform.runLater(()->{
-            if(videoPath != null){
+            if(path != null){
                 long s = Math.min(start, end);
                 long e = Math.max(start, end);
-                if(s != e && e > 0L){
+                if(s < e && s >= 0L && e > 0L){
                     timeToStop = e;
-                    embeddedMediaPlayer.media().play(videoPath);
+                    embeddedMediaPlayer.media().play(path);
                     embeddedMediaPlayer.controls().setTime(s);
                     if(subtitlesPath != null){
                         embeddedMediaPlayer.subpictures().setSubTitleFile(subtitlesPath);
@@ -172,6 +175,10 @@ public class VideoPanel extends javax.swing.JPanel {
                 }                
             }
         });
+    }
+    
+    public void playArea(long start, long end){
+        playArea(start, end, videoPath);
     }
 
     public long getTimeToStop() {

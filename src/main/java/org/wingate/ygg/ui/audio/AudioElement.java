@@ -17,6 +17,7 @@
 package org.wingate.ygg.ui.audio;
 
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
@@ -127,6 +128,14 @@ public class AudioElement extends ElementAbstract<AudioPanel> {
         });
         miClose.setIcon(iiClose);
         menu.add(miClose);
+        
+        menu = cp.getEditMenu();
+        
+        JCheckBoxMenuItem miUseVideoPanel = new JCheckBoxMenuItem("Use video as player");
+        miUseVideoPanel.addActionListener((listener)->{
+            panel.setUseVideoPanel(miUseVideoPanel.isSelected());
+        });
+        menu.add(miUseVideoPanel);
     }
     
 }

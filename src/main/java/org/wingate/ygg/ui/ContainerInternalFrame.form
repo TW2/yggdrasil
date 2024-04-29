@@ -14,9 +14,14 @@
             <Property name="text" type="java.lang.String" value="Edit"/>
           </Properties>
           <SubComponents>
-            <Menu class="javax.swing.JMenu" name="mnuLink">
+            <Menu class="javax.swing.JMenu" name="mnuLinkElements">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Links"/>
+                <Property name="text" type="java.lang.String" value="Link elements"/>
+              </Properties>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="mnuLinkResources">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Link resources"/>
               </Properties>
             </Menu>
           </SubComponents>

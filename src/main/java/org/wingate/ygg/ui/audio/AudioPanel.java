@@ -24,6 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javax.swing.JFileChooser;
+import org.wingate.ygg.ass.AssTime;
 import org.wingate.ygg.helper.AudioFileFilter;
 import org.wingate.ygg.helper.VideoFileFilter;
 import org.wingate.ygg.theme.Theme;
@@ -113,8 +114,10 @@ public class AudioPanel extends javax.swing.JPanel {
                 @Override
                 public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
                     if(timeToStop > 0L && timeToStop >= newTime && videoPath != null){
-                        embeddedMediaPlayer.controls().stop();
-                        timeToStop = 0L;
+                        embeddedMediaPlayer.submit(()->{
+                            embeddedMediaPlayer.controls().stop();
+                            timeToStop = 0L;
+                        });
                     }
                 }
             });
@@ -164,6 +167,32 @@ public class AudioPanel extends javax.swing.JPanel {
             mediaPlayerFactory.release();
         });
     }
+    
+    public AssTime getStartTime(){
+        AssTime t = audioForm.getStartTime();
+        fromAudioStart = AssTime.toMillisecondsTime(t);
+        return t;
+    }
+    
+    public AssTime getEndTime(){
+        AssTime t = audioForm.getEndTime();
+        fromAudioEnd = AssTime.toMillisecondsTime(t);
+        return t;
+    }
+    
+    public AssTime getStartKTime(){
+        // TODO faire une méthode différente à la source
+        AssTime t = audioForm.getStartTime();
+        fromAudioStartK = AssTime.toMillisecondsTime(t);
+        return t;
+    }
+    
+    public AssTime getEndKTime(){
+        // TODO faire une méthode différente à la source
+        AssTime t = audioForm.getEndTime();
+        fromAudioEndK = AssTime.toMillisecondsTime(t);
+        return t;
+    }
 
     /**
      * Play from start to end (from end to start if detected with reordering)
@@ -175,7 +204,7 @@ public class AudioPanel extends javax.swing.JPanel {
             if(videoPath != null){
                 long s = Math.min(start, end);
                 long e = Math.max(start, end);
-                if(s != e && e > 0L){
+                if(s < e && s >= 0L && e > 0L){
                     timeToStop = e;
                     embeddedMediaPlayer.media().play(videoPath);
                     embeddedMediaPlayer.controls().setTime(s);
@@ -538,80 +567,92 @@ public class AudioPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void btnPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeforeActionPerformed
+        getStartTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioStart - previewTime, fromAudioStart);
+            videoPanel.playArea(fromAudioStart - previewTime, fromAudioStart, videoPath);
         }else{
             playArea(fromAudioStart - previewTime, fromAudioStart);
         }
     }//GEN-LAST:event_btnPlayBeforeActionPerformed
 
     private void btnPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayBeginActionPerformed
+        getStartTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioStart, fromAudioStart + previewTime);
+            videoPanel.playArea(fromAudioStart, fromAudioStart + previewTime, videoPath);
         }else{
             playArea(fromAudioStart, fromAudioStart + previewTime);
         }
     }//GEN-LAST:event_btnPlayBeginActionPerformed
 
     private void btnPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAreaActionPerformed
+        getStartTime();
+        getEndTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioStart, fromAudioEnd);
+            videoPanel.playArea(fromAudioStart, fromAudioEnd, videoPath);
         }else{
             playArea(fromAudioStart, fromAudioEnd);
         }
     }//GEN-LAST:event_btnPlayAreaActionPerformed
 
     private void btnPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayEndActionPerformed
+        getEndTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioEnd - previewTime, fromAudioEnd);
+            videoPanel.playArea(fromAudioEnd - previewTime, fromAudioEnd, videoPath);
         }else{
             playArea(fromAudioEnd - previewTime, fromAudioEnd);
         }
     }//GEN-LAST:event_btnPlayEndActionPerformed
 
     private void btnPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayAfterActionPerformed
+        getEndTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioEnd, fromAudioEnd + previewTime);
+            videoPanel.playArea(fromAudioEnd, fromAudioEnd + previewTime, videoPath);
         }else{
             playArea(fromAudioEnd, fromAudioEnd + previewTime);
         }
     }//GEN-LAST:event_btnPlayAfterActionPerformed
 
     private void btnKPlayBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayBeforeActionPerformed
+        getStartKTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioStartK - previewTimeK, fromAudioStartK);
+            videoPanel.playArea(fromAudioStartK - previewTimeK, fromAudioStartK, videoPath);
         }else{
             playArea(fromAudioStartK - previewTimeK, fromAudioStartK);
         }
     }//GEN-LAST:event_btnKPlayBeforeActionPerformed
 
     private void btnKPlayBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayBeginActionPerformed
+        getStartKTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioStartK, fromAudioStartK + previewTimeK);
+            videoPanel.playArea(fromAudioStartK, fromAudioStartK + previewTimeK, videoPath);
         }else{
             playArea(fromAudioStartK, fromAudioStartK + previewTimeK);
         }
     }//GEN-LAST:event_btnKPlayBeginActionPerformed
 
     private void btnKPlayAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayAreaActionPerformed
+        getStartKTime();
+        getEndKTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioStartK, fromAudioEndK);
+            videoPanel.playArea(fromAudioStartK, fromAudioEndK, videoPath);
         }else{
             playArea(fromAudioStartK, fromAudioEndK);
         }
     }//GEN-LAST:event_btnKPlayAreaActionPerformed
 
     private void btnKPlayEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayEndActionPerformed
+        getEndKTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioEndK - previewTimeK, fromAudioEndK);
+            videoPanel.playArea(fromAudioEndK - previewTimeK, fromAudioEndK, videoPath);
         }else{
             playArea(fromAudioEndK - previewTimeK, fromAudioEndK);
         }
     }//GEN-LAST:event_btnKPlayEndActionPerformed
 
     private void btnKPlayAfterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKPlayAfterActionPerformed
+        getEndKTime();
         if(videoPanel != null && useVideoPanel){
-            videoPanel.playArea(fromAudioEndK, fromAudioEndK + previewTimeK);
+            videoPanel.playArea(fromAudioEndK, fromAudioEndK + previewTimeK, videoPath);
         }else{
             playArea(fromAudioEndK, fromAudioEndK + previewTimeK);
         }

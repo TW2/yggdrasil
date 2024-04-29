@@ -175,19 +175,11 @@ public class AudioForm extends JPanel {
         return data.getMsDuration();
     }
 
-    public AssTime getStart() {
-        return start;
-    }
-
-    public void setStart(AssTime start) {
+    public void setStartTime(AssTime start) {
         this.start = start;
     }
 
-    public AssTime getEnd() {
-        return end;
-    }
-
-    public void setEnd(AssTime end) {
+    public void setEndTime(AssTime end) {
         this.end = end;
     }
 
@@ -205,6 +197,44 @@ public class AudioForm extends JPanel {
 
     public void setEndX(int endX) {
         this.endX = endX;
+    }
+    
+    public AssTime getStartTime(){
+        // 100% <> mediaMsDuration
+        // offset <> curMs
+        // when offset is 0 to 100% as 0d to 1d
+        double curMs = offset * mediaMsDuration;
+        int x = -(int)Math.round(curMs / partDuration * partWidth);
+        
+        // nb times partWidth in x
+        int n = Math.abs(x) / partWidth;
+        
+        // images real offset
+        int x1 = x + partWidth * n;
+        
+        double stickyStart = startX + x1;
+        
+        return AssTime.fromMillisecondsTime(
+                Math.round(stickyStart / partWidth * partDuration) + partDuration * n);
+    }
+    
+    public AssTime getEndTime(){
+        // 100% <> mediaMsDuration
+        // offset <> curMs
+        // when offset is 0 to 100% as 0d to 1d
+        double curMs = offset * mediaMsDuration;
+        int x = -(int)Math.round(curMs / partDuration * partWidth);
+        
+        // nb times partWidth in x
+        int n = Math.abs(x) / partWidth;
+        
+        // images real offset
+        int x1 = x + partWidth * n;
+        
+        double stickyEnd = endX + x1;
+        
+        return AssTime.fromMillisecondsTime(
+                Math.round(stickyEnd / partWidth * partDuration) + partDuration * n);
     }
 
     //==========================================================================

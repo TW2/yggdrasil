@@ -24,6 +24,9 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDesktopPane;
+import org.wingate.ygg.ui.audio.AudioPanel;
+import org.wingate.ygg.ui.table.AssTablePanel;
+import org.wingate.ygg.ui.video.VideoPanel;
 
 /**
  *
@@ -97,8 +100,8 @@ public class ContainersDesktopPane extends JDesktopPane {
             String s = String.format("%s (%s)", ea.getName(), ea.getFriendlyName());
             for(ContainerInternalFrame c1 : containers){
                 int index = -1;
-                for(int i=0; i<c1.getLinksMenu().getMenuComponents().length; i++){
-                    Component c = c1.getLinksMenu().getMenuComponents()[i];
+                for(int i=0; i<c1.getLinkElementsMenu().getMenuComponents().length; i++){
+                    Component c = c1.getLinkElementsMenu().getMenuComponents()[i];
                     if(c instanceof JCheckBoxMenuItem mnu){
                         if(mnu.getText().equalsIgnoreCase(s)){
                             index = i;
@@ -107,7 +110,7 @@ public class ContainersDesktopPane extends JDesktopPane {
                     }
                 }
                 if(index != -1){
-                    c1.getLinksMenu().remove(index);
+                    c1.getLinkElementsMenu().remove(index);
                 }
             }
         }else{
@@ -118,7 +121,7 @@ public class ContainersDesktopPane extends JDesktopPane {
                 for(ContainerInternalFrame c2 : containers){
                     if(c1 != c2){
                         boolean exists = false;
-                        for(Component c : c1.getLinksMenu().getMenuComponents()){
+                        for(Component c : c1.getLinkElementsMenu().getMenuComponents()){
                             if(c instanceof JCheckBoxMenuItem mnu){
                                 if(mnu.getText().equalsIgnoreCase(s)){
                                     exists = true;
@@ -126,7 +129,7 @@ public class ContainersDesktopPane extends JDesktopPane {
                                 }
                             }
                         }
-                        for(Component c : c2.getLinksMenu().getMenuComponents()){
+                        for(Component c : c2.getLinkElementsMenu().getMenuComponents()){
                             if(c instanceof JCheckBoxMenuItem mnu){
                                 if(mnu.getText().equalsIgnoreCase(s)){
                                     exists = true;
@@ -140,7 +143,7 @@ public class ContainersDesktopPane extends JDesktopPane {
                             mnu.addActionListener((e) -> {
                                 checkPermissionEventListener(e);
                             });
-                            c2.getLinksMenu().add(mnu);
+                            c2.getLinkElementsMenu().add(mnu);
                         }                        
                     }
                 }            
@@ -159,11 +162,12 @@ public class ContainersDesktopPane extends JDesktopPane {
         // Get text to search
         String sourceText = null;
         String targetText = null;
+        ContainerInternalFrame src = null;
         for(ContainerInternalFrame container : containers){
-            for(Component c : container.getLinksMenu().getMenuComponents()){
+            for(Component c : container.getLinkElementsMenu().getMenuComponents()){
                 if(c instanceof JCheckBoxMenuItem mnu){
                     if(mnu == item){
-                        sourceText = container.getFileMenu().getText();
+                        sourceText = container.getFileMenu().getText(); src = container;
                         targetText = item.getText();
                         break;
                     }
@@ -171,7 +175,7 @@ public class ContainersDesktopPane extends JDesktopPane {
             }
             if(targetText != null) break;
         }
-        if(targetText == null || sourceText == null) return;
+        if(targetText == null || sourceText == null || src == null) return;
         
         // Get target primitive element
         ContainerInternalFrame cp = null;
@@ -183,11 +187,74 @@ public class ContainersDesktopPane extends JDesktopPane {
         if(cp == null) return;
         
         // Change permission
-        for(Component c : cp.getLinksMenu().getMenuComponents()){
+        for(Component c : cp.getLinkElementsMenu().getMenuComponents()){
             if(c instanceof JCheckBoxMenuItem mnu){
                 if(mnu.getText().equalsIgnoreCase(sourceText)){
+                    if(!mnu.isSelected() == true){
+                        link(src, cp);
+                    }else{
+                        unlink(src, cp);
+                    }
                     mnu.setSelected(!mnu.isSelected());
                 }
+            }
+        }
+    }
+    
+    private void link(ContainerInternalFrame source, ContainerInternalFrame target){
+        if(source != target){
+            if(source.getElementAbstract().getPanel() instanceof AssTablePanel a
+                    && target.getElementAbstract().getPanel() instanceof AssTablePanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AssTablePanel a
+                    && target.getElementAbstract().getPanel() instanceof AudioPanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AudioPanel a
+                    && target.getElementAbstract().getPanel() instanceof AssTablePanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AssTablePanel a
+                    && target.getElementAbstract().getPanel() instanceof VideoPanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof VideoPanel a
+                    && target.getElementAbstract().getPanel() instanceof AssTablePanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof VideoPanel a
+                    && target.getElementAbstract().getPanel() instanceof AudioPanel b){
+                b.setVideoPanel(a);
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AudioPanel a
+                    && target.getElementAbstract().getPanel() instanceof VideoPanel b){
+                a.setVideoPanel(b);
+                // TODO
+            }
+        }
+    }
+    
+    private void unlink(ContainerInternalFrame source, ContainerInternalFrame target){
+        if(source != target){
+            if(source.getElementAbstract().getPanel() instanceof AssTablePanel a
+                    && target.getElementAbstract().getPanel() instanceof AssTablePanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AssTablePanel a
+                    && target.getElementAbstract().getPanel() instanceof AudioPanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AudioPanel a
+                    && target.getElementAbstract().getPanel() instanceof AssTablePanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AssTablePanel a
+                    && target.getElementAbstract().getPanel() instanceof VideoPanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof VideoPanel a
+                    && target.getElementAbstract().getPanel() instanceof AssTablePanel b){
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof VideoPanel a
+                    && target.getElementAbstract().getPanel() instanceof AudioPanel b){
+                b.setVideoPanel(null);
+                // TODO
+            }else if(source.getElementAbstract().getPanel() instanceof AudioPanel a
+                    && target.getElementAbstract().getPanel() instanceof VideoPanel b){
+                a.setVideoPanel(null);
+                // TODO
             }
         }
     }

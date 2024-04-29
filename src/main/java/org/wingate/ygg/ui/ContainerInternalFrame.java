@@ -59,8 +59,12 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
         return mnuEdit;
     }
     
-    public javax.swing.JMenu getLinksMenu(){
-        return mnuLink;
+    public javax.swing.JMenu getLinkElementsMenu(){
+        return mnuLinkElements;
+    }
+    
+    public javax.swing.JMenu getLinkResourcesMenu(){
+        return mnuLinkResources;
     }
 
     /**
@@ -76,7 +80,8 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
         mnuEdit = new javax.swing.JMenu();
-        mnuLink = new javax.swing.JMenu();
+        mnuLinkElements = new javax.swing.JMenu();
+        mnuLinkResources = new javax.swing.JMenu();
         mnuW = new javax.swing.JMenu();
         mnuH = new javax.swing.JMenu();
         mnuLeft = new javax.swing.JMenu();
@@ -107,8 +112,11 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
 
         mnuEdit.setText("Edit");
 
-        mnuLink.setText("Links");
-        mnuEdit.add(mnuLink);
+        mnuLinkElements.setText("Link elements");
+        mnuEdit.add(mnuLinkElements);
+
+        mnuLinkResources.setText("Link resources");
+        mnuEdit.add(mnuLinkResources);
 
         jMenuBar1.add(mnuEdit);
 
@@ -223,7 +231,8 @@ public class ContainerInternalFrame extends javax.swing.JInternalFrame {
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuH;
     private javax.swing.JMenu mnuLeft;
-    private javax.swing.JMenu mnuLink;
+    private javax.swing.JMenu mnuLinkElements;
+    private javax.swing.JMenu mnuLinkResources;
     private javax.swing.JMenu mnuRight;
     private javax.swing.JMenu mnuSettings;
     private javax.swing.JMenu mnuUp;
